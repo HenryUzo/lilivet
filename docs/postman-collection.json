@@ -1,0 +1,91 @@
+{
+  "info": {
+    "name": "Lili Vet Hospital Backend API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:4000" },
+    { "key": "sessionToken", "value": "" },
+    { "key": "requestId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Create Appointment Draft",
+      "request": { "method": "POST", "url": "{{baseUrl}}/api/appointment-drafts" }
+    },
+    {
+      "name": "Patch Step 1",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/appointment-drafts/{{sessionToken}}/step-1",
+        "body": { "mode": "raw", "raw": "{\"visitType\":\"WELLNESS_EXAM\"}" }
+      }
+    },
+    {
+      "name": "Patch Step 2",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/appointment-drafts/{{sessionToken}}/step-2",
+        "body": { "mode": "raw", "raw": "{\"petName\":\"Milo\",\"species\":\"DOG\",\"breed\":\"Mixed breed\",\"approximateAgeYears\":4,\"sex\":\"MALE\",\"weightLbs\":38.5}" }
+      }
+    },
+    {
+      "name": "Patch Step 3",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/appointment-drafts/{{sessionToken}}/step-3",
+        "body": { "mode": "raw", "raw": "{\"firstName\":\"Amara\",\"lastName\":\"Okafor\",\"email\":\"amara.okafor@example.com\",\"phoneNumber\":\"+2348012345678\",\"preferredContactMethod\":\"CALL\"}" }
+      }
+    },
+    {
+      "name": "Patch Step 4",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/appointment-drafts/{{sessionToken}}/step-4",
+        "body": { "mode": "raw", "raw": "{\"selectedDate\":\"2026-05-05T00:00:00.000Z\",\"selectedTimeSlots\":[\"09:00\",\"10:30\"],\"timezone\":\"Africa/Lagos\"}" }
+      }
+    },
+    {
+      "name": "Patch Step 5",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/appointment-drafts/{{sessionToken}}/step-5",
+        "body": { "mode": "raw", "raw": "{\"symptomsOrConcerns\":\"Annual wellness check.\",\"currentMedications\":\"None\",\"previousVeterinarian\":\"Greenfields Vet Clinic\",\"symptomDuration\":\"Not applicable\"}" }
+      }
+    },
+    {
+      "name": "Submit Draft",
+      "request": { "method": "POST", "url": "{{baseUrl}}/api/appointment-drafts/{{sessionToken}}/submit" }
+    },
+    {
+      "name": "Create New Patient Request",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/new-patient-requests",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"owner\":{\"fullName\":\"Daniel Mensah\",\"email\":\"daniel.mensah@example.com\",\"phoneNumber\":\"+2348098765432\"},\"visit\":{\"reasonForVisit\":\"New puppy wellness exam and vaccination schedule.\",\"isUrgent\":false,\"preferredDateTime\":\"2026-05-07T14:00:00.000Z\",\"timezone\":\"Africa/Lagos\",\"previousVetClinic\":\"None\",\"consentToElectronicComms\":true},\"pet\":{\"petName\":\"Luna\",\"species\":\"DOG\",\"breed\":\"Golden Retriever\",\"age\":\"12 weeks\",\"sex\":\"FEMALE\",\"weightLbs\":15.2,\"spayedNeutered\":false,\"currentMedications\":\"None\",\"existingConditions\":\"None known\"},\"uploadedFileIds\":[]}"
+        }
+      }
+    },
+    {
+      "name": "List Appointment Requests",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/appointment-requests" }
+    },
+    {
+      "name": "Update Appointment Status",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/appointment-requests/{{requestId}}/status",
+        "body": { "mode": "raw", "raw": "{\"status\":\"CONFIRMED\"}" }
+      }
+    }
+  ]
+}
