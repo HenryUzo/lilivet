@@ -19,7 +19,11 @@ const envSchema = z.object({
   SMTP_PORT: z.coerce.number().int().positive().default(587),
   SMTP_SECURE: z.coerce.boolean().default(false),
   SMTP_USER: z.string().optional().default(""),
-  SMTP_PASS: z.string().optional().default("")
+  SMTP_PASS: z.string().optional().default(""),
+  JWT_SECRET: z.string().min(32).default("development-only-jwt-secret-change-before-production"),
+  JWT_EXPIRES_IN: z.string().min(1).default("8h"),
+  STAFF_SEED_EMAIL: z.string().email().default("admin@lilivethospital.example"),
+  STAFF_SEED_PASSWORD: z.string().min(8).default("ChangeMe123!")
 });
 
 export const env = envSchema.parse(process.env);

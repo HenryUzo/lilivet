@@ -1,8 +1,26 @@
-import { AppointmentRequestStatus, PetSex, PetSpecies, PreferredContactMethod, PrismaClient, VisitType } from "@prisma/client";
+import bcrypt from "bcryptjs";
+import { AppointmentRequestStatus, PetSex, PetSpecies, PreferredContactMethod, PrismaClient, StaffRole, VisitType } from "@prisma/client";
+import { env } from "../src/config/env";
 
 const prisma = new PrismaClient();
 
 async function main() {
+  const passwordHash = await bcrypt.hash(env.STAFF_SEED_PASSWORD, 12);
+  await prisma.staffUser.upsert({
+    where: { email: env.STAFF_SEED_EMAIL.toLowerCase() },
+    update: {
+      passwordHash,
+      role: StaffRole.ADMIN,
+      isActive: true
+    },
+    create: {
+      email: env.STAFF_SEED_EMAIL.toLowerCase(),
+      passwordHash,
+      role: StaffRole.ADMIN,
+      isActive: true
+    }
+  });
+
   const owner = await prisma.owner.create({
     data: {
       firstName: "Amara",

@@ -59,6 +59,9 @@ Copy `.env.example` to `.env` and set:
 - `UNATTACHED_FILE_EXPIRY_HOURS` - expiry window for files uploaded through `/api/files` before they are attached to a request.
 - `DUPLICATE_WINDOW_HOURS` - short duplicate-detection window.
 - `CLINIC_NOTIFICATION_EMAIL`, `MAIL_FROM`, and SMTP settings for Nodemailer.
+- `JWT_SECRET` - long random secret for signing staff JWTs. Use at least 32 characters.
+- `JWT_EXPIRES_IN` - staff token lifetime, for example `8h`.
+- `STAFF_SEED_EMAIL` and `STAFF_SEED_PASSWORD` - admin staff credentials used by the seed script.
 
 ## Important API Rules
 
@@ -99,6 +102,24 @@ New-patient requests:
 Files:
 
 - `POST /api/files`
+
+Staff auth:
+
+- `POST /api/staff/auth/login`
+
+Protected staff routes require:
+
+```text
+Authorization: Bearer <token>
+```
+
+Protected routes:
+
+- `GET /api/appointment-requests`
+- `GET /api/appointment-requests/:id`
+- `PATCH /api/appointment-requests/:id/status`
+- `GET /api/new-patient-requests`
+- `GET /api/new-patient-requests/:id`
 
 ## Sample Requests
 
