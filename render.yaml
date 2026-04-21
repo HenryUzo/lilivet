@@ -21,6 +21,14 @@ services:
         value: "24"
       - key: DUPLICATE_WINDOW_HOURS
         value: "48"
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        sync: false
+      - key: STAFF_SEED_EMAIL
+        sync: false
+      - key: STAFF_SEED_PASSWORD
+        sync: false
       - key: DATABASE_URL
         sync: false
       - key: DIRECT_URL
