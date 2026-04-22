@@ -11,7 +11,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: UPLOAD_DIR
-        value: /var/data/uploads
+        value: /tmp/lilivet-uploads
       - key: MAX_UPLOAD_MB
         value: "10"
       - key: DRAFT_EXPIRY_HOURS

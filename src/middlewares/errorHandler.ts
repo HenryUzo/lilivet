@@ -47,6 +47,8 @@ export function errorHandler(error: unknown, _req: Request, res: Response, _next
     });
   }
 
+  console.error("Unhandled request error", error);
+
   const message = env.NODE_ENV === "production" ? "Internal server error" : (error as Error).message;
   return res.status(500).json({ error: { message } });
 }
