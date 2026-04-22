@@ -2,6 +2,24 @@
 import { prisma } from "../prisma/client";
 import { HttpError } from "../utils/httpError";
 
+function hasPreferredSelectionInRange(
+  preferredSelections: Prisma.JsonValue,
+  dateFrom?: string,
+  dateTo?: string
+) {
+  if (!dateFrom && !dateTo) return true;
+  if (!Array.isArray(preferredSelections)) return false;
+
+  const from = dateFrom ? new Date(dateFrom).getTime() : Number.NEGATIVE_INFINITY;
+  const to = dateTo ? new Date(dateTo).getTime() : Number.POSITIVE_INFINITY;
+
+  return preferredSelections.some((selection) => {
+    if (!selection || typeof selection !== "object" || !("date" in selection)) return false;
+    const time = new Date(String(selection.date)).getTime();
+    return Number.isFinite(time) && time >= from && time <= to;
+  });
+}
+
 export async function listAppointmentRequests(input: {
   status?: AppointmentRequestStatus;
   search?: string;
@@ -11,11 +29,7 @@ export async function listAppointmentRequests(input: {
   cursor?: string;
 }) {
   const where: Prisma.AppointmentRequestWhereInput = {
-    status: input.status,
-    selectedDate: {
-      gte: input.dateFrom ? new Date(input.dateFrom) : undefined,
-      lte: input.dateTo ? new Date(input.dateTo) : undefined
-    }
+    status: input.status
   };
 
   if (input.search) {
@@ -28,18 +42,21 @@ export async function listAppointmentRequests(input: {
     ];
   }
 
+  const needsDateFilter = Boolean(input.dateFrom || input.dateTo);
   const rows = await prisma.appointmentRequest.findMany({
     where,
-    take: input.limit + 1,
+    take: needsDateFilter ? 500 : input.limit + 1,
     skip: input.cursor ? 1 : 0,
     cursor: input.cursor ? { id: input.cursor } : undefined,
     orderBy: { createdAt: "desc" },
     include: { owner: true, pet: true, files: true }
   });
 
-  const hasMore = rows.length > input.limit;
-  const data = hasMore ? rows.slice(0, input.limit) : rows;
-  return { data, nextCursor: hasMore ? data[data.length - 1]?.id : null };
+  const filteredRows = rows.filter((row) => hasPreferredSelectionInRange(row.preferredSelections, input.dateFrom, input.dateTo));
+  const hasMore = filteredRows.length > input.limit || (needsDateFilter && rows.length === 500);
+  const data = filteredRows.slice(0, input.limit);
+  const nextCursor = hasMore ? data[data.length - 1]?.id ?? rows[rows.length - 1]?.id ?? null : null;
+  return { data, nextCursor };
 }
 
 export async function getAppointmentRequest(id: string) {

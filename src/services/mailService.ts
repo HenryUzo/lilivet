@@ -45,7 +45,7 @@ export async function sendClientAppointmentConfirmation(input: {
       `Hi ${input.ownerName},`,
       "",
       `We received your appointment request for ${input.petName}.`,
-      "Our clinic team will review your preferred date and times and contact you to confirm availability.",
+      "Our clinic team will review your preferred dates and times and contact you to confirm availability.",
       "",
       "If this becomes life-threatening, please call an emergency veterinary service immediately."
     ].join("\n")

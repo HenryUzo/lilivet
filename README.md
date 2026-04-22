@@ -70,7 +70,7 @@ Copy `.env.example` to `.env` and set:
 - The wizard stores partial draft data separately from final appointment requests.
 - Urgent care requests are treated as clinic-review requests, not life-threatening emergency confirmations.
 - Uploads accept only PDF, JPG, and PNG, up to `MAX_UPLOAD_MB`.
-- `selectedDate` is stored as UTC. `selectedTimeSlots` are local clinic-time labels and must be sent with an IANA `timezone`.
+- `preferredSelections` stores up to three preferred ISO date-times, each with up to three local clinic-time labels, and must be sent with an IANA `timezone`.
 - Duplicate detection flags likely duplicates using phone/email plus pet name within the configured short time window.
 
 ## Routes

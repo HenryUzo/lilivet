@@ -29,7 +29,7 @@ curl -X PATCH "$BASE_URL/api/appointment-drafts/$SESSION_TOKEN/step-3" \
 
 curl -X PATCH "$BASE_URL/api/appointment-drafts/$SESSION_TOKEN/step-4" \
   -H "Content-Type: application/json" \
-  -d '{"selectedDate":"2026-05-05T00:00:00.000Z","selectedTimeSlots":["09:00","10:30"],"timezone":"Africa/Lagos"}'
+  -d '{"preferredSelections":[{"date":"2026-05-05T00:00:00.000Z","timeSlots":["09:00","10:30"]},{"date":"2026-05-06T00:00:00.000Z","timeSlots":["14:00"]}],"timezone":"Africa/Lagos"}'
 
 curl -X PATCH "$BASE_URL/api/appointment-drafts/$SESSION_TOKEN/step-5" \
   -H "Content-Type: application/json" \

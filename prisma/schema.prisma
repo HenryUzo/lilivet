@@ -8,8 +8,6 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-
-
 model Owner {
   id                     String                  @id @default(cuid())
   firstName              String
@@ -51,17 +49,17 @@ model Pet {
 }
 
 model AppointmentDraft {
-  id                     String                  @id @default(cuid())
-  sessionToken           String                  @unique
+  id           String @id @default(cuid())
+  sessionToken String @unique
 
-  visitType              VisitType?
+  visitType VisitType?
 
-  petName                String?
-  species                PetSpecies?
-  breed                  String?
-  approximateAgeYears    Int?
-  sex                    PetSex?
-  weightLbs              Decimal?                @db.Decimal(6, 2)
+  petName             String?
+  species             PetSpecies?
+  breed               String?
+  approximateAgeYears Int?
+  sex                 PetSex?
+  weightLbs           Decimal?    @db.Decimal(6, 2)
 
   firstName              String?
   lastName               String?
@@ -69,26 +67,25 @@ model AppointmentDraft {
   phoneNumber            String?
   preferredContactMethod PreferredContactMethod?
 
-  selectedDate           DateTime?
-  selectedTimeSlots      String[]                @default([])
-  timezone               String?
+  preferredSelections Json?
+  timezone            String?
 
-  symptomsOrConcerns     String?
-  currentMedications     String?
-  previousVeterinarian   String?
-  symptomDuration        String?
+  symptomsOrConcerns   String?
+  currentMedications   String?
+  previousVeterinarian String?
+  symptomDuration      String?
 
-  lastCompletedStep      Int                     @default(0)
-  expiresAt              DateTime
-  submittedAt            DateTime?
+  lastCompletedStep Int       @default(0)
+  expiresAt         DateTime
+  submittedAt       DateTime?
 
-  appointmentRequestId   String?                 @unique
-  appointmentRequest     AppointmentRequest?     @relation(fields: [appointmentRequestId], references: [id], onDelete: SetNull)
+  appointmentRequestId String?             @unique
+  appointmentRequest   AppointmentRequest? @relation(fields: [appointmentRequestId], references: [id], onDelete: SetNull)
 
-  files                  UploadedFile[]
+  files UploadedFile[]
 
-  createdAt              DateTime                @default(now())
-  updatedAt              DateTime                @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([sessionToken])
   @@index([expiresAt])
@@ -99,85 +96,83 @@ model AppointmentDraft {
 }
 
 model AppointmentRequest {
-  id                   String                   @id @default(cuid())
+  id String @id @default(cuid())
 
-  ownerId              String
-  owner                Owner                    @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  ownerId String
+  owner   Owner  @relation(fields: [ownerId], references: [id], onDelete: Restrict)
 
-  petId                String
-  pet                  Pet                      @relation(fields: [petId], references: [id], onDelete: Restrict)
+  petId String
+  pet   Pet    @relation(fields: [petId], references: [id], onDelete: Restrict)
 
-  draft                AppointmentDraft?
+  draft AppointmentDraft?
 
-  visitType            VisitType
-  status               AppointmentRequestStatus @default(PENDING_REVIEW)
+  visitType VisitType
+  status    AppointmentRequestStatus @default(PENDING_REVIEW)
 
-  selectedDate         DateTime
-  selectedTimeSlots    String[]
-  timezone             String
+  preferredSelections Json
+  timezone            String
 
   symptomsOrConcerns   String?
   currentMedications   String?
   previousVeterinarian String?
   symptomDuration      String?
 
-  possibleDuplicate    Boolean                  @default(false)
-  duplicateOfId        String?
-  duplicateOf          AppointmentRequest?      @relation("AppointmentRequestDuplicates", fields: [duplicateOfId], references: [id], onDelete: SetNull)
-  duplicates           AppointmentRequest[]     @relation("AppointmentRequestDuplicates")
+  possibleDuplicate Boolean              @default(false)
+  duplicateOfId     String?
+  duplicateOf       AppointmentRequest?  @relation("AppointmentRequestDuplicates", fields: [duplicateOfId], references: [id], onDelete: SetNull)
+  duplicates        AppointmentRequest[] @relation("AppointmentRequestDuplicates")
 
-  files                UploadedFile[]
+  files UploadedFile[]
 
-  createdAt            DateTime                 @default(now())
-  updatedAt            DateTime                 @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([status])
   @@index([createdAt])
-  @@index([selectedDate])
   @@index([ownerId])
   @@index([petId])
   @@index([duplicateOfId])
 }
 
 model NewPatientRequest {
-  id                         String              @id @default(cuid())
+  id String @id @default(cuid())
 
-  ownerFullName              String
-  ownerEmail                 String?
-  ownerPhoneNumber           String
+  ownerFullName    String
+  ownerEmail       String?
+  ownerPhoneNumber String
 
-  petName                    String
-  species                    PetSpecies
-  breed                      String?
-  age                        String?
-  sex                        PetSex
-  weightLbs                  Decimal?            @db.Decimal(6, 2)
-  spayedNeutered             Boolean?
-  currentMedications         String?
-  existingConditions         String?
+  petName            String
+  species            PetSpecies
+  breed              String?
+  age                String?
+  sex                PetSex
+  weightLbs          Decimal?   @db.Decimal(6, 2)
+  spayedNeutered     Boolean?
+  currentMedications String?
+  existingConditions String?
 
-  reasonForVisit             String
-  isUrgent                   Boolean             @default(false)
-  preferredDateTime          DateTime?
-  timezone                   String?
-  previousVetClinic          String?
-  consentToElectronicComms   Boolean             @default(false)
+  reasonForVisit           String
+  isUrgent                 Boolean   @default(false)
+  preferredDateTime        DateTime?
+  timezone                 String?
+  previousVetClinic        String?
+  consentToElectronicComms Boolean   @default(false)
 
-  ownerId                    String?
-  owner                      Owner?              @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  ownerId String?
+  owner   Owner?  @relation(fields: [ownerId], references: [id], onDelete: SetNull)
 
-  petId                      String?
-  pet                        Pet?                @relation(fields: [petId], references: [id], onDelete: SetNull)
+  petId String?
+  pet   Pet?    @relation(fields: [petId], references: [id], onDelete: SetNull)
 
-  possibleDuplicate          Boolean             @default(false)
-  duplicateOfId              String?
-  duplicateOf                NewPatientRequest?  @relation("NewPatientRequestDuplicates", fields: [duplicateOfId], references: [id], onDelete: SetNull)
-  duplicates                 NewPatientRequest[] @relation("NewPatientRequestDuplicates")
+  possibleDuplicate Boolean             @default(false)
+  duplicateOfId     String?
+  duplicateOf       NewPatientRequest?  @relation("NewPatientRequestDuplicates", fields: [duplicateOfId], references: [id], onDelete: SetNull)
+  duplicates        NewPatientRequest[] @relation("NewPatientRequestDuplicates")
 
-  files                      UploadedFile[]
+  files UploadedFile[]
 
-  createdAt                  DateTime            @default(now())
-  updatedAt                  DateTime            @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([createdAt])
   @@index([preferredDateTime])
@@ -190,29 +185,29 @@ model NewPatientRequest {
 }
 
 model UploadedFile {
-  id                   String               @id @default(cuid())
-  originalName         String
-  storedName           String
-  mimeType             String
-  sizeBytes            Int
-  storageProvider      String               @default("local")
-  storageKey           String
-  publicUrl            String?
+  id              String  @id @default(cuid())
+  originalName    String
+  storedName      String
+  mimeType        String
+  sizeBytes       Int
+  storageProvider String  @default("local")
+  storageKey      String
+  publicUrl       String?
 
-  attachmentStatus     FileAttachmentStatus @default(UNATTACHED)
-  expiresAt            DateTime?
+  attachmentStatus FileAttachmentStatus @default(UNATTACHED)
+  expiresAt        DateTime?
 
-  appointmentDraftId   String?
-  appointmentDraft     AppointmentDraft?    @relation(fields: [appointmentDraftId], references: [id], onDelete: SetNull)
+  appointmentDraftId String?
+  appointmentDraft   AppointmentDraft? @relation(fields: [appointmentDraftId], references: [id], onDelete: SetNull)
 
   appointmentRequestId String?
-  appointmentRequest   AppointmentRequest?  @relation(fields: [appointmentRequestId], references: [id], onDelete: SetNull)
+  appointmentRequest   AppointmentRequest? @relation(fields: [appointmentRequestId], references: [id], onDelete: SetNull)
 
-  newPatientRequestId  String?
-  newPatientRequest    NewPatientRequest?   @relation(fields: [newPatientRequestId], references: [id], onDelete: SetNull)
+  newPatientRequestId String?
+  newPatientRequest   NewPatientRequest? @relation(fields: [newPatientRequestId], references: [id], onDelete: SetNull)
 
-  createdAt            DateTime             @default(now())
-  updatedAt            DateTime             @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([attachmentStatus])
   @@index([expiresAt])
