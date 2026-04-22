@@ -20,7 +20,11 @@ app.use(express.json({ limit: "1mb" }));
 app.use(morgan(env.NODE_ENV === "production" ? "combined" : "dev"));
 
 app.get("/health", (_req, res) => {
-  res.json({ status: "ok" });
+  res.json({
+    status: "ok",
+    commit: process.env.RENDER_GIT_COMMIT?.slice(0, 7) ?? null,
+    uploadDir: env.UPLOAD_DIR
+  });
 });
 
 app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(openApiDocument));
