@@ -25,37 +25,28 @@ const uploadedFileDto = {
   }
 } as const;
 
-const preferredSelectionDto = {
-  type: "object",
-  required: ["date", "timeSlots"],
-  additionalProperties: false,
-  properties: {
-    date: { type: "string", format: "date-time" },
-    timeSlots: {
-      type: "array",
-      minItems: 1,
-      maxItems: 3,
-      items: { type: "string", minLength: 1, maxLength: 40 }
-    }
-  }
-} as const;
-
-const preferredSelectionsDto = {
+const preferredSlotsDto = {
   type: "array",
   minItems: 1,
   maxItems: 3,
-  items: preferredSelectionDto
+  uniqueItems: true,
+  example: [
+    "2026-05-05T09:00:00.000Z",
+    "2026-05-06T14:00:00.000Z",
+    "2026-05-08T11:30:00.000Z"
+  ],
+  items: { type: "string", format: "date-time" }
 } as const;
 
 const draftDetailResponse = {
   type: "object",
-  required: ["id", "sessionToken", "visitType", "petName", "species", "breed", "approximateAgeYears", "sex", "weightLbs", "firstName", "lastName", "email", "phoneNumber", "preferredContactMethod", "preferredSelections", "timezone", "symptomsOrConcerns", "currentMedications", "previousVeterinarian", "symptomDuration", "lastCompletedStep", "expiresAt", "submittedAt", "appointmentRequestId", "files", "createdAt", "updatedAt"],
+  required: ["id", "sessionToken", "visitType", "petName", "species", "breed", "approximateAgeYears", "sex", "weightLbs", "firstName", "lastName", "email", "phoneNumber", "preferredContactMethod", "preferredSlots", "timezone", "symptomsOrConcerns", "currentMedications", "previousVeterinarian", "symptomDuration", "lastCompletedStep", "expiresAt", "submittedAt", "appointmentRequestId", "files", "createdAt", "updatedAt"],
   properties: {
     id: { type: "string" }, sessionToken: { type: "string" }, visitType: { $ref: "#/components/schemas/VisitType", nullable: true },
     petName: { type: "string", nullable: true }, species: { $ref: "#/components/schemas/PetSpecies", nullable: true }, breed: { type: "string", nullable: true },
     approximateAgeYears: { type: "integer", nullable: true }, sex: { $ref: "#/components/schemas/PetSex", nullable: true }, weightLbs: { type: "string", nullable: true },
     firstName: { type: "string", nullable: true }, lastName: { type: "string", nullable: true }, email: { type: "string", nullable: true }, phoneNumber: { type: "string", nullable: true },
-    preferredContactMethod: { $ref: "#/components/schemas/PreferredContactMethod", nullable: true }, preferredSelections: { ...preferredSelectionsDto, nullable: true },
+    preferredContactMethod: { $ref: "#/components/schemas/PreferredContactMethod", nullable: true }, preferredSlots: { ...preferredSlotsDto, nullable: true },
     timezone: { type: "string", nullable: true },
     symptomsOrConcerns: { type: "string", nullable: true }, currentMedications: { type: "string", nullable: true }, previousVeterinarian: { type: "string", nullable: true }, symptomDuration: { type: "string", nullable: true },
     lastCompletedStep: { type: "integer", minimum: 0 }, expiresAt: { type: "string", format: "date-time" }, submittedAt: { type: "string", format: "date-time", nullable: true },
@@ -66,10 +57,10 @@ const draftDetailResponse = {
 
 const appointmentSubmissionResponse = {
   type: "object",
-  required: ["id", "status", "visitType", "preferredSelections", "timezone", "symptomsOrConcerns", "currentMedications", "previousVeterinarian", "symptomDuration", "possibleDuplicate", "duplicateOfId", "owner", "pet", "files", "createdAt", "updatedAt"],
+  required: ["id", "status", "visitType", "preferredSlots", "timezone", "symptomsOrConcerns", "currentMedications", "previousVeterinarian", "symptomDuration", "possibleDuplicate", "duplicateOfId", "owner", "pet", "files", "createdAt", "updatedAt"],
   properties: {
     id: { type: "string" }, status: { type: "string", enum: ["PENDING_REVIEW"] }, visitType: { $ref: "#/components/schemas/VisitType" },
-    preferredSelections: preferredSelectionsDto, timezone: { type: "string" },
+    preferredSlots: preferredSlotsDto, timezone: { type: "string" },
     symptomsOrConcerns: { type: "string", nullable: true }, currentMedications: { type: "string", nullable: true }, previousVeterinarian: { type: "string", nullable: true }, symptomDuration: { type: "string", nullable: true },
     possibleDuplicate: { type: "boolean" }, duplicateOfId: { type: "string", nullable: true },
     owner: { type: "object", required: ["id", "firstName", "lastName", "email", "phoneNumber", "preferredContactMethod"], properties: { id: { type: "string" }, firstName: { type: "string" }, lastName: { type: "string" }, email: { type: "string", nullable: true }, phoneNumber: { type: "string" }, preferredContactMethod: { $ref: "#/components/schemas/PreferredContactMethod", nullable: true } } },
@@ -79,7 +70,7 @@ const appointmentSubmissionResponse = {
 } as const;
 const appointmentRequestDetailResponse = {
   type: "object",
-  required: ["id", "status", "visitType", "preferredSelections", "timezone", "symptomsOrConcerns", "currentMedications", "previousVeterinarian", "symptomDuration", "possibleDuplicate", "duplicateOfId", "owner", "pet", "files", "draft", "createdAt", "updatedAt"],
+  required: ["id", "status", "visitType", "preferredSlots", "timezone", "symptomsOrConcerns", "currentMedications", "previousVeterinarian", "symptomDuration", "possibleDuplicate", "duplicateOfId", "owner", "pet", "files", "draft", "createdAt", "updatedAt"],
   properties: {
     ...appointmentSubmissionResponse.properties,
     status: { $ref: "#/components/schemas/AppointmentRequestStatus" },
@@ -102,7 +93,7 @@ const jsonResponse = (description: string, schema: unknown) => ({ description, c
 const appointmentStep1Response = { type: "object", required: ["id", "sessionToken", "visitType", "lastCompletedStep", "expiresAt", "updatedAt"], properties: { id: { type: "string" }, sessionToken: { type: "string" }, visitType: { $ref: "#/components/schemas/VisitType" }, lastCompletedStep: { type: "integer", minimum: 0 }, expiresAt: { type: "string", format: "date-time" }, updatedAt: { type: "string", format: "date-time" } } } as const;
 const appointmentStep2Response = { type: "object", required: ["id", "sessionToken", "petName", "species", "breed", "approximateAgeYears", "sex", "weightLbs", "lastCompletedStep", "expiresAt", "updatedAt"], properties: { id: { type: "string" }, sessionToken: { type: "string" }, petName: { type: "string" }, species: { $ref: "#/components/schemas/PetSpecies" }, breed: { type: "string", nullable: true }, approximateAgeYears: { type: "integer", nullable: true }, sex: { $ref: "#/components/schemas/PetSex" }, weightLbs: { type: "string", nullable: true }, lastCompletedStep: { type: "integer", minimum: 0 }, expiresAt: { type: "string", format: "date-time" }, updatedAt: { type: "string", format: "date-time" } } } as const;
 const appointmentStep3Response = { type: "object", required: ["id", "sessionToken", "firstName", "lastName", "email", "phoneNumber", "preferredContactMethod", "lastCompletedStep", "expiresAt", "updatedAt"], properties: { id: { type: "string" }, sessionToken: { type: "string" }, firstName: { type: "string" }, lastName: { type: "string" }, email: { type: "string", nullable: true }, phoneNumber: { type: "string" }, preferredContactMethod: { $ref: "#/components/schemas/PreferredContactMethod" }, lastCompletedStep: { type: "integer", minimum: 0 }, expiresAt: { type: "string", format: "date-time" }, updatedAt: { type: "string", format: "date-time" } } } as const;
-const appointmentStep4Response = { type: "object", required: ["id", "sessionToken", "preferredSelections", "timezone", "lastCompletedStep", "expiresAt", "updatedAt"], properties: { id: { type: "string" }, sessionToken: { type: "string" }, preferredSelections: preferredSelectionsDto, timezone: { type: "string" }, lastCompletedStep: { type: "integer", minimum: 0 }, expiresAt: { type: "string", format: "date-time" }, updatedAt: { type: "string", format: "date-time" } } } as const;
+const appointmentStep4Response = { type: "object", required: ["id", "sessionToken", "preferredSlots", "timezone", "lastCompletedStep", "expiresAt", "updatedAt"], properties: { id: { type: "string" }, sessionToken: { type: "string" }, preferredSlots: preferredSlotsDto, timezone: { type: "string" }, lastCompletedStep: { type: "integer", minimum: 0 }, expiresAt: { type: "string", format: "date-time" }, updatedAt: { type: "string", format: "date-time" } } } as const;
 const appointmentStep5Response = { type: "object", required: ["id", "sessionToken", "symptomsOrConcerns", "currentMedications", "previousVeterinarian", "symptomDuration", "lastCompletedStep", "expiresAt", "updatedAt"], properties: { id: { type: "string" }, sessionToken: { type: "string" }, symptomsOrConcerns: { type: "string", nullable: true }, currentMedications: { type: "string", nullable: true }, previousVeterinarian: { type: "string", nullable: true }, symptomDuration: { type: "string", nullable: true }, lastCompletedStep: { type: "integer", minimum: 0 }, expiresAt: { type: "string", format: "date-time" }, updatedAt: { type: "string", format: "date-time" } } } as const;
 export const openApiDocument = {
   openapi: "3.0.3",
@@ -157,14 +148,14 @@ export const openApiDocument = {
       AppointmentStep1Request: { type: "object", required: ["visitType"], additionalProperties: false, properties: { visitType: { $ref: "#/components/schemas/VisitType" } } },
       AppointmentStep2Request: { type: "object", required: ["petName", "species", "sex"], additionalProperties: false, properties: { petName: { type: "string", minLength: 1, maxLength: 100 }, species: { $ref: "#/components/schemas/PetSpecies" }, breed: { type: "string", maxLength: 100 }, approximateAgeYears: { type: "integer", minimum: 0, maximum: 80 }, sex: { $ref: "#/components/schemas/PetSex" }, weightLbs: { type: "number", minimum: 0, maximum: 300 } } },
       AppointmentStep3Request: { type: "object", required: ["firstName", "lastName", "phoneNumber", "preferredContactMethod"], additionalProperties: false, properties: { firstName: { type: "string", minLength: 1, maxLength: 100 }, lastName: { type: "string", minLength: 1, maxLength: 100 }, email: { type: "string", format: "email" }, phoneNumber: { type: "string", minLength: 7, maxLength: 30 }, preferredContactMethod: { $ref: "#/components/schemas/PreferredContactMethod" } } },
-      AppointmentStep4Request: { type: "object", required: ["preferredSelections", "timezone"], additionalProperties: false, properties: { preferredSelections: { ...preferredSelectionsDto, description: "Up to three preferred dates, each with up to three local clinic-time labels." }, timezone: { type: "string", minLength: 1, maxLength: 100, example: "Africa/Lagos" } } },
+      AppointmentStep4Request: { type: "object", required: ["preferredSlots", "timezone"], additionalProperties: false, properties: { preferredSlots: { ...preferredSlotsDto, description: "Up to three preferred appointment slot date-times selected across the visible calendar week." }, timezone: { type: "string", minLength: 1, maxLength: 100, example: "Africa/Lagos" } } },
       AppointmentStep5Request: { type: "object", additionalProperties: false, properties: { symptomsOrConcerns: { type: "string", maxLength: 5000 }, currentMedications: { type: "string", maxLength: 2000 }, previousVeterinarian: { type: "string", maxLength: 200 }, symptomDuration: { type: "string", maxLength: 200 } } },
       AppointmentStatusUpdateRequest: { type: "object", required: ["status"], additionalProperties: false, properties: { status: { $ref: "#/components/schemas/AppointmentRequestStatus" } } },
       NewPatientCreateRequest: { type: "object", required: ["owner", "visit", "pet"], additionalProperties: false, properties: { owner: { type: "object", required: ["fullName", "phoneNumber"], additionalProperties: false, properties: { fullName: { type: "string", minLength: 1, maxLength: 200 }, email: { type: "string", format: "email" }, phoneNumber: { type: "string", minLength: 7, maxLength: 30 } } }, visit: { type: "object", required: ["reasonForVisit", "isUrgent", "consentToElectronicComms"], additionalProperties: false, properties: { reasonForVisit: { type: "string", minLength: 1, maxLength: 5000 }, isUrgent: { type: "boolean" }, preferredDateTime: { type: "string", format: "date-time" }, timezone: { type: "string", minLength: 1, maxLength: 100, example: "Africa/Lagos" }, previousVetClinic: { type: "string", maxLength: 200 }, consentToElectronicComms: { type: "boolean" } } }, pet: { type: "object", required: ["petName", "species", "sex"], additionalProperties: false, properties: { petName: { type: "string", minLength: 1, maxLength: 100 }, species: { $ref: "#/components/schemas/PetSpecies" }, breed: { type: "string", maxLength: 100 }, age: { type: "string", maxLength: 80 }, sex: { $ref: "#/components/schemas/PetSex" }, weightLbs: { type: "number", minimum: 0, maximum: 300 }, spayedNeutered: { type: "boolean" }, currentMedications: { type: "string", maxLength: 2000 }, existingConditions: { type: "string", maxLength: 2000 } } }, uploadedFileIds: { type: "array", items: { type: "string" }, default: [] } } },
       AppointmentDraftCreatedResponse: draftDetailResponse, AppointmentDraftDetailResponse: draftDetailResponse,
       AppointmentStep1Response: appointmentStep1Response, AppointmentStep2Response: appointmentStep2Response, AppointmentStep3Response: appointmentStep3Response, AppointmentStep4Response: appointmentStep4Response, AppointmentStep5Response: appointmentStep5Response,
       AppointmentSubmissionResponse: appointmentSubmissionResponse,
-      AppointmentRequestListResponse: { type: "object", required: ["data", "nextCursor"], properties: { data: { type: "array", items: { type: "object", required: ["id", "status", "visitType", "preferredSelections", "timezone", "possibleDuplicate", "duplicateOfId", "owner", "pet", "createdAt", "updatedAt"], properties: { id: { type: "string" }, status: { $ref: "#/components/schemas/AppointmentRequestStatus" }, visitType: { $ref: "#/components/schemas/VisitType" }, preferredSelections: preferredSelectionsDto, timezone: { type: "string" }, possibleDuplicate: { type: "boolean" }, duplicateOfId: { type: "string", nullable: true }, owner: { type: "object", required: ["id", "firstName", "lastName", "email", "phoneNumber"], properties: { id: { type: "string" }, firstName: { type: "string" }, lastName: { type: "string" }, email: { type: "string", nullable: true }, phoneNumber: { type: "string" } } }, pet: { type: "object", required: ["id", "name", "species", "breed"], properties: { id: { type: "string" }, name: { type: "string" }, species: { $ref: "#/components/schemas/PetSpecies" }, breed: { type: "string", nullable: true } } }, createdAt: { type: "string", format: "date-time" }, updatedAt: { type: "string", format: "date-time" } } } }, nextCursor: { type: "string", nullable: true } } },
+      AppointmentRequestListResponse: { type: "object", required: ["data", "nextCursor"], properties: { data: { type: "array", items: { type: "object", required: ["id", "status", "visitType", "preferredSlots", "timezone", "possibleDuplicate", "duplicateOfId", "owner", "pet", "createdAt", "updatedAt"], properties: { id: { type: "string" }, status: { $ref: "#/components/schemas/AppointmentRequestStatus" }, visitType: { $ref: "#/components/schemas/VisitType" }, preferredSlots: preferredSlotsDto, timezone: { type: "string" }, possibleDuplicate: { type: "boolean" }, duplicateOfId: { type: "string", nullable: true }, owner: { type: "object", required: ["id", "firstName", "lastName", "email", "phoneNumber"], properties: { id: { type: "string" }, firstName: { type: "string" }, lastName: { type: "string" }, email: { type: "string", nullable: true }, phoneNumber: { type: "string" } } }, pet: { type: "object", required: ["id", "name", "species", "breed"], properties: { id: { type: "string" }, name: { type: "string" }, species: { $ref: "#/components/schemas/PetSpecies" }, breed: { type: "string", nullable: true } } }, createdAt: { type: "string", format: "date-time" }, updatedAt: { type: "string", format: "date-time" } } } }, nextCursor: { type: "string", nullable: true } } },
       AppointmentRequestDetailResponse: appointmentRequestDetailResponse, AppointmentStatusUpdateResponse: { type: "object", required: ["id", "status", "updatedAt"], properties: { id: { type: "string" }, status: { $ref: "#/components/schemas/AppointmentRequestStatus" }, updatedAt: { type: "string", format: "date-time" } } },
       NewPatientCreateResponse: newPatientCreateResponse,
       NewPatientListResponse: { type: "object", required: ["data", "nextCursor"], properties: { data: { type: "array", items: { type: "object", required: ["id", "ownerFullName", "ownerEmail", "ownerPhoneNumber", "petName", "species", "reasonForVisit", "isUrgent", "preferredDateTime", "timezone", "possibleDuplicate", "duplicateOfId", "ownerId", "petId", "createdAt", "updatedAt"], properties: { id: { type: "string" }, ownerFullName: { type: "string" }, ownerEmail: { type: "string", nullable: true }, ownerPhoneNumber: { type: "string" }, petName: { type: "string" }, species: { $ref: "#/components/schemas/PetSpecies" }, reasonForVisit: { type: "string" }, isUrgent: { type: "boolean" }, preferredDateTime: { type: "string", format: "date-time", nullable: true }, timezone: { type: "string", nullable: true }, possibleDuplicate: { type: "boolean" }, duplicateOfId: { type: "string", nullable: true }, ownerId: { type: "string", nullable: true }, petId: { type: "string", nullable: true }, createdAt: { type: "string", format: "date-time" }, updatedAt: { type: "string", format: "date-time" } } } }, nextCursor: { type: "string", nullable: true } } },

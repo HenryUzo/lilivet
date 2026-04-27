@@ -2,20 +2,19 @@
 import { prisma } from "../prisma/client";
 import { HttpError } from "../utils/httpError";
 
-function hasPreferredSelectionInRange(
-  preferredSelections: Prisma.JsonValue,
+function hasPreferredSlotInRange(
+  preferredSlots: Prisma.JsonValue,
   dateFrom?: string,
   dateTo?: string
 ) {
   if (!dateFrom && !dateTo) return true;
-  if (!Array.isArray(preferredSelections)) return false;
+  if (!Array.isArray(preferredSlots)) return false;
 
   const from = dateFrom ? new Date(dateFrom).getTime() : Number.NEGATIVE_INFINITY;
   const to = dateTo ? new Date(dateTo).getTime() : Number.POSITIVE_INFINITY;
 
-  return preferredSelections.some((selection) => {
-    if (!selection || typeof selection !== "object" || !("date" in selection)) return false;
-    const time = new Date(String(selection.date)).getTime();
+  return preferredSlots.some((slot) => {
+    const time = new Date(String(slot)).getTime();
     return Number.isFinite(time) && time >= from && time <= to;
   });
 }
@@ -52,7 +51,7 @@ export async function listAppointmentRequests(input: {
     include: { owner: true, pet: true, files: true }
   });
 
-  const filteredRows = rows.filter((row) => hasPreferredSelectionInRange(row.preferredSelections, input.dateFrom, input.dateTo));
+  const filteredRows = rows.filter((row) => hasPreferredSlotInRange(row.preferredSlots, input.dateFrom, input.dateTo));
   const hasMore = filteredRows.length > input.limit || (needsDateFilter && rows.length === 500);
   const data = filteredRows.slice(0, input.limit);
   const nextCursor = hasMore ? data[data.length - 1]?.id ?? rows[rows.length - 1]?.id ?? null : null;

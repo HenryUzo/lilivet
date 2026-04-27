@@ -67,8 +67,8 @@ model AppointmentDraft {
   phoneNumber            String?
   preferredContactMethod PreferredContactMethod?
 
-  preferredSelections Json?
-  timezone            String?
+  preferredSlots Json?
+  timezone       String?
 
   symptomsOrConcerns   String?
   currentMedications   String?
@@ -109,8 +109,8 @@ model AppointmentRequest {
   visitType VisitType
   status    AppointmentRequestStatus @default(PENDING_REVIEW)
 
-  preferredSelections Json
-  timezone            String
+  preferredSlots Json
+  timezone       String
 
   symptomsOrConcerns   String?
   currentMedications   String?

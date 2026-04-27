@@ -11,43 +11,21 @@ import {
   weightSchema
 } from "./common";
 
-const preferredSelectionSchema = z.object({
-  date: dateStringSchema,
-  timeSlots: z
-    .array(z.string().trim().min(1).max(40))
-    .min(1)
-    .max(3)
-    .superRefine((timeSlots, ctx) => {
-      const seen = new Set<string>();
-      for (const [index, slot] of timeSlots.entries()) {
-        if (seen.has(slot)) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Duplicate time slots are not allowed for the same date",
-            path: [index]
-          });
-        }
-        seen.add(slot);
-      }
-    })
-});
-
-export const preferredSelectionsSchema = z
-  .array(preferredSelectionSchema)
+export const preferredSlotsSchema = z
+  .array(dateStringSchema)
   .min(1)
   .max(3)
-  .superRefine((selections, ctx) => {
-    const seenDates = new Set<string>();
-    for (const [index, selection] of selections.entries()) {
-      const dateKey = selection.date.slice(0, 10);
-      if (seenDates.has(dateKey)) {
+  .superRefine((slots, ctx) => {
+    const seen = new Set<string>();
+    for (const [index, slot] of slots.entries()) {
+      if (seen.has(slot)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "Duplicate preferred dates are not allowed",
-          path: [index, "date"]
+          message: "Duplicate preferred slots are not allowed",
+          path: [index]
         });
       }
-      seenDates.add(dateKey);
+      seen.add(slot);
     }
   });
 
@@ -73,7 +51,7 @@ export const appointmentStep3Schema = z.object({
 });
 
 export const appointmentStep4Schema = z.object({
-  preferredSelections: preferredSelectionsSchema,
+  preferredSlots: preferredSlotsSchema,
   timezone: timezoneSchema
 });
 
@@ -97,7 +75,7 @@ export const fullAppointmentDraftSchema = z.object({
   email: optionalEmailSchema.nullish(),
   phoneNumber: phoneSchema,
   preferredContactMethod: preferredContactMethodSchema,
-  preferredSelections: preferredSelectionsSchema,
+  preferredSlots: preferredSlotsSchema,
   timezone: timezoneSchema,
   symptomsOrConcerns: z.string().trim().max(5000).nullish(),
   currentMedications: z.string().trim().max(2000).nullish(),

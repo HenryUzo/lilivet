@@ -107,7 +107,7 @@ export async function updateStep4(sessionToken: string, input: AppointmentStep4)
   return prisma.appointmentDraft.update({
     where: { sessionToken },
     data: {
-      preferredSelections: data.preferredSelections,
+      preferredSlots: data.preferredSlots,
       timezone: data.timezone,
       lastCompletedStep: { set: 4 },
       expiresAt: draftExpiryDate()
@@ -150,7 +150,7 @@ export async function submitAppointmentDraft(sessionToken: string) {
     email: draft.email,
     phoneNumber: draft.phoneNumber,
     preferredContactMethod: draft.preferredContactMethod,
-    preferredSelections: draft.preferredSelections,
+    preferredSlots: draft.preferredSlots,
     timezone: draft.timezone,
     symptomsOrConcerns: draft.symptomsOrConcerns,
     currentMedications: draft.currentMedications,
@@ -193,7 +193,7 @@ export async function submitAppointmentDraft(sessionToken: string) {
         ownerId: owner.id,
         petId: pet.id,
         visitType: fullDraft.visitType,
-        preferredSelections: fullDraft.preferredSelections,
+        preferredSlots: fullDraft.preferredSlots,
         timezone: fullDraft.timezone,
         symptomsOrConcerns: fullDraft.symptomsOrConcerns ?? undefined,
         currentMedications: fullDraft.currentMedications ?? undefined,
