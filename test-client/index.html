@@ -1,0 +1,1292 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lili Vet API Tester</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: Arial, sans-serif;
+        background: #f5f7fb;
+        color: #172033;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 24px;
+      }
+
+      main {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        gap: 24px;
+      }
+
+      h1, h2, h3 {
+        margin: 0 0 12px;
+      }
+
+      .panel {
+        background: #fff;
+        border: 1px solid #d9e1ee;
+        border-radius: 8px;
+        padding: 20px;
+      }
+
+      .grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .grid.two {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+
+      label {
+        display: grid;
+        gap: 6px;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      input,
+      select,
+      textarea,
+      button {
+        font: inherit;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        border: 1px solid #bcc8da;
+        border-radius: 6px;
+        padding: 10px 12px;
+        background: #fff;
+      }
+
+      textarea {
+        min-height: 96px;
+        resize: vertical;
+      }
+
+      button {
+        border: 0;
+        border-radius: 6px;
+        padding: 10px 14px;
+        background: #1f5eff;
+        color: #fff;
+        cursor: pointer;
+      }
+
+      button.secondary {
+        background: #4d607f;
+      }
+
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .actions.spread {
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .hint {
+        margin: 0;
+        color: #5d6c85;
+        font-size: 13px;
+      }
+
+      .token {
+        display: inline-block;
+        word-break: break-all;
+        padding: 8px 10px;
+        border-radius: 6px;
+        background: #eef3ff;
+        border: 1px solid #cedaf8;
+        font-family: Consolas, monospace;
+        font-size: 13px;
+      }
+
+      pre {
+        margin: 0;
+        padding: 16px;
+        background: #0f1728;
+        color: #dce8ff;
+        border-radius: 6px;
+        overflow: auto;
+        max-height: 440px;
+      }
+
+      .section-row {
+        display: grid;
+        gap: 24px;
+        grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
+      }
+
+      .step-block {
+        margin-bottom: 20px;
+      }
+
+      .weave-booking {
+        display: grid;
+        gap: 20px;
+        border: 1px solid #d9e1ee;
+        border-radius: 8px;
+        padding: 18px;
+        background: #fbfcff;
+      }
+
+      .week-picker {
+        position: relative;
+      }
+
+      .week-picker-trigger {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        border: 1px solid #2d6af5;
+        color: #17346f;
+        background: #fff;
+        padding: 10px 14px;
+        border-radius: 6px;
+      }
+
+      .week-picker-trigger svg,
+      .week-nav-btn svg,
+      .calendar-nav button svg {
+        width: 18px;
+        height: 18px;
+      }
+
+      .calendar-popover {
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        width: min(360px, 100%);
+        background: #fff;
+        border: 1px solid #d9e1ee;
+        border-radius: 10px;
+        box-shadow: 0 18px 48px rgba(18, 35, 69, 0.18);
+        padding: 18px;
+        z-index: 10;
+      }
+
+      .calendar-popover[hidden] {
+        display: none;
+      }
+
+      .calendar-nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 14px;
+      }
+
+      .calendar-nav button,
+      .week-nav-btn {
+        background: transparent;
+        color: #23314f;
+        border: 0;
+        padding: 6px;
+        border-radius: 6px;
+      }
+
+      .calendar-title {
+        font-weight: 700;
+        font-size: 16px;
+      }
+
+      .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 6px;
+      }
+
+      .calendar-weekday,
+      .calendar-day {
+        text-align: center;
+        padding: 10px 0;
+        border-radius: 999px;
+      }
+
+      .calendar-weekday {
+        font-weight: 700;
+        color: #53637c;
+      }
+
+      .calendar-day {
+        background: transparent;
+        color: #172033;
+        border: 0;
+      }
+
+      .calendar-day.outside {
+        color: #a1aec3;
+      }
+
+      .calendar-day.week-highlight {
+        background: #edf2fb;
+      }
+
+      .calendar-day.active {
+        box-shadow: inset 0 0 0 2px #2d6af5;
+        background: #fff;
+      }
+
+      .weave-schedule {
+        display: grid;
+        gap: 16px;
+      }
+
+      .week-nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .week-nav-label {
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: 0;
+      }
+
+      .day-summary-grid {
+        display: grid;
+        gap: 10px;
+        grid-template-columns: repeat(7, minmax(96px, 1fr));
+        overflow-x: auto;
+        padding-bottom: 4px;
+      }
+
+      .day-summary-card {
+        min-height: 94px;
+        border: 1px solid #d2dbee;
+        border-radius: 6px;
+        background: #fff;
+        padding: 12px 10px;
+        text-align: left;
+      }
+
+      .day-summary-card.active {
+        border-color: #2d6af5;
+        box-shadow: inset 0 0 0 1px #2d6af5;
+        background: #f6f9ff;
+      }
+
+      .day-summary-card .weekday {
+        display: block;
+        font-size: 13px;
+        color: #5c6c86;
+        margin-bottom: 8px;
+      }
+
+      .day-summary-card .appt-count {
+        display: block;
+        font-size: 16px;
+        font-weight: 700;
+        color: #172033;
+        line-height: 1.25;
+      }
+
+      .availability-panel {
+        border-left: 1px solid #d9e1ee;
+        padding-left: 18px;
+      }
+
+      .availability-title {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+
+      .availability-scroll {
+        max-height: 420px;
+        overflow: auto;
+        padding-right: 8px;
+      }
+
+      .day-slot-group {
+        margin-bottom: 22px;
+      }
+
+      .day-slot-group h4 {
+        margin: 0 0 12px;
+        font-size: 15px;
+      }
+
+      .slot-grid {
+        display: grid;
+        gap: 10px;
+        grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+      }
+
+      .slot-button {
+        border: 1px solid #9eadc5;
+        border-radius: 6px;
+        background: #fff;
+        color: #172033;
+        padding: 10px 8px;
+      }
+
+      .slot-button.selected {
+        border-color: #2d6af5;
+        background: #eaf1ff;
+        color: #17346f;
+        box-shadow: inset 0 0 0 1px #2d6af5;
+      }
+
+      .slot-button:disabled {
+        opacity: 0.45;
+      }
+
+      .selected-slot-list {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        min-height: 34px;
+      }
+
+      .selected-slot-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #eef3ff;
+        color: #17346f;
+        border: 1px solid #cedaf8;
+        border-radius: 999px;
+        padding: 8px 10px;
+        font-size: 13px;
+      }
+
+      .selected-slot-pill button {
+        background: transparent;
+        color: inherit;
+        padding: 0;
+        border-radius: 0;
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      @media (max-width: 960px) {
+        .section-row {
+          grid-template-columns: 1fr;
+        }
+
+        .availability-panel {
+          border-left: 0;
+          border-top: 1px solid #d9e1ee;
+          padding-left: 0;
+          padding-top: 18px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="panel">
+        <h1>Lili Vet API Tester</h1>
+        <p class="hint">Dummy client for public appointment-draft and new-patient flows. Step 4 uses the current Weave-style slot model: exact ISO datetimes plus timezone.</p>
+        <div class="grid two" style="margin-top: 16px;">
+          <label>
+            API Base URL
+            <input id="apiBaseUrl" value="https://lilivet.onrender.com" />
+          </label>
+          <label>
+            Timezone
+            <input id="defaultTimezone" value="America/Chicago" />
+          </label>
+        </div>
+      </section>
+
+      <section class="section-row">
+        <div class="panel">
+          <h2>Appointment Draft Flow</h2>
+          <p class="hint">Create a draft first. The tester keeps the current session token in memory and reuses it for save, upload, preview, and submit.</p>
+
+          <div class="actions" style="margin: 16px 0;">
+            <button id="createDraftBtn" type="button">Create Draft</button>
+            <button id="getDraftBtn" type="button" class="secondary">Get Draft</button>
+            <button id="submitDraftBtn" type="button">Submit Draft</button>
+          </div>
+
+          <div class="grid" style="margin-bottom: 20px;">
+            <label>
+              Session Token
+              <input id="sessionToken" placeholder="Generated by create draft" />
+            </label>
+          </div>
+
+          <h3>Step 1: Visit Type</h3>
+          <div class="grid two">
+            <label>
+              Visit Type
+              <select id="visitType">
+                <option value="URGENT_CARE">URGENT_CARE</option>
+                <option value="WELLNESS_EXAM">WELLNESS_EXAM</option>
+                <option value="VACCINATIONS">VACCINATIONS</option>
+                <option value="DENTAL_CARE">DENTAL_CARE</option>
+                <option value="SURGERY">SURGERY</option>
+                <option value="DIAGNOSTICS">DIAGNOSTICS</option>
+                <option value="NEW_PATIENT_VISIT">NEW_PATIENT_VISIT</option>
+                <option value="OTHER">OTHER</option>
+              </select>
+            </label>
+          </div>
+          <div class="actions" style="margin: 12px 0 20px;">
+            <button id="saveStep1Btn" type="button">Save Step 1</button>
+          </div>
+
+          <h3>Step 2: Patient Information</h3>
+          <div class="grid two">
+            <label>
+              Pet Name
+              <input id="petName" value="Milo" />
+            </label>
+            <label>
+              Species
+              <select id="species">
+                <option value="DOG">DOG</option>
+                <option value="CAT">CAT</option>
+              </select>
+            </label>
+            <label>
+              Breed
+              <input id="breed" value="Mixed Breed" />
+            </label>
+            <label>
+              Approximate Age (Years)
+              <input id="approximateAgeYears" type="number" min="0" value="4" />
+            </label>
+            <label>
+              Sex
+              <select id="sex">
+                <option value="MALE">MALE</option>
+                <option value="FEMALE">FEMALE</option>
+              </select>
+            </label>
+            <label>
+              Weight (lbs)
+              <input id="weightLbs" type="number" step="0.01" min="0" value="32.5" />
+            </label>
+          </div>
+          <div class="actions" style="margin: 12px 0 20px;">
+            <button id="saveStep2Btn" type="button">Save Step 2</button>
+          </div>
+
+          <h3>Step 3: Owner Information</h3>
+          <div class="grid two">
+            <label>
+              First Name
+              <input id="firstName" value="Henry" />
+            </label>
+            <label>
+              Last Name
+              <input id="lastName" value="Uzo" />
+            </label>
+            <label>
+              Email
+              <input id="email" type="email" value="henry@example.com" />
+            </label>
+            <label>
+              Phone Number
+              <input id="phoneNumber" value="+12105550199" />
+            </label>
+            <label>
+              Preferred Contact Method
+              <select id="preferredContactMethod">
+                <option value="CALL">CALL</option>
+                <option value="TEXT">TEXT</option>
+                <option value="EMAIL">EMAIL</option>
+              </select>
+            </label>
+          </div>
+          <div class="actions" style="margin: 12px 0 20px;">
+            <button id="saveStep3Btn" type="button">Save Step 3</button>
+          </div>
+
+          <div class="step-block">
+            <h3>Step 4: Preferred Slots</h3>
+            <p class="hint">Weave-style flow: browse a week, inspect day availability, then choose up to three exact time slots. The backend still receives `preferredSlots[]` plus `timezone`.</p>
+            <div class="weave-booking">
+              <div class="actions spread">
+                <div>
+                  <div class="availability-title" style="margin-bottom: 6px;">Availability</div>
+                  <p class="hint">Choose 3 time slots that fit your schedule, and the clinic can confirm one of them later.</p>
+                </div>
+                <div class="week-picker">
+                  <button id="weekPickerTrigger" type="button" class="week-picker-trigger">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="4" width="18" height="17" rx="2"></rect>
+                      <line x1="8" y1="2.5" x2="8" y2="6"></line>
+                      <line x1="16" y1="2.5" x2="16" y2="6"></line>
+                      <line x1="3" y1="9" x2="21" y2="9"></line>
+                    </svg>
+                    <span id="weekRangeLabel">May 10 - May 16, 2026</span>
+                  </button>
+                  <div id="calendarPopover" class="calendar-popover" hidden>
+                    <div class="calendar-nav">
+                      <button id="calendarPrevMonth" type="button" aria-label="Previous month">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                      </button>
+                      <div id="calendarMonthLabel" class="calendar-title">May 2026</div>
+                      <button id="calendarNextMonth" type="button" aria-label="Next month">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                      </button>
+                    </div>
+                    <div class="calendar-grid" id="calendarGrid"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="weave-schedule">
+                <div class="week-nav">
+                  <button id="prevWeekBtn" type="button" class="week-nav-btn" aria-label="Previous week">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                  </button>
+                  <div id="weekHeading" class="week-nav-label">May 10 - May 16, 2026</div>
+                  <button id="nextWeekBtn" type="button" class="week-nav-btn" aria-label="Next week">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                  </button>
+                </div>
+
+                <div id="daySummaryGrid" class="day-summary-grid"></div>
+
+                <div class="availability-panel">
+                  <div class="availability-title">Selected Slots</div>
+                  <div id="selectedSlotList" class="selected-slot-list"></div>
+                  <p class="hint" id="selectedSlotHint">Select up to 3 slots.</p>
+                  <div class="availability-scroll" id="availabilityScroll"></div>
+                </div>
+              </div>
+
+              <label>
+                Timezone
+                <input id="appointmentTimezone" value="America/Chicago" />
+              </label>
+            </div>
+          </div>
+          <div class="actions" style="margin: 12px 0 20px;">
+            <button id="saveStep4Btn" type="button">Save Step 4</button>
+          </div>
+
+          <h3>Step 5: Medical Information</h3>
+          <div class="grid two">
+            <label>
+              Symptoms / Concerns
+              <textarea id="symptomsOrConcerns">Limping on rear left leg for two days.</textarea>
+            </label>
+            <label>
+              Current Medications
+              <textarea id="currentMedications">Monthly flea/tick prevention.</textarea>
+            </label>
+            <label>
+              Previous Veterinarian
+              <input id="previousVeterinarian" value="Stone Oak Pet Clinic" />
+            </label>
+            <label>
+              Symptom Duration
+              <input id="symptomDuration" value="2 days" />
+            </label>
+          </div>
+          <div class="actions" style="margin: 12px 0 20px;">
+            <button id="saveStep5Btn" type="button">Save Step 5</button>
+          </div>
+
+          <h3>Step 5 Files</h3>
+          <div class="grid">
+            <label>
+              Medical Records
+              <input id="appointmentFiles" type="file" multiple accept=".pdf,.jpg,.jpeg,.png" />
+            </label>
+          </div>
+          <div class="actions" style="margin: 12px 0 0;">
+            <button id="uploadAppointmentFilesBtn" type="button">Upload Draft Files</button>
+          </div>
+        </div>
+
+        <aside class="panel">
+          <h2>Appointment Response</h2>
+          <div id="draftTokenDisplay" class="token" style="margin-bottom: 12px;">No draft created yet.</div>
+          <pre id="appointmentOutput">{}</pre>
+        </aside>
+      </section>
+
+      <section class="section-row">
+        <div class="panel">
+          <h2>New Patient Request</h2>
+          <div class="grid two">
+            <label>
+              Full Name
+              <input id="npFullName" value="Sarah Connor" />
+            </label>
+            <label>
+              Email
+              <input id="npEmail" type="email" value="sarah@example.com" />
+            </label>
+            <label>
+              Phone Number
+              <input id="npPhoneNumber" value="+12105550188" />
+            </label>
+            <label>
+              Reason For Visit
+              <input id="npReasonForVisit" value="New patient wellness exam" />
+            </label>
+            <label>
+              Is Urgent
+              <select id="npIsUrgent">
+                <option value="false">false</option>
+                <option value="true">true</option>
+              </select>
+            </label>
+            <label>
+              Preferred Date Time
+              <input id="npPreferredDateTime" value="2026-05-09T11:00:00.000-05:00" />
+            </label>
+            <label>
+              Timezone
+              <input id="npTimezone" value="America/Chicago" />
+            </label>
+            <label>
+              Previous Vet Clinic
+              <input id="npPreviousVetClinic" value="North SA Animal Hospital" />
+            </label>
+            <label>
+              Consent To Electronic Comms
+              <select id="npConsentToElectronicComms">
+                <option value="true">true</option>
+                <option value="false">false</option>
+              </select>
+            </label>
+            <label>
+              Pet Name
+              <input id="npPetName" value="Bella" />
+            </label>
+            <label>
+              Species
+              <select id="npSpecies">
+                <option value="DOG">DOG</option>
+                <option value="CAT">CAT</option>
+              </select>
+            </label>
+            <label>
+              Breed
+              <input id="npBreed" value="Labrador Mix" />
+            </label>
+            <label>
+              Age
+              <input id="npAge" value="3 years" />
+            </label>
+            <label>
+              Sex
+              <select id="npSex">
+                <option value="FEMALE">FEMALE</option>
+                <option value="MALE">MALE</option>
+              </select>
+            </label>
+            <label>
+              Weight (lbs)
+              <input id="npWeightLbs" type="number" step="0.01" min="0" value="41.8" />
+            </label>
+            <label>
+              Spayed / Neutered
+              <select id="npSpayedNeutered">
+                <option value="true">true</option>
+                <option value="false">false</option>
+              </select>
+            </label>
+            <label>
+              Current Medications
+              <textarea id="npCurrentMedications">None.</textarea>
+            </label>
+            <label>
+              Existing Conditions
+              <textarea id="npExistingConditions">Seasonal allergies.</textarea>
+            </label>
+          </div>
+          <div class="actions" style="margin: 12px 0;">
+            <button id="submitNewPatientBtn" type="button">Submit New Patient Request</button>
+          </div>
+        </div>
+
+        <aside class="panel">
+          <h2>New Patient Response</h2>
+          <pre id="newPatientOutput">{}</pre>
+        </aside>
+      </section>
+    </main>
+
+    <script>
+      const appointmentOutput = document.getElementById("appointmentOutput");
+      const newPatientOutput = document.getElementById("newPatientOutput");
+      const sessionTokenInput = document.getElementById("sessionToken");
+      const draftTokenDisplay = document.getElementById("draftTokenDisplay");
+      const slotState = {
+        selectedSlots: ["2026-05-11T15:00:00.000-05:00", "2026-05-12T15:15:00.000-05:00"],
+        anchorDate: new Date("2026-05-12T12:00:00-05:00"),
+        calendarMonth: new Date("2026-05-01T12:00:00-05:00"),
+        activeDate: "2026-05-11"
+      };
+      const slotTemplates = [
+        "15:00", "15:15", "15:30", "15:45",
+        "16:00", "16:15", "16:30", "16:45",
+        "17:00", "17:15", "17:30", "17:45",
+        "18:00", "18:15", "18:30", "18:45",
+        "19:00", "19:15", "19:30", "19:45",
+        "20:00", "20:15", "20:30", "20:45",
+        "21:00", "21:15", "21:30", "21:45",
+        "22:00", "22:15", "22:30", "22:45",
+        "23:00", "23:15", "23:30", "23:45"
+      ];
+
+      function startOfWeek(date) {
+        const result = new Date(date);
+        result.setHours(12, 0, 0, 0);
+        const day = result.getDay();
+        result.setDate(result.getDate() - day);
+        return result;
+      }
+
+      function addDays(date, days) {
+        const result = new Date(date);
+        result.setDate(result.getDate() + days);
+        return result;
+      }
+
+      function isoDate(date) {
+        return [
+          date.getFullYear(),
+          String(date.getMonth() + 1).padStart(2, "0"),
+          String(date.getDate()).padStart(2, "0")
+        ].join("-");
+      }
+
+      function formatDate(date, options) {
+        return new Intl.DateTimeFormat("en-US", {
+          timeZone: document.getElementById("appointmentTimezone").value.trim() || "America/Chicago",
+          ...options
+        }).format(date);
+      }
+
+      function formatWeekRange(startDate) {
+        const endDate = addDays(startDate, 6);
+        const sameMonth = startDate.getMonth() === endDate.getMonth() && startDate.getFullYear() === endDate.getFullYear();
+        const startLabel = formatDate(startDate, { month: "short", day: "numeric" });
+        const endLabel = formatDate(endDate, sameMonth ? { day: "numeric", year: "numeric" } : { month: "short", day: "numeric", year: "numeric" });
+        return `${startLabel} - ${endLabel}`;
+      }
+
+      function formatSlotDisplay(isoString) {
+        const date = new Date(isoString);
+        return {
+          day: formatDate(date, { weekday: "short", month: "short", day: "numeric" }),
+          time: formatDate(date, { hour: "numeric", minute: "2-digit" })
+        };
+      }
+
+      function formatTimeLabel(time24) {
+        const [hourRaw, minute] = time24.split(":");
+        let hour = Number(hourRaw);
+        const suffix = hour >= 12 ? "pm" : "am";
+        hour = hour % 12 || 12;
+        return `${hour}:${minute} ${suffix}`;
+      }
+
+      function timeZoneOffsetSuffix(dateString) {
+        const tz = document.getElementById("appointmentTimezone").value.trim();
+        const [year, month, day] = dateString.split("-").map(Number);
+        const parts = new Intl.DateTimeFormat("en-US", {
+          timeZone: tz,
+          timeZoneName: "shortOffset",
+          hour: "2-digit"
+        }).formatToParts(new Date(year, month - 1, day, 12));
+        const value = parts.find((part) => part.type === "timeZoneName")?.value || "GMT-05:00";
+        return value.replace("GMT", "");
+      }
+
+      function buildSlotIso(dateString, time24) {
+        const offset = timeZoneOffsetSuffix(dateString);
+        return `${dateString}T${time24}:00.000${offset}`;
+      }
+
+      function getWeekDates() {
+        const start = startOfWeek(slotState.anchorDate);
+        return Array.from({ length: 7 }, (_, index) => addDays(start, index));
+      }
+
+      function slotCountForDate(dateString) {
+        const dayIndex = getWeekDates().findIndex((date) => isoDate(date) === dateString);
+        if (dayIndex === 0) return 0;
+        const base = [0, 36, 37, 24, 28, 31, 18][dayIndex] ?? 24;
+        return base;
+      }
+
+      function availableTimesForDate(dateString) {
+        const dayIndex = getWeekDates().findIndex((date) => isoDate(date) === dateString);
+        if (dayIndex === 0) return [];
+        const startOffset = dayIndex % 4;
+        const count = Math.max(8, Math.min(slotTemplates.length, slotCountForDate(dateString)));
+        return slotTemplates.slice(startOffset, startOffset + count);
+      }
+
+      function renderCalendar() {
+        const grid = document.getElementById("calendarGrid");
+        const monthLabel = document.getElementById("calendarMonthLabel");
+        const monthDate = new Date(slotState.calendarMonth);
+        monthLabel.textContent = monthDate.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+        grid.innerHTML = "";
+
+        ["S", "M", "T", "W", "T", "F", "S"].forEach((day) => {
+          const div = document.createElement("div");
+          div.className = "calendar-weekday";
+          div.textContent = day;
+          grid.appendChild(div);
+        });
+
+        const firstOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1, 12);
+        const calendarStart = startOfWeek(firstOfMonth);
+        const activeWeekStart = startOfWeek(slotState.anchorDate);
+
+        for (let index = 0; index < 42; index += 1) {
+          const date = addDays(calendarStart, index);
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "calendar-day";
+          if (date.getMonth() !== monthDate.getMonth()) {
+            button.classList.add("outside");
+          }
+          if (date >= activeWeekStart && date <= addDays(activeWeekStart, 6)) {
+            button.classList.add("week-highlight");
+          }
+          if (isoDate(date) === isoDate(slotState.anchorDate)) {
+            button.classList.add("active");
+          }
+          button.textContent = String(date.getDate());
+          button.addEventListener("click", () => {
+            slotState.anchorDate = new Date(date);
+            slotState.activeDate = isoDate(date);
+            document.getElementById("calendarPopover").hidden = true;
+            renderWeekPicker();
+          });
+          grid.appendChild(button);
+        }
+      }
+
+      function renderSelectedSlots() {
+        const container = document.getElementById("selectedSlotList");
+        const hint = document.getElementById("selectedSlotHint");
+        container.innerHTML = "";
+
+        if (!slotState.selectedSlots.length) {
+          hint.textContent = "Select up to 3 slots.";
+          return;
+        }
+
+        hint.textContent = `${slotState.selectedSlots.length} of 3 slots selected.`;
+        slotState.selectedSlots.forEach((slot) => {
+          const pill = document.createElement("div");
+          pill.className = "selected-slot-pill";
+          const display = formatSlotDisplay(slot);
+          pill.innerHTML = `<span>${display.day} at ${display.time}</span>`;
+          const removeButton = document.createElement("button");
+          removeButton.type = "button";
+          removeButton.textContent = "x";
+          removeButton.addEventListener("click", () => {
+            slotState.selectedSlots = slotState.selectedSlots.filter((value) => value !== slot);
+            renderWeekPicker();
+          });
+          pill.appendChild(removeButton);
+          container.appendChild(pill);
+        });
+      }
+
+      function renderDaySummary() {
+        const grid = document.getElementById("daySummaryGrid");
+        grid.innerHTML = "";
+
+        getWeekDates().forEach((date) => {
+          const dateString = isoDate(date);
+          const count = slotCountForDate(dateString);
+          const card = document.createElement("button");
+          card.type = "button";
+          card.className = "day-summary-card";
+          if (slotState.activeDate === dateString) {
+            card.classList.add("active");
+          }
+          card.innerHTML = `
+            <span class="weekday">${formatDate(date, { weekday: "short" })}</span>
+            <span class="appt-count">${count ? `${count} appts` : "No appts"}</span>
+          `;
+          card.addEventListener("click", () => {
+            slotState.activeDate = dateString;
+            renderWeekPicker();
+          });
+          grid.appendChild(card);
+        });
+      }
+
+      function renderAvailability() {
+        const container = document.getElementById("availabilityScroll");
+        container.innerHTML = "";
+        const weekDates = getWeekDates();
+        const activeSet = new Set([slotState.activeDate, ...slotState.selectedSlots.map((slot) => slot.slice(0, 10))]);
+        const datesToShow = weekDates.filter((date) => activeSet.has(isoDate(date)));
+
+        datesToShow.forEach((date) => {
+          const dateString = isoDate(date);
+          const times = availableTimesForDate(dateString);
+          const group = document.createElement("section");
+          group.className = "day-slot-group";
+          const heading = document.createElement("h4");
+          heading.textContent = formatDate(date, { weekday: "short", month: "short", day: "numeric" });
+          group.appendChild(heading);
+
+          if (!times.length) {
+            const empty = document.createElement("p");
+            empty.className = "hint";
+            empty.textContent = "No available appointments for this day.";
+            group.appendChild(empty);
+            container.appendChild(group);
+            return;
+          }
+
+          const slotGrid = document.createElement("div");
+          slotGrid.className = "slot-grid";
+
+          times.forEach((time24) => {
+            const slotIso = buildSlotIso(dateString, time24);
+            const selected = slotState.selectedSlots.includes(slotIso);
+            const disabled = !selected && slotState.selectedSlots.length >= 3;
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "slot-button";
+            if (selected) {
+              button.classList.add("selected");
+            }
+            button.disabled = disabled;
+            button.textContent = formatTimeLabel(time24);
+            button.addEventListener("click", () => {
+              if (selected) {
+                slotState.selectedSlots = slotState.selectedSlots.filter((value) => value !== slotIso);
+              } else if (slotState.selectedSlots.length < 3) {
+                slotState.selectedSlots = [...slotState.selectedSlots, slotIso];
+              }
+              renderWeekPicker();
+            });
+            slotGrid.appendChild(button);
+          });
+
+          group.appendChild(slotGrid);
+          container.appendChild(group);
+        });
+      }
+
+      function renderWeekPicker() {
+        const weekStart = startOfWeek(slotState.anchorDate);
+        const label = formatWeekRange(weekStart);
+        document.getElementById("weekRangeLabel").textContent = label;
+        document.getElementById("weekHeading").textContent = label;
+        slotState.calendarMonth = new Date(slotState.anchorDate.getFullYear(), slotState.anchorDate.getMonth(), 1, 12);
+        renderDaySummary();
+        renderAvailability();
+        renderSelectedSlots();
+        renderCalendar();
+      }
+
+      function apiBaseUrl() {
+        return document.getElementById("apiBaseUrl").value.replace(/\/+$/, "");
+      }
+
+      function setOutput(target, value) {
+        target.textContent = JSON.stringify(value, null, 2);
+      }
+
+      function currentSessionToken() {
+        const value = sessionTokenInput.value.trim();
+        if (!value) {
+          throw new Error("Create a draft first or paste a session token.");
+        }
+        return value;
+      }
+
+      function updateTokenDisplay(token) {
+        draftTokenDisplay.textContent = token || "No draft created yet.";
+      }
+
+      async function sendJson(url, options = {}) {
+        const response = await fetch(url, {
+          ...options,
+          headers: {
+            "Content-Type": "application/json",
+            ...(options.headers || {})
+          }
+        });
+
+        const raw = await response.text();
+        let data;
+        try {
+          data = raw ? JSON.parse(raw) : null;
+        } catch {
+          data = raw;
+        }
+
+        if (!response.ok) {
+          throw new Error(`${response.status} ${response.statusText}\n${JSON.stringify(data, null, 2)}`);
+        }
+
+        return data;
+      }
+
+      function appointmentStep4Payload() {
+        return {
+          preferredSlots: slotState.selectedSlots,
+          timezone: document.getElementById("appointmentTimezone").value.trim()
+        };
+      }
+
+      function newPatientPayload() {
+        return {
+          fullName: document.getElementById("npFullName").value.trim(),
+          email: document.getElementById("npEmail").value.trim() || undefined,
+          phoneNumber: document.getElementById("npPhoneNumber").value.trim(),
+          reasonForVisit: document.getElementById("npReasonForVisit").value.trim(),
+          isUrgent: document.getElementById("npIsUrgent").value === "true",
+          preferredDateTime: document.getElementById("npPreferredDateTime").value.trim() || undefined,
+          timezone: document.getElementById("npTimezone").value.trim() || undefined,
+          previousVetClinic: document.getElementById("npPreviousVetClinic").value.trim() || undefined,
+          consentToElectronicComms: document.getElementById("npConsentToElectronicComms").value === "true",
+          petName: document.getElementById("npPetName").value.trim(),
+          species: document.getElementById("npSpecies").value,
+          breed: document.getElementById("npBreed").value.trim() || undefined,
+          age: document.getElementById("npAge").value.trim() || undefined,
+          sex: document.getElementById("npSex").value,
+          weightLbs: document.getElementById("npWeightLbs").value.trim() || undefined,
+          spayedNeutered: document.getElementById("npSpayedNeutered").value === "true",
+          currentMedications: document.getElementById("npCurrentMedications").value.trim() || undefined,
+          existingConditions: document.getElementById("npExistingConditions").value.trim() || undefined
+        };
+      }
+
+      async function runAppointmentAction(label, callback) {
+        try {
+          const result = await callback();
+          setOutput(appointmentOutput, { action: label, ok: true, result });
+          if (result && result.sessionToken) {
+            sessionTokenInput.value = result.sessionToken;
+            updateTokenDisplay(result.sessionToken);
+          }
+          if (result && Array.isArray(result.preferredSlots)) {
+            slotState.selectedSlots = result.preferredSlots.slice(0, 3);
+            if (slotState.selectedSlots[0]) {
+              const firstDate = slotState.selectedSlots[0].slice(0, 10);
+              slotState.activeDate = firstDate;
+              slotState.anchorDate = new Date(`${firstDate}T12:00:00`);
+            }
+            renderWeekPicker();
+          }
+        } catch (error) {
+          setOutput(appointmentOutput, { action: label, ok: false, error: String(error) });
+        }
+      }
+
+      async function runNewPatientAction(label, callback) {
+        try {
+          const result = await callback();
+          setOutput(newPatientOutput, { action: label, ok: true, result });
+        } catch (error) {
+          setOutput(newPatientOutput, { action: label, ok: false, error: String(error) });
+        }
+      }
+
+      document.getElementById("defaultTimezone").addEventListener("change", (event) => {
+        const value = event.target.value.trim();
+        document.getElementById("appointmentTimezone").value = value;
+        document.getElementById("npTimezone").value = value;
+        renderWeekPicker();
+      });
+
+      document.getElementById("appointmentTimezone").addEventListener("change", () => {
+        renderWeekPicker();
+      });
+
+      document.getElementById("weekPickerTrigger").addEventListener("click", () => {
+        const popover = document.getElementById("calendarPopover");
+        popover.hidden = !popover.hidden;
+      });
+
+      document.getElementById("calendarPrevMonth").addEventListener("click", () => {
+        slotState.calendarMonth = new Date(slotState.calendarMonth.getFullYear(), slotState.calendarMonth.getMonth() - 1, 1, 12);
+        renderCalendar();
+      });
+
+      document.getElementById("calendarNextMonth").addEventListener("click", () => {
+        slotState.calendarMonth = new Date(slotState.calendarMonth.getFullYear(), slotState.calendarMonth.getMonth() + 1, 1, 12);
+        renderCalendar();
+      });
+
+      document.getElementById("prevWeekBtn").addEventListener("click", () => {
+        slotState.anchorDate = addDays(slotState.anchorDate, -7);
+        slotState.activeDate = isoDate(slotState.anchorDate);
+        renderWeekPicker();
+      });
+
+      document.getElementById("nextWeekBtn").addEventListener("click", () => {
+        slotState.anchorDate = addDays(slotState.anchorDate, 7);
+        slotState.activeDate = isoDate(slotState.anchorDate);
+        renderWeekPicker();
+      });
+
+      document.addEventListener("click", (event) => {
+        const picker = document.querySelector(".week-picker");
+        if (!picker.contains(event.target)) {
+          document.getElementById("calendarPopover").hidden = true;
+        }
+      });
+
+      document.getElementById("createDraftBtn").addEventListener("click", () =>
+        runAppointmentAction("createDraft", () =>
+          sendJson(`${apiBaseUrl()}/api/appointment-drafts`, { method: "POST", body: JSON.stringify({}) })
+        )
+      );
+
+      document.getElementById("getDraftBtn").addEventListener("click", () =>
+        runAppointmentAction("getDraft", () =>
+          sendJson(`${apiBaseUrl()}/api/appointment-drafts/${currentSessionToken()}`)
+        )
+      );
+
+      document.getElementById("saveStep1Btn").addEventListener("click", () =>
+        runAppointmentAction("step1", () =>
+          sendJson(`${apiBaseUrl()}/api/appointment-drafts/${currentSessionToken()}/step-1`, {
+            method: "PATCH",
+            body: JSON.stringify({ visitType: document.getElementById("visitType").value })
+          })
+        )
+      );
+
+      document.getElementById("saveStep2Btn").addEventListener("click", () =>
+        runAppointmentAction("step2", () =>
+          sendJson(`${apiBaseUrl()}/api/appointment-drafts/${currentSessionToken()}/step-2`, {
+            method: "PATCH",
+            body: JSON.stringify({
+              petName: document.getElementById("petName").value.trim(),
+              species: document.getElementById("species").value,
+              breed: document.getElementById("breed").value.trim() || undefined,
+              approximateAgeYears: Number(document.getElementById("approximateAgeYears").value),
+              sex: document.getElementById("sex").value,
+              weightLbs: document.getElementById("weightLbs").value.trim()
+            })
+          })
+        )
+      );
+
+      document.getElementById("saveStep3Btn").addEventListener("click", () =>
+        runAppointmentAction("step3", () =>
+          sendJson(`${apiBaseUrl()}/api/appointment-drafts/${currentSessionToken()}/step-3`, {
+            method: "PATCH",
+            body: JSON.stringify({
+              firstName: document.getElementById("firstName").value.trim(),
+              lastName: document.getElementById("lastName").value.trim(),
+              email: document.getElementById("email").value.trim() || undefined,
+              phoneNumber: document.getElementById("phoneNumber").value.trim(),
+              preferredContactMethod: document.getElementById("preferredContactMethod").value
+            })
+          })
+        )
+      );
+
+      document.getElementById("saveStep4Btn").addEventListener("click", () =>
+        runAppointmentAction("step4", () =>
+          sendJson(`${apiBaseUrl()}/api/appointment-drafts/${currentSessionToken()}/step-4`, {
+            method: "PATCH",
+            body: JSON.stringify(appointmentStep4Payload())
+          })
+        )
+      );
+
+      document.getElementById("saveStep5Btn").addEventListener("click", () =>
+        runAppointmentAction("step5", () =>
+          sendJson(`${apiBaseUrl()}/api/appointment-drafts/${currentSessionToken()}/step-5`, {
+            method: "PATCH",
+            body: JSON.stringify({
+              symptomsOrConcerns: document.getElementById("symptomsOrConcerns").value.trim() || undefined,
+              currentMedications: document.getElementById("currentMedications").value.trim() || undefined,
+              previousVeterinarian: document.getElementById("previousVeterinarian").value.trim() || undefined,
+              symptomDuration: document.getElementById("symptomDuration").value.trim() || undefined
+            })
+          })
+        )
+      );
+
+      document.getElementById("uploadAppointmentFilesBtn").addEventListener("click", () =>
+        runAppointmentAction("uploadDraftFiles", async () => {
+          const filesInput = document.getElementById("appointmentFiles");
+          const formData = new FormData();
+          for (const file of filesInput.files) {
+            formData.append("files", file);
+          }
+
+          const response = await fetch(`${apiBaseUrl()}/api/appointment-drafts/${currentSessionToken()}/files`, {
+            method: "POST",
+            body: formData
+          });
+
+          const raw = await response.text();
+          const data = raw ? JSON.parse(raw) : null;
+
+          if (!response.ok) {
+            throw new Error(`${response.status} ${response.statusText}\n${JSON.stringify(data, null, 2)}`);
+          }
+
+          return data;
+        })
+      );
+
+      document.getElementById("submitDraftBtn").addEventListener("click", () =>
+        runAppointmentAction("submitDraft", () =>
+          sendJson(`${apiBaseUrl()}/api/appointment-drafts/${currentSessionToken()}/submit`, {
+            method: "POST",
+            body: JSON.stringify({})
+          })
+        )
+      );
+
+      document.getElementById("submitNewPatientBtn").addEventListener("click", () =>
+        runNewPatientAction("submitNewPatientRequest", () =>
+          sendJson(`${apiBaseUrl()}/api/new-patient-requests`, {
+            method: "POST",
+            body: JSON.stringify(newPatientPayload())
+          })
+        )
+      );
+
+      renderWeekPicker();
+    </script>
+  </body>
+</html>
