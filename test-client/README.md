@@ -22,7 +22,7 @@ Then open the local URL shown by the server.
 ## Defaults
 
 - API base URL defaults to `https://lilivet.onrender.com`
-- Timezone defaults to `America/Chicago`
+- Timezone defaults to `Africa/Lagos`
 
 ## Step 4 model
 
@@ -30,11 +30,17 @@ The appointment tester follows the current Weave-style backend payload:
 
 ```json
 {
-  "preferredSlots": [
-    "2026-05-05T14:00:00.000-05:00",
-    "2026-05-06T10:30:00.000-05:00"
+  "preferredSelections": [
+    {
+      "date": "2026-05-04T00:00:00.000Z",
+      "timeSlots": ["20:30"]
+    },
+    {
+      "date": "2026-05-05T00:00:00.000Z",
+      "timeSlots": ["16:15"]
+    }
   ],
-  "timezone": "America/Chicago"
+  "timezone": "Africa/Lagos"
 }
 ```
 

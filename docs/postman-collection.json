@@ -46,7 +46,7 @@
         "method": "PATCH",
         "header": [{ "key": "Content-Type", "value": "application/json" }],
         "url": "{{baseUrl}}/api/appointment-drafts/{{sessionToken}}/step-4",
-        "body": { "mode": "raw", "raw": "{\"preferredSlots\":[\"2026-05-05T09:00:00.000Z\",\"2026-05-06T14:00:00.000Z\",\"2026-05-08T11:30:00.000Z\"],\"timezone\":\"Africa/Lagos\"}" }
+              "body": { "mode": "raw", "raw": "{\"preferredSelections\":[{\"date\":\"2026-05-04T00:00:00.000Z\",\"timeSlots\":[\"20:30\"]},{\"date\":\"2026-05-05T00:00:00.000Z\",\"timeSlots\":[\"16:15\"]},{\"date\":\"2026-05-07T00:00:00.000Z\",\"timeSlots\":[\"18:30\"]}],\"timezone\":\"Africa/Lagos\"}" }
       }
     },
     {

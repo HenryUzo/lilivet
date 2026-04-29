@@ -11,21 +11,45 @@ import {
   weightSchema
 } from "./common";
 
-export const preferredSlotsSchema = z
-  .array(dateStringSchema)
+const timeSlotSchema = z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Time slots must use HH:mm");
+
+const preferredSelectionSchema = z.object({
+  date: dateStringSchema,
+  timeSlots: z
+    .array(timeSlotSchema)
+    .min(1)
+    .max(3)
+    .superRefine((timeSlots, ctx) => {
+      const seen = new Set<string>();
+      for (const [index, slot] of timeSlots.entries()) {
+        if (seen.has(slot)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Duplicate time slots are not allowed for a selected date",
+            path: [index]
+          });
+        }
+        seen.add(slot);
+      }
+    })
+});
+
+export const preferredSelectionsSchema = z
+  .array(preferredSelectionSchema)
   .min(1)
   .max(3)
-  .superRefine((slots, ctx) => {
+  .superRefine((selections, ctx) => {
     const seen = new Set<string>();
-    for (const [index, slot] of slots.entries()) {
-      if (seen.has(slot)) {
+    for (const [index, selection] of selections.entries()) {
+      const dateKey = selection.date.slice(0, 10);
+      if (seen.has(dateKey)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "Duplicate preferred slots are not allowed",
+          message: "Duplicate dates are not allowed",
           path: [index]
         });
       }
-      seen.add(slot);
+      seen.add(dateKey);
     }
   });
 
@@ -51,7 +75,7 @@ export const appointmentStep3Schema = z.object({
 });
 
 export const appointmentStep4Schema = z.object({
-  preferredSlots: preferredSlotsSchema,
+  preferredSelections: preferredSelectionsSchema,
   timezone: timezoneSchema
 });
 
@@ -75,7 +99,7 @@ export const fullAppointmentDraftSchema = z.object({
   email: optionalEmailSchema.nullish(),
   phoneNumber: phoneSchema,
   preferredContactMethod: preferredContactMethodSchema,
-  preferredSlots: preferredSlotsSchema,
+  preferredSelections: preferredSelectionsSchema,
   timezone: timezoneSchema,
   symptomsOrConcerns: z.string().trim().max(5000).nullish(),
   currentMedications: z.string().trim().max(2000).nullish(),

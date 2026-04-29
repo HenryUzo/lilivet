@@ -420,7 +420,7 @@
           </label>
           <label>
             Timezone
-            <input id="defaultTimezone" value="America/Chicago" />
+            <input id="defaultTimezone" value="Africa/Lagos" />
           </label>
         </div>
       </section>
@@ -533,7 +533,7 @@
 
           <div class="step-block">
             <h3>Step 4: Preferred Slots</h3>
-            <p class="hint">Weave-style flow: browse a week, inspect day availability, then choose up to three exact time slots. The backend still receives `preferredSlots[]` plus `timezone`.</p>
+            <p class="hint">Weave-style flow: browse a week, inspect day availability, then choose up to three exact time slots. The backend groups them into `preferredSelections[]` plus `timezone`.</p>
             <div class="weave-booking">
               <div class="actions spread">
                 <div>
@@ -548,7 +548,7 @@
                       <line x1="16" y1="2.5" x2="16" y2="6"></line>
                       <line x1="3" y1="9" x2="21" y2="9"></line>
                     </svg>
-                    <span id="weekRangeLabel">May 10 - May 16, 2026</span>
+                <span id="weekRangeLabel">May 3 - May 9, 2026</span>
                   </button>
                   <div id="calendarPopover" class="calendar-popover" hidden>
                     <div class="calendar-nav">
@@ -570,7 +570,7 @@
                   <button id="prevWeekBtn" type="button" class="week-nav-btn" aria-label="Previous week">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
                   </button>
-                  <div id="weekHeading" class="week-nav-label">May 10 - May 16, 2026</div>
+                  <div id="weekHeading" class="week-nav-label">May 3 - May 9, 2026</div>
                   <button id="nextWeekBtn" type="button" class="week-nav-btn" aria-label="Next week">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
                   </button>
@@ -588,7 +588,7 @@
 
               <label>
                 Timezone
-                <input id="appointmentTimezone" value="America/Chicago" />
+                <input id="appointmentTimezone" value="Africa/Lagos" />
               </label>
             </div>
           </div>
@@ -671,7 +671,7 @@
             </label>
             <label>
               Timezone
-              <input id="npTimezone" value="America/Chicago" />
+              <input id="npTimezone" value="Africa/Lagos" />
             </label>
             <label>
               Previous Vet Clinic
@@ -748,10 +748,10 @@
       const sessionTokenInput = document.getElementById("sessionToken");
       const draftTokenDisplay = document.getElementById("draftTokenDisplay");
       const slotState = {
-        selectedSlots: ["2026-05-11T15:00:00.000-05:00", "2026-05-12T15:15:00.000-05:00"],
-        anchorDate: new Date("2026-05-12T12:00:00-05:00"),
-        calendarMonth: new Date("2026-05-01T12:00:00-05:00"),
-        activeDate: "2026-05-11"
+        selectedSlots: ["2026-05-04T20:30:00.000+01:00", "2026-05-05T16:15:00.000+01:00", "2026-05-07T18:30:00.000+01:00"],
+        anchorDate: new Date("2026-05-04T12:00:00+01:00"),
+        calendarMonth: new Date("2026-05-01T12:00:00+01:00"),
+        activeDate: "2026-05-04"
       };
       const slotTemplates = [
         "15:00", "15:15", "15:30", "15:45",
@@ -789,7 +789,7 @@
 
       function formatDate(date, options) {
         return new Intl.DateTimeFormat("en-US", {
-          timeZone: document.getElementById("appointmentTimezone").value.trim() || "America/Chicago",
+          timeZone: document.getElementById("appointmentTimezone").value.trim() || "Africa/Lagos",
           ...options
         }).format(date);
       }
@@ -826,7 +826,7 @@
           timeZoneName: "shortOffset",
           hour: "2-digit"
         }).formatToParts(new Date(year, month - 1, day, 12));
-        const value = parts.find((part) => part.type === "timeZoneName")?.value || "GMT-05:00";
+        const value = parts.find((part) => part.type === "timeZoneName")?.value || "GMT+01:00";
         return value.replace("GMT", "");
       }
 
@@ -1064,10 +1064,44 @@
       }
 
       function appointmentStep4Payload() {
+        const groupedSelections = [];
+        const byDate = new Map();
+
+        slotState.selectedSlots.forEach((slot) => {
+          const dateKey = slot.slice(0, 10);
+          const timeSlot = slot.slice(11, 16);
+          if (!byDate.has(dateKey)) {
+            byDate.set(dateKey, []);
+          }
+          byDate.get(dateKey).push(timeSlot);
+        });
+
+        for (const [dateKey, timeSlots] of byDate.entries()) {
+          groupedSelections.push({
+            date: `${dateKey}T00:00:00.000Z`,
+            timeSlots
+          });
+        }
+
         return {
-          preferredSlots: slotState.selectedSlots,
+          preferredSelections: groupedSelections,
           timezone: document.getElementById("appointmentTimezone").value.trim()
         };
+      }
+
+      function hydrateSelections(selections) {
+        const slots = [];
+        for (const selection of selections) {
+          if (!selection || typeof selection !== "object") continue;
+          const date = typeof selection.date === "string" ? selection.date.slice(0, 10) : "";
+          const timeSlots = Array.isArray(selection.timeSlots) ? selection.timeSlots : [];
+          for (const timeSlot of timeSlots) {
+            if (typeof timeSlot === "string" && date) {
+              slots.push(buildSlotIso(date, timeSlot));
+            }
+          }
+        }
+        return slots.slice(0, 3);
       }
 
       function newPatientPayload() {
@@ -1101,8 +1135,8 @@
             sessionTokenInput.value = result.sessionToken;
             updateTokenDisplay(result.sessionToken);
           }
-          if (result && Array.isArray(result.preferredSlots)) {
-            slotState.selectedSlots = result.preferredSlots.slice(0, 3);
+          if (result && Array.isArray(result.preferredSelections)) {
+            slotState.selectedSlots = hydrateSelections(result.preferredSelections);
             if (slotState.selectedSlots[0]) {
               const firstDate = slotState.selectedSlots[0].slice(0, 10);
               slotState.activeDate = firstDate;

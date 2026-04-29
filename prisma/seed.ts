@@ -48,7 +48,12 @@ async function main() {
       petId: owner.pets[0].id,
       visitType: VisitType.WELLNESS_EXAM,
       status: AppointmentRequestStatus.PENDING_REVIEW,
-      preferredSlots: ["2026-05-05T09:00:00.000Z", "2026-05-05T10:30:00.000Z"],
+      preferredSelections: [
+        {
+          date: "2026-05-05T00:00:00.000Z",
+          timeSlots: ["09:00", "10:30"]
+        }
+      ],
       timezone: "Africa/Lagos",
       symptomsOrConcerns: "Annual wellness check and updated vaccination review.",
       currentMedications: "None",
