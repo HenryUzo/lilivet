@@ -40,13 +40,17 @@ async function getActiveDraft(sessionToken: string) {
 }
 
 export async function createAppointmentDraft() {
-  return prisma.appointmentDraft.create({
+  const draft = await prisma.appointmentDraft.create({
     data: {
       sessionToken: crypto.randomBytes(32).toString("hex"),
       expiresAt: draftExpiryDate()
-    },
-    include: { files: true }
+    }
   });
+
+  return {
+    ...draft,
+    files: []
+  };
 }
 
 export async function getAppointmentDraft(sessionToken: string) {

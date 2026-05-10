@@ -6,6 +6,7 @@ import swaggerUi from "swagger-ui-express";
 import { env } from "./config/env";
 import { openApiDocument } from "./docs/openapi";
 import { errorHandler, notFoundHandler } from "./middlewares/errorHandler";
+import { adminWellnessPlanRoutes } from "./routes/adminWellnessPlan.routes";
 import { appointmentDraftRoutes } from "./routes/appointmentDraft.routes";
 import { appointmentRequestRoutes } from "./routes/appointmentRequest.routes";
 import { fileRoutes } from "./routes/file.routes";
@@ -30,6 +31,7 @@ app.get("/health", (_req, res) => {
 app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(openApiDocument));
 app.get("/api/openapi.json", (_req, res) => res.json(openApiDocument));
 
+app.use("/api/admin/wellness-plans", adminWellnessPlanRoutes);
 app.use("/api/appointment-drafts", appointmentDraftRoutes);
 app.use("/api/staff/auth", staffAuthRoutes);
 app.use("/api/appointment-requests", appointmentRequestRoutes);

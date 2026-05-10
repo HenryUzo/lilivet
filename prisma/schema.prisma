@@ -216,6 +216,63 @@ model UploadedFile {
   @@index([newPatientRequestId])
 }
 
+model WellnessPlan {
+  id                 String                          @id @default(cuid())
+  planKey            String                          @unique
+  species            WellnessPlanSpecies
+  lifeStage          WellnessPlanLifeStage
+  tier               WellnessPlanTier
+  displayName        String
+  enrollmentFee      Decimal                         @db.Decimal(10, 2)
+  monthlyFee         Decimal                         @db.Decimal(10, 2)
+  annualPrice        Decimal                         @db.Decimal(10, 2)
+  isActive           Boolean                         @default(true)
+  benefits           WellnessPlanBenefit[]
+  milestoneTemplates WellnessPlanMilestoneTemplate[]
+  createdAt          DateTime                        @default(now())
+  updatedAt          DateTime                        @updatedAt
+
+  @@index([species, lifeStage, tier])
+  @@index([isActive])
+}
+
+model WellnessPlanBenefit {
+  id                 String                           @id @default(cuid())
+  wellnessPlanId     String
+  wellnessPlan       WellnessPlan                     @relation(fields: [wellnessPlanId], references: [id], onDelete: Cascade)
+  sortOrder          Int
+  label              String
+  benefitType        WellnessPlanBenefitType
+  serviceType        WellnessPlanServiceType?
+  includedQuantity   Int?
+  coverageLabel      String?
+  discountPercent    Int?
+  creditAmount       Decimal?                         @db.Decimal(10, 2)
+  notes              String?
+  milestoneTemplates WellnessPlanMilestoneTemplate[]
+  createdAt          DateTime                         @default(now())
+  updatedAt          DateTime                         @updatedAt
+
+  @@index([wellnessPlanId, sortOrder])
+}
+
+model WellnessPlanMilestoneTemplate {
+  id                    String                  @id @default(cuid())
+  wellnessPlanId        String
+  wellnessPlan          WellnessPlan            @relation(fields: [wellnessPlanId], references: [id], onDelete: Cascade)
+  wellnessPlanBenefitId String
+  wellnessPlanBenefit   WellnessPlanBenefit     @relation(fields: [wellnessPlanBenefitId], references: [id], onDelete: Cascade)
+  sortOrder             Int
+  displayName           String
+  serviceType           WellnessPlanServiceType
+  isActive              Boolean                 @default(true)
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+
+  @@index([wellnessPlanId, sortOrder])
+  @@index([wellnessPlanBenefitId])
+}
+
 model StaffUser {
   id           String    @id @default(cuid())
   email        String    @unique
@@ -273,4 +330,44 @@ enum FileAttachmentStatus {
 enum StaffRole {
   ADMIN
   STAFF
+}
+
+enum WellnessPlanSpecies {
+  DOG
+  CAT
+}
+
+enum WellnessPlanLifeStage {
+  PUPPY
+  KITTEN
+  ADULT
+}
+
+enum WellnessPlanTier {
+  ESSENTIAL
+  COMPLETE
+}
+
+enum WellnessPlanBenefitType {
+  SERVICE
+  DISCOUNT
+  CREDIT
+  OPTIONAL_DISCOUNTED_ITEM
+}
+
+enum WellnessPlanServiceType {
+  COMPREHENSIVE_WELLNESS_EXAM
+  WELLNESS_PUPPY_EXAM
+  WELLNESS_KITTEN_EXAM
+  DOG_CORE_VACCINE_SERIES
+  CAT_CORE_VACCINE_SERIES
+  FECAL_PARASITE_EXAM_AND_DEWORMING
+  FECAL_PARASITE_EXAM
+  HEARTWORM_TEST
+  FELV_FIV_TEST
+  EARLY_DIAGNOSTIC_BLOODWORK
+  ANNUAL_WELLNESS_BLOODWORK
+  URINALYSIS
+  BLOOD_PRESSURE_SCREENING
+  TECH_VISIT
 }
