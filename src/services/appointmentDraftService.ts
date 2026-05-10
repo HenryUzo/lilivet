@@ -40,12 +40,26 @@ async function getActiveDraft(sessionToken: string) {
 }
 
 export async function createAppointmentDraft() {
+  const tokenStartedAt = Date.now();
+  const sessionToken = crypto.randomBytes(32).toString("hex");
+  const tokenDurationMs = Date.now() - tokenStartedAt;
+
+  const queryStartedAt = Date.now();
   const draft = await prisma.appointmentDraft.create({
     data: {
-      sessionToken: crypto.randomBytes(32).toString("hex"),
+      sessionToken,
       expiresAt: draftExpiryDate()
     }
   });
+  const queryDurationMs = Date.now() - queryStartedAt;
+
+  console.log(JSON.stringify({
+    event: "appointment_draft_create_query",
+    draftId: draft.id,
+    tokenDurationMs,
+    queryDurationMs,
+    createdAt: draft.createdAt.toISOString()
+  }));
 
   return {
     ...draft,

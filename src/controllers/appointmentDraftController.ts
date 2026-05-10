@@ -25,7 +25,13 @@ function sessionToken(req: Request) {
 }
 
 export const createDraft = asyncHandler(async (_req: Request, res: Response) => {
+  const startedAt = Date.now();
   const draft = await createAppointmentDraft();
+  console.log(JSON.stringify({
+    event: "appointment_draft_create_request",
+    draftId: draft.id,
+    durationMs: Date.now() - startedAt
+  }));
   res.status(201).json(draft);
 });
 
