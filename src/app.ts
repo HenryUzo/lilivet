@@ -15,8 +15,28 @@ import { staffAuthRoutes } from "./routes/staffAuth.routes";
 
 export const app = express();
 
+const allowedCorsOrigins = env.CORS_ORIGIN.split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const allowAllCorsOrigins = allowedCorsOrigins.includes("*");
+
 app.use(helmet());
-app.use(cors({ origin: env.CORS_ORIGIN === "*" ? true : env.CORS_ORIGIN }));
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowAllCorsOrigins) {
+        callback(null, true);
+        return;
+      }
+
+      callback(
+        null,
+        allowedCorsOrigins.includes(origin),
+      );
+    },
+  }),
+);
 app.use(express.json({ limit: "1mb" }));
 app.use(morgan(env.NODE_ENV === "production" ? "combined" : "dev"));
 

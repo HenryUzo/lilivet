@@ -52,7 +52,7 @@ Copy `.env.example` to `.env` and set:
 
 - `DATABASE_URL` - Neon pooled PostgreSQL connection string. Use the pooler host and include SSL settings.
 - `DIRECT_URL` - Neon direct PostgreSQL connection string for Prisma migrations.
-- `CORS_ORIGIN` - frontend origin, or `*` for development.
+- `CORS_ORIGIN` - frontend origin list separated by commas, or `*` for development.
 - `UPLOAD_DIR` - local upload folder.
 - `MAX_UPLOAD_MB` - upload limit. Defaults to 10.
 - `DRAFT_EXPIRY_HOURS` - draft expiry window.
