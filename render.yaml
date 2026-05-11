@@ -24,6 +24,10 @@ services:
         sync: false
       - key: JWT_EXPIRES_IN
         sync: false
+      - key: JWT_ISSUER
+        sync: false
+      - key: JWT_AUDIENCE
+        sync: false
       - key: STAFF_SEED_EMAIL
         sync: false
       - key: STAFF_SEED_PASSWORD

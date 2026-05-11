@@ -10,6 +10,8 @@
     "postinstall": "prisma generate && npm run build",
     "lint": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
+    "owners:audit": "tsx scripts/owner-phone-duplicates.ts",
+    "owners:merge": "tsx scripts/owner-phone-duplicates.ts --apply",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",

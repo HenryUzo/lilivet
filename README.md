@@ -45,6 +45,8 @@ Raw OpenAPI JSON is available at `http://localhost:4000/api/openapi.json`.
 - `npm run prisma:migrate` - create/apply local migrations.
 - `npm run prisma:deploy` - apply migrations in deployed environments.
 - `npm run prisma:seed` - seed realistic sample data.
+- `npm run owners:audit` - print duplicate-owner groups by normalized phone without modifying data.
+- `npm run owners:merge` - merge duplicate-owner groups by normalized phone. This is destructive and should be run only after reviewing the audit output.
 
 ## Environment
 
@@ -78,6 +80,30 @@ In production, the server refuses to start if `JWT_SECRET` or `STAFF_SEED_PASSWO
 - Appointment list date filtering is performed against normalized `YYYY-MM-DD` preferred-date keys so pagination stays consistent across pages.
 - Duplicate detection flags likely duplicates using phone/email plus pet name within the configured short time window.
 - Owner phone normalization is backfilled and indexed in production-safe fashion. Existing duplicate owners are tolerated during rollout and should be cleaned up in a follow-up data pass before enforcing uniqueness.
+
+## Owner Duplicate Cleanup
+
+Use the one-off duplicate owner script before enforcing unique normalized phones:
+
+```bash
+npm run owners:audit
+```
+
+To restrict the audit or merge to one phone group:
+
+```bash
+npm run owners:audit -- --phone=2105550101
+npm run owners:merge -- --phone=2105550101
+```
+
+The merge mode:
+- keeps the oldest owner in each normalized-phone group as canonical
+- reassigns appointment requests and new-patient requests to the canonical owner
+- reassigns pets to the canonical owner
+- merges matching pets by case-insensitive `name + species`
+- fills missing canonical owner and pet fields conservatively
+
+Run the audit first. Review the JSON output before using `owners:merge`.
 
 ## Routes
 
