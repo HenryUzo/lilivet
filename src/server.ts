@@ -1,10 +1,11 @@
 import { app } from "./app";
-import { env } from "./config/env";
+import { assertSecureProductionEnv, env } from "./config/env";
 import { prisma } from "./prisma/client";
 
 let server: ReturnType<typeof app.listen>;
 
 async function start() {
+  assertSecureProductionEnv();
   const startedAt = Date.now();
   await prisma.$connect();
   console.log(`Prisma connected in ${Date.now() - startedAt}ms`);

@@ -61,7 +61,10 @@ Copy `.env.example` to `.env` and set:
 - `CLINIC_NOTIFICATION_EMAIL`, `MAIL_FROM`, and SMTP settings for Nodemailer.
 - `JWT_SECRET` - long random secret for signing staff JWTs. Use at least 32 characters.
 - `JWT_EXPIRES_IN` - staff token lifetime, for example `8h`.
+- `JWT_ISSUER` and `JWT_AUDIENCE` - JWT scope values used when signing and verifying staff tokens.
 - `STAFF_SEED_EMAIL` and `STAFF_SEED_PASSWORD` - admin staff credentials used by the seed script.
+
+In production, the server refuses to start if `JWT_SECRET` or `STAFF_SEED_PASSWORD` is still using the default bootstrap value.
 
 ## Important API Rules
 
@@ -70,7 +73,9 @@ Copy `.env.example` to `.env` and set:
 - The wizard stores partial draft data separately from final appointment requests.
 - Urgent care requests are treated as clinic-review requests, not life-threatening emergency confirmations.
 - Uploads accept only PDF, JPG, and PNG, up to `MAX_UPLOAD_MB`.
+- Uploads validate both the declared MIME type and the file signature bytes on the server.
 - `preferredSelections` stores up to three preferred dates, each with one to three `HH:mm` time slots, and must be sent with an IANA `timezone`.
+- Appointment list date filtering is performed against normalized `YYYY-MM-DD` preferred-date keys so pagination stays consistent across pages.
 - Duplicate detection flags likely duplicates using phone/email plus pet name within the configured short time window.
 
 ## Routes
@@ -150,3 +155,4 @@ Pass returned file ids as `uploadedFileIds` when creating `POST /api/new-patient
 - This project uses the classic Prisma 5 datasource in `prisma/schema.prisma`; do not add `prisma.config.ts`.
 - Store uploaded files on durable storage before scaling horizontally. The storage provider is abstracted in `src/storage/`.
 - Protect list/detail/status routes with staff authentication before exposing beyond internal clinic users.
+- `/health` is a readiness check and now probes the database before returning `200`.

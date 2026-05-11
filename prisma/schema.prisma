@@ -14,6 +14,7 @@ model Owner {
   lastName               String
   email                  String?
   phoneNumber            String
+  normalizedPhone        String                  @unique
   preferredContactMethod PreferredContactMethod?
   pets                   Pet[]
   appointmentRequests    AppointmentRequest[]
@@ -46,6 +47,8 @@ model Pet {
 
   @@index([ownerId])
   @@index([name])
+  @@index([ownerId, name])
+  @@index([ownerId, species])
 }
 
 model AppointmentDraft {
@@ -109,8 +112,9 @@ model AppointmentRequest {
   visitType VisitType
   status    AppointmentRequestStatus @default(PENDING_REVIEW)
 
-  preferredSelections Json
-  timezone            String
+  preferredSelections     Json
+  timezone                String
+  preferredDateSelections AppointmentPreferredDate[]
 
   symptomsOrConcerns   String?
   currentMedications   String?
@@ -132,6 +136,15 @@ model AppointmentRequest {
   @@index([ownerId])
   @@index([petId])
   @@index([duplicateOfId])
+}
+
+model AppointmentPreferredDate {
+  appointmentRequestId String
+  appointmentRequest   AppointmentRequest @relation(fields: [appointmentRequestId], references: [id], onDelete: Cascade)
+  dateKey              String
+
+  @@id([appointmentRequestId, dateKey])
+  @@index([dateKey, appointmentRequestId])
 }
 
 model NewPatientRequest {
@@ -237,9 +250,9 @@ model WellnessPlan {
 }
 
 model WellnessPlanBenefit {
-  id                 String                           @id @default(cuid())
+  id                 String                          @id @default(cuid())
   wellnessPlanId     String
-  wellnessPlan       WellnessPlan                     @relation(fields: [wellnessPlanId], references: [id], onDelete: Cascade)
+  wellnessPlan       WellnessPlan                    @relation(fields: [wellnessPlanId], references: [id], onDelete: Cascade)
   sortOrder          Int
   label              String
   benefitType        WellnessPlanBenefitType
@@ -247,11 +260,11 @@ model WellnessPlanBenefit {
   includedQuantity   Int?
   coverageLabel      String?
   discountPercent    Int?
-  creditAmount       Decimal?                         @db.Decimal(10, 2)
+  creditAmount       Decimal?                        @db.Decimal(10, 2)
   notes              String?
   milestoneTemplates WellnessPlanMilestoneTemplate[]
-  createdAt          DateTime                         @default(now())
-  updatedAt          DateTime                         @updatedAt
+  createdAt          DateTime                        @default(now())
+  updatedAt          DateTime                        @updatedAt
 
   @@index([wellnessPlanId, sortOrder])
 }

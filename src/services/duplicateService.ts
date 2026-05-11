@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { env } from "../config/env";
 import { prisma } from "../prisma/client";
+import { normalizePhoneNumber } from "../utils/phone";
 
 function windowStart() {
   return new Date(Date.now() - env.DUPLICATE_WINDOW_HOURS * 60 * 60 * 1000);
@@ -11,13 +12,15 @@ export async function findDuplicateAppointmentCandidate(input: {
   email?: string;
   petName: string;
 }) {
+  const normalizedPhone = normalizePhoneNumber(input.phoneNumber);
+
   return prisma.appointmentRequest.findFirst({
     where: {
       createdAt: { gte: windowStart() },
       pet: { name: { equals: input.petName, mode: "insensitive" } },
       owner: {
         OR: [
-          { phoneNumber: input.phoneNumber },
+          { normalizedPhone },
           ...(input.email ? [{ email: input.email } satisfies Prisma.OwnerWhereInput] : [])
         ]
       }

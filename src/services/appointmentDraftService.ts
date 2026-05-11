@@ -19,6 +19,8 @@ import {
 import { findDuplicateAppointmentCandidate } from "./duplicateService";
 import { attachFilesToAppointmentRequest } from "./fileService";
 import { sendClientAppointmentConfirmation, sendClinicAppointmentNotification } from "./mailService";
+import { normalizePhoneNumber } from "../utils/phone";
+import { extractPreferredSelectionDateKeys } from "../utils/preferredSelections";
 
 function draftExpiryDate() {
   return new Date(Date.now() + env.DRAFT_EXPIRY_HOURS * 60 * 60 * 1000);
@@ -37,6 +39,118 @@ async function getActiveDraft(sessionToken: string) {
     throw new HttpError(410, "Appointment draft has expired");
   }
   return draft;
+}
+
+async function resolveOwner(
+  tx: Prisma.TransactionClient,
+  input: {
+    firstName: string;
+    lastName: string;
+    email?: string | null;
+    phoneNumber: string;
+    preferredContactMethod: "CALL" | "TEXT" | "EMAIL";
+  }
+) {
+  const normalizedPhone = normalizePhoneNumber(input.phoneNumber);
+  const existingOwner = await tx.owner.findUnique({
+    where: { normalizedPhone }
+  });
+
+  if (!existingOwner) {
+    return tx.owner.create({
+      data: {
+        firstName: input.firstName,
+        lastName: input.lastName,
+        email: input.email ?? undefined,
+        phoneNumber: input.phoneNumber,
+        normalizedPhone,
+        preferredContactMethod: input.preferredContactMethod
+      }
+    });
+  }
+
+  const update: Prisma.OwnerUpdateInput = {};
+
+  if (!existingOwner.email && input.email) {
+    update.email = input.email;
+  }
+
+  if (!existingOwner.preferredContactMethod && input.preferredContactMethod) {
+    update.preferredContactMethod = input.preferredContactMethod;
+  }
+
+  if (Object.keys(update).length === 0) {
+    return existingOwner;
+  }
+
+  return tx.owner.update({
+    where: { id: existingOwner.id },
+    data: update
+  });
+}
+
+async function resolvePet(
+  tx: Prisma.TransactionClient,
+  ownerId: string,
+  input: {
+    petName: string;
+    species: "DOG" | "CAT";
+    breed?: string | null;
+    approximateAgeYears?: number | null;
+    sex: "MALE" | "FEMALE";
+    weightLbs?: number | null;
+    currentMedications?: string | null;
+  }
+) {
+  const existingPet = await tx.pet.findFirst({
+    where: {
+      ownerId,
+      species: input.species,
+      name: { equals: input.petName, mode: "insensitive" }
+    }
+  });
+
+  if (!existingPet) {
+    return tx.pet.create({
+      data: {
+        ownerId,
+        name: input.petName,
+        species: input.species,
+        breed: input.breed ?? undefined,
+        approximateAgeYears: input.approximateAgeYears ?? undefined,
+        sex: input.sex,
+        weightLbs: input.weightLbs ? new Prisma.Decimal(input.weightLbs) : undefined,
+        currentMedications: input.currentMedications ?? undefined
+      }
+    });
+  }
+
+  const update: Prisma.PetUpdateInput = {};
+
+  if (!existingPet.breed && input.breed) {
+    update.breed = input.breed;
+  }
+
+  if (existingPet.approximateAgeYears === null && input.approximateAgeYears !== null && input.approximateAgeYears !== undefined) {
+    update.approximateAgeYears = input.approximateAgeYears;
+  }
+
+  if (!existingPet.currentMedications && input.currentMedications) {
+    update.currentMedications = input.currentMedications;
+  }
+
+  if (existingPet.weightLbs === null && input.weightLbs) {
+    update.weightLbs = new Prisma.Decimal(input.weightLbs);
+  }
+
+  if (Object.keys(update).length === 0) {
+    return existingPet;
+  }
+
+  return tx.pet.update({
+    where: { id: existingPet.id },
+    data: update
+  });
 }
 
 export async function createAppointmentDraft() {
@@ -181,29 +295,25 @@ export async function submitAppointmentDraft(sessionToken: string) {
     email: fullDraft.email ?? undefined,
     petName: fullDraft.petName
   });
+  const preferredDateKeys = extractPreferredSelectionDateKeys(fullDraft.preferredSelections);
 
   const appointmentRequest = await prisma.$transaction(async (tx) => {
-    const owner = await tx.owner.create({
-      data: {
-        firstName: fullDraft.firstName,
-        lastName: fullDraft.lastName,
-        email: fullDraft.email ?? undefined,
-        phoneNumber: fullDraft.phoneNumber,
-        preferredContactMethod: fullDraft.preferredContactMethod
-      }
+    const owner = await resolveOwner(tx, {
+      firstName: fullDraft.firstName,
+      lastName: fullDraft.lastName,
+      email: fullDraft.email ?? undefined,
+      phoneNumber: fullDraft.phoneNumber,
+      preferredContactMethod: fullDraft.preferredContactMethod
     });
 
-    const pet = await tx.pet.create({
-      data: {
-        ownerId: owner.id,
-        name: fullDraft.petName,
-        species: fullDraft.species,
-        breed: fullDraft.breed ?? undefined,
-        approximateAgeYears: fullDraft.approximateAgeYears ?? undefined,
-        sex: fullDraft.sex,
-        weightLbs: fullDraft.weightLbs ? new Prisma.Decimal(fullDraft.weightLbs) : undefined,
-        currentMedications: fullDraft.currentMedications ?? undefined
-      }
+    const pet = await resolvePet(tx, owner.id, {
+      petName: fullDraft.petName,
+      species: fullDraft.species,
+      breed: fullDraft.breed ?? undefined,
+      approximateAgeYears: fullDraft.approximateAgeYears ?? undefined,
+      sex: fullDraft.sex,
+      weightLbs: fullDraft.weightLbs ?? undefined,
+      currentMedications: fullDraft.currentMedications ?? undefined
     });
 
     const request = await tx.appointmentRequest.create({
@@ -218,7 +328,12 @@ export async function submitAppointmentDraft(sessionToken: string) {
         previousVeterinarian: fullDraft.previousVeterinarian ?? undefined,
         symptomDuration: fullDraft.symptomDuration ?? undefined,
         possibleDuplicate: Boolean(duplicate),
-        duplicateOfId: duplicate?.id
+        duplicateOfId: duplicate?.id,
+        preferredDateSelections: {
+          create: preferredDateKeys.map((dateKey) => ({
+            dateKey
+          }))
+        }
       },
       include: {
         owner: true,
@@ -226,6 +341,8 @@ export async function submitAppointmentDraft(sessionToken: string) {
         files: true
       }
     });
+
+    await attachFilesToAppointmentRequest(tx, draft.id, request.id, draft.files.length);
 
     await tx.appointmentDraft.update({
       where: { id: draft.id },
@@ -237,8 +354,6 @@ export async function submitAppointmentDraft(sessionToken: string) {
 
     return request;
   }, { timeout: 20000 });
-
-  await attachFilesToAppointmentRequest(draft.id, appointmentRequest.id);
 
   await Promise.allSettled([
     sendClinicAppointmentNotification({

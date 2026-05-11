@@ -1,27 +1,7 @@
-﻿import type { AppointmentRequestStatus, Prisma } from "@prisma/client";
+import type { AppointmentRequestStatus, Prisma } from "@prisma/client";
 import { prisma } from "../prisma/client";
 import { HttpError } from "../utils/httpError";
-
-function hasPreferredSelectionInRange(
-  preferredSelections: Prisma.JsonValue,
-  dateFrom?: string,
-  dateTo?: string
-) {
-  if (!dateFrom && !dateTo) return true;
-  if (!Array.isArray(preferredSelections)) return false;
-
-  const from = dateFrom ? new Date(dateFrom).getTime() : Number.NEGATIVE_INFINITY;
-  const to = dateTo ? new Date(dateTo).getTime() : Number.POSITIVE_INFINITY;
-
-  return preferredSelections.some((selection) => {
-    const dateValue =
-      selection && typeof selection === "object" && "date" in selection
-        ? (selection as { date?: unknown }).date
-        : undefined;
-    const time = new Date(String(dateValue)).getTime();
-    return Number.isFinite(time) && time >= from && time <= to;
-  });
-}
+import { normalizeDateFilterBoundary } from "../utils/preferredSelections";
 
 export async function listAppointmentRequests(input: {
   status?: AppointmentRequestStatus;
@@ -31,6 +11,9 @@ export async function listAppointmentRequests(input: {
   limit: number;
   cursor?: string;
 }) {
+  const dateFromKey = normalizeDateFilterBoundary(input.dateFrom);
+  const dateToKey = normalizeDateFilterBoundary(input.dateTo);
+
   const where: Prisma.AppointmentRequestWhereInput = {
     status: input.status
   };
@@ -45,22 +28,29 @@ export async function listAppointmentRequests(input: {
     ];
   }
 
-  const needsDateFilter = Boolean(input.dateFrom || input.dateTo);
+  if (dateFromKey || dateToKey) {
+    where.preferredDateSelections = {
+      some: {
+        dateKey: {
+          gte: dateFromKey,
+          lte: dateToKey
+        }
+      }
+    };
+  }
+
   const rows = await prisma.appointmentRequest.findMany({
     where,
-    take: needsDateFilter ? 500 : input.limit + 1,
+    take: input.limit + 1,
     skip: input.cursor ? 1 : 0,
     cursor: input.cursor ? { id: input.cursor } : undefined,
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     include: { owner: true, pet: true, files: true }
   });
 
-  const filteredRows = rows.filter((row) =>
-    hasPreferredSelectionInRange(row.preferredSelections, input.dateFrom, input.dateTo)
-  );
-  const hasMore = filteredRows.length > input.limit || (needsDateFilter && rows.length === 500);
-  const data = filteredRows.slice(0, input.limit);
-  const nextCursor = hasMore ? data[data.length - 1]?.id ?? rows[rows.length - 1]?.id ?? null : null;
+  const hasMore = rows.length > input.limit;
+  const data = hasMore ? rows.slice(0, input.limit) : rows;
+  const nextCursor = hasMore ? data[data.length - 1]?.id ?? null : null;
   return { data, nextCursor };
 }
 

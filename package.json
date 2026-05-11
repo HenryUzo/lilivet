@@ -9,6 +9,7 @@
     "start": "node dist/src/server.js",
     "postinstall": "prisma generate && npm run build",
     "lint": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
@@ -37,6 +38,7 @@
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
+    "express-rate-limit": "^7.5.0",
     "express": "^4.21.2",
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.3",
@@ -49,6 +51,9 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@types/supertest": "^6.0.3",
+    "supertest": "^7.1.1",
+    "vitest": "^3.2.4",
     "tsx": "^4.19.2"
   },
   "engines": {

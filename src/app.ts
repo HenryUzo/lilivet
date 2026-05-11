@@ -6,14 +6,17 @@ import swaggerUi from "swagger-ui-express";
 import { env } from "./config/env";
 import { openApiDocument } from "./docs/openapi";
 import { errorHandler, notFoundHandler } from "./middlewares/errorHandler";
+import { prisma } from "./prisma/client";
 import { adminWellnessPlanRoutes } from "./routes/adminWellnessPlan.routes";
 import { appointmentDraftRoutes } from "./routes/appointmentDraft.routes";
 import { appointmentRequestRoutes } from "./routes/appointmentRequest.routes";
 import { fileRoutes } from "./routes/file.routes";
 import { newPatientRoutes } from "./routes/newPatientRequest.routes";
 import { staffAuthRoutes } from "./routes/staffAuth.routes";
+import { HttpError } from "./utils/httpError";
 
 export const app = express();
+app.set("trust proxy", 1);
 
 const allowedCorsOrigins = env.CORS_ORIGIN.split(",")
   .map((origin) => origin.trim())
@@ -40,12 +43,17 @@ app.use(
 app.use(express.json({ limit: "1mb" }));
 app.use(morgan(env.NODE_ENV === "production" ? "combined" : "dev"));
 
-app.get("/health", (_req, res) => {
-  res.json({
-    status: "ok",
-    commit: process.env.RENDER_GIT_COMMIT?.slice(0, 7) ?? null,
-    uploadDir: env.UPLOAD_DIR
-  });
+app.get("/health", async (_req, res, next) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({
+      status: "ok",
+      commit: process.env.RENDER_GIT_COMMIT?.slice(0, 7) ?? null,
+      uploadDir: env.UPLOAD_DIR
+    });
+  } catch (error) {
+    next(new HttpError(503, "Database readiness check failed", error));
+  }
 });
 
 app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(openApiDocument));

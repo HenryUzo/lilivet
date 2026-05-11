@@ -1,4 +1,4 @@
-﻿import { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { prisma } from "../prisma/client";
 import { HttpError } from "../utils/httpError";
 import type { CreateNewPatientRequestInput } from "../validators/newPatientSchemas";
@@ -7,53 +7,55 @@ import { assertUnattachedFilesAvailable, attachFilesToNewPatientRequest } from "
 import { sendClinicNewPatientNotification } from "./mailService";
 
 export async function createNewPatientRequest(input: CreateNewPatientRequestInput) {
-  await assertUnattachedFilesAvailable(input.uploadedFileIds);
-
   const duplicate = await findDuplicateNewPatientCandidate({
     phoneNumber: input.owner.phoneNumber,
     email: input.owner.email,
     petName: input.pet.petName
   });
 
-  const request = await prisma.newPatientRequest.create({
-    data: {
-      ownerFullName: input.owner.fullName,
-      ownerEmail: input.owner.email,
-      ownerPhoneNumber: input.owner.phoneNumber,
-      reasonForVisit: input.visit.reasonForVisit,
-      isUrgent: input.visit.isUrgent,
-      preferredDateTime: input.visit.preferredDateTime ? new Date(input.visit.preferredDateTime) : undefined,
-      timezone: input.visit.timezone,
-      previousVetClinic: input.visit.previousVetClinic,
-      consentToElectronicComms: input.visit.consentToElectronicComms,
-      petName: input.pet.petName,
-      species: input.pet.species,
-      breed: input.pet.breed,
-      age: input.pet.age,
-      sex: input.pet.sex,
-      weightLbs: input.pet.weightLbs ? new Prisma.Decimal(input.pet.weightLbs) : undefined,
-      spayedNeutered: input.pet.spayedNeutered,
-      currentMedications: input.pet.currentMedications,
-      existingConditions: input.pet.existingConditions,
-      possibleDuplicate: Boolean(duplicate),
-      duplicateOfId: duplicate?.id
-    },
-    include: { files: true }
+  const requestId = await prisma.$transaction(async (tx) => {
+    await assertUnattachedFilesAvailable(input.uploadedFileIds, tx);
+
+    const request = await tx.newPatientRequest.create({
+      data: {
+        ownerFullName: input.owner.fullName,
+        ownerEmail: input.owner.email,
+        ownerPhoneNumber: input.owner.phoneNumber,
+        reasonForVisit: input.visit.reasonForVisit,
+        isUrgent: input.visit.isUrgent,
+        preferredDateTime: input.visit.preferredDateTime ? new Date(input.visit.preferredDateTime) : undefined,
+        timezone: input.visit.timezone,
+        previousVetClinic: input.visit.previousVetClinic,
+        consentToElectronicComms: input.visit.consentToElectronicComms,
+        petName: input.pet.petName,
+        species: input.pet.species,
+        breed: input.pet.breed,
+        age: input.pet.age,
+        sex: input.pet.sex,
+        weightLbs: input.pet.weightLbs ? new Prisma.Decimal(input.pet.weightLbs) : undefined,
+        spayedNeutered: input.pet.spayedNeutered,
+        currentMedications: input.pet.currentMedications,
+        existingConditions: input.pet.existingConditions,
+        possibleDuplicate: Boolean(duplicate),
+        duplicateOfId: duplicate?.id
+      }
+    });
+
+    await attachFilesToNewPatientRequest(tx, input.uploadedFileIds, request.id);
+    return request.id;
   });
 
-  await attachFilesToNewPatientRequest(input.uploadedFileIds, request.id);
-
   await sendClinicNewPatientNotification({
-    requestId: request.id,
-    ownerName: request.ownerFullName,
-    petName: request.petName,
-    phoneNumber: request.ownerPhoneNumber
+    requestId,
+    ownerName: input.owner.fullName,
+    petName: input.pet.petName,
+    phoneNumber: input.owner.phoneNumber
   }).catch((error) => {
     console.error("New-patient email notification failed", error);
   });
 
   return prisma.newPatientRequest.findUniqueOrThrow({
-    where: { id: request.id },
+    where: { id: requestId },
     include: { files: true }
   });
 }

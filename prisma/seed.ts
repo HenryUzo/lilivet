@@ -14,6 +14,7 @@ import {
   WellnessPlanTier
 } from "@prisma/client";
 import { env } from "../src/config/env";
+import { normalizePhoneNumber } from "../src/utils/phone";
 
 const prisma = new PrismaClient();
 
@@ -538,6 +539,7 @@ async function main() {
       lastName: "Okafor",
       email: "amara.okafor@example.com",
       phoneNumber: "+2348012345678",
+      normalizedPhone: normalizePhoneNumber("+2348012345678"),
       preferredContactMethod: PreferredContactMethod.CALL,
       pets: {
         create: {
@@ -565,6 +567,9 @@ async function main() {
           timeSlots: ["09:00", "10:30"]
         }
       ],
+      preferredDateSelections: {
+        create: [{ dateKey: "2026-05-05" }]
+      },
       timezone: "Africa/Lagos",
       symptomsOrConcerns: "Annual wellness check and updated vaccination review.",
       currentMedications: "None",

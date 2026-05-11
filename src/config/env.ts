@@ -3,6 +3,9 @@ import { z } from "zod";
 
 dotenv.config();
 
+export const DEFAULT_JWT_SECRET = "development-only-jwt-secret-change-before-production";
+export const DEFAULT_STAFF_SEED_PASSWORD = "ChangeMe123!";
+
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().positive().default(4000),
@@ -20,10 +23,32 @@ const envSchema = z.object({
   SMTP_SECURE: z.coerce.boolean().default(false),
   SMTP_USER: z.string().optional().default(""),
   SMTP_PASS: z.string().optional().default(""),
-  JWT_SECRET: z.string().min(32).default("development-only-jwt-secret-change-before-production"),
+  JWT_SECRET: z.string().min(32).default(DEFAULT_JWT_SECRET),
   JWT_EXPIRES_IN: z.string().min(1).default("8h"),
+  JWT_ISSUER: z.string().min(1).default("lili-vet-backend"),
+  JWT_AUDIENCE: z.string().min(1).default("lili-vet-staff"),
   STAFF_SEED_EMAIL: z.string().email().default("admin@lilivethospital.example"),
-  STAFF_SEED_PASSWORD: z.string().min(8).default("ChangeMe123!")
+  STAFF_SEED_PASSWORD: z.string().min(8).default(DEFAULT_STAFF_SEED_PASSWORD)
 });
 
 export const env = envSchema.parse(process.env);
+
+export function assertSecureProductionEnv() {
+  if (env.NODE_ENV !== "production") {
+    return;
+  }
+
+  const insecureVariables: string[] = [];
+
+  if (env.JWT_SECRET === DEFAULT_JWT_SECRET) {
+    insecureVariables.push("JWT_SECRET");
+  }
+
+  if (env.STAFF_SEED_PASSWORD === DEFAULT_STAFF_SEED_PASSWORD) {
+    insecureVariables.push("STAFF_SEED_PASSWORD");
+  }
+
+  if (insecureVariables.length > 0) {
+    throw new Error(`Refusing to boot in production with default secrets: ${insecureVariables.join(", ")}`);
+  }
+}

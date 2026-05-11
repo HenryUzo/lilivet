@@ -20,7 +20,10 @@ export function requireStaffAuth(req: Request, _res: Response, next: NextFunctio
   }
 
   try {
-    const decoded = jwt.verify(token, env.JWT_SECRET) as StaffJwtPayload;
+    const decoded = jwt.verify(token, env.JWT_SECRET, {
+      issuer: env.JWT_ISSUER,
+      audience: env.JWT_AUDIENCE
+    }) as StaffJwtPayload;
     req.staffUser = {
       id: decoded.sub,
       email: decoded.email,
