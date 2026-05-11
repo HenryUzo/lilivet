@@ -19,7 +19,7 @@ const {
   sendClientAppointmentConfirmationMock: vi.fn(),
   txMock: {
     owner: {
-      findUnique: vi.fn(),
+      findFirst: vi.fn(),
       create: vi.fn(),
       update: vi.fn()
     },
@@ -104,7 +104,7 @@ describe("submitAppointmentDraft", () => {
     sendClinicAppointmentNotificationMock.mockReset();
     sendClientAppointmentConfirmationMock.mockReset();
 
-    txMock.owner.findUnique.mockReset();
+    txMock.owner.findFirst.mockReset();
     txMock.owner.create.mockReset();
     txMock.owner.update.mockReset();
     txMock.pet.findFirst.mockReset();
@@ -157,7 +157,7 @@ describe("submitAppointmentDraft", () => {
       draft: { id: "draft-1" }
     };
 
-    txMock.owner.findUnique.mockResolvedValue(existingOwner);
+    txMock.owner.findFirst.mockResolvedValue(existingOwner);
     txMock.owner.update.mockResolvedValue(updatedOwner);
     txMock.pet.findFirst.mockResolvedValue(existingPet);
     txMock.appointmentRequest.create.mockResolvedValue(createdRequest);
@@ -189,7 +189,7 @@ describe("submitAppointmentDraft", () => {
   });
 
   it("does not mark the draft submitted when file attachment fails inside the transaction", async () => {
-    txMock.owner.findUnique.mockResolvedValue(null);
+    txMock.owner.findFirst.mockResolvedValue(null);
     txMock.owner.create.mockResolvedValue({
       id: "owner-1",
       firstName: "Amara",

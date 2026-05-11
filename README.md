@@ -77,6 +77,7 @@ In production, the server refuses to start if `JWT_SECRET` or `STAFF_SEED_PASSWO
 - `preferredSelections` stores up to three preferred dates, each with one to three `HH:mm` time slots, and must be sent with an IANA `timezone`.
 - Appointment list date filtering is performed against normalized `YYYY-MM-DD` preferred-date keys so pagination stays consistent across pages.
 - Duplicate detection flags likely duplicates using phone/email plus pet name within the configured short time window.
+- Owner phone normalization is backfilled and indexed in production-safe fashion. Existing duplicate owners are tolerated during rollout and should be cleaned up in a follow-up data pass before enforcing uniqueness.
 
 ## Routes
 

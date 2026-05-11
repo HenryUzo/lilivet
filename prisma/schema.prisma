@@ -14,7 +14,7 @@ model Owner {
   lastName               String
   email                  String?
   phoneNumber            String
-  normalizedPhone        String                  @unique
+  normalizedPhone        String?
   preferredContactMethod PreferredContactMethod?
   pets                   Pet[]
   appointmentRequests    AppointmentRequest[]
@@ -24,6 +24,7 @@ model Owner {
 
   @@index([email])
   @@index([phoneNumber])
+  @@index([normalizedPhone])
 }
 
 model Pet {

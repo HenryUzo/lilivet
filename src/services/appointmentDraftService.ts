@@ -52,9 +52,12 @@ async function resolveOwner(
   }
 ) {
   const normalizedPhone = normalizePhoneNumber(input.phoneNumber);
-  const existingOwner = await tx.owner.findUnique({
-    where: { normalizedPhone }
-  });
+  const existingOwner = normalizedPhone
+    ? await tx.owner.findFirst({
+        where: { normalizedPhone },
+        orderBy: [{ createdAt: "asc" }, { id: "asc" }]
+      })
+    : null;
 
   if (!existingOwner) {
     return tx.owner.create({
@@ -63,7 +66,7 @@ async function resolveOwner(
         lastName: input.lastName,
         email: input.email ?? undefined,
         phoneNumber: input.phoneNumber,
-        normalizedPhone,
+        ...(normalizedPhone ? { normalizedPhone } : {}),
         preferredContactMethod: input.preferredContactMethod
       }
     });

@@ -9,30 +9,11 @@ SET "normalizedPhone" = CASE
   ELSE regexp_replace("phoneNumber", '\D', '', 'g')
 END;
 
-DO $$
-BEGIN
-  IF EXISTS (
-    SELECT 1
-    FROM "Owner"
-    WHERE "normalizedPhone" IS NULL OR "normalizedPhone" = ''
-  ) THEN
-    RAISE EXCEPTION 'Owner normalizedPhone backfill failed because one or more phone numbers could not be normalized';
-  END IF;
+UPDATE "Owner"
+SET "normalizedPhone" = NULL
+WHERE "normalizedPhone" = '';
 
-  IF EXISTS (
-    SELECT 1
-    FROM "Owner"
-    GROUP BY "normalizedPhone"
-    HAVING COUNT(*) > 1
-  ) THEN
-    RAISE EXCEPTION 'Duplicate normalized owner phone numbers detected; clean existing owners before applying this migration';
-  END IF;
-END $$;
-
-ALTER TABLE "Owner"
-ALTER COLUMN "normalizedPhone" SET NOT NULL;
-
-CREATE UNIQUE INDEX "Owner_normalizedPhone_key" ON "Owner"("normalizedPhone");
+CREATE INDEX "Owner_normalizedPhone_idx" ON "Owner"("normalizedPhone");
 CREATE INDEX "Pet_ownerId_name_idx" ON "Pet"("ownerId", "name");
 CREATE INDEX "Pet_ownerId_species_idx" ON "Pet"("ownerId", "species");
 
