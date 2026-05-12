@@ -21,6 +21,7 @@ import { attachFilesToAppointmentRequest } from "./fileService";
 import { sendClientAppointmentConfirmation, sendClinicAppointmentNotification } from "./mailService";
 import { normalizePhoneNumber } from "../utils/phone";
 import { extractPreferredSelectionDateKeys } from "../utils/preferredSelections";
+import { dispatchBackgroundEmail } from "./emailDispatchService";
 
 function draftExpiryDate() {
   return new Date(Date.now() + env.DRAFT_EXPIRY_HOURS * 60 * 60 * 1000);
@@ -358,25 +359,30 @@ export async function submitAppointmentDraft(sessionToken: string) {
     return request;
   }, { timeout: 20000 });
 
-  await Promise.allSettled([
-    sendClinicAppointmentNotification({
-      requestId: appointmentRequest.id,
-      ownerName: `${appointmentRequest.owner.firstName} ${appointmentRequest.owner.lastName}`,
-      petName: appointmentRequest.pet.name,
-      phoneNumber: appointmentRequest.owner.phoneNumber,
-      visitType: appointmentRequest.visitType
-    }),
-    sendClientAppointmentConfirmation({
-      email: appointmentRequest.owner.email ?? undefined,
-      ownerName: appointmentRequest.owner.firstName,
-      petName: appointmentRequest.pet.name
-    })
-  ]).then((results) => {
-    for (const result of results) {
-      if (result.status === "rejected") {
-        console.error("Appointment email notification failed", result.reason);
-      }
-    }
+  dispatchBackgroundEmail({
+    requestId: appointmentRequest.id,
+    requestType: "appointment",
+    notificationType: "clinic",
+    task: () =>
+      sendClinicAppointmentNotification({
+        requestId: appointmentRequest.id,
+        ownerName: `${appointmentRequest.owner.firstName} ${appointmentRequest.owner.lastName}`,
+        petName: appointmentRequest.pet.name,
+        phoneNumber: appointmentRequest.owner.phoneNumber,
+        visitType: appointmentRequest.visitType
+      })
+  });
+
+  dispatchBackgroundEmail({
+    requestId: appointmentRequest.id,
+    requestType: "appointment",
+    notificationType: "client",
+    task: () =>
+      sendClientAppointmentConfirmation({
+        email: appointmentRequest.owner.email ?? undefined,
+        ownerName: appointmentRequest.owner.firstName,
+        petName: appointmentRequest.pet.name
+      })
   });
 
   return prisma.appointmentRequest.findUniqueOrThrow({

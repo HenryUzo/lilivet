@@ -95,6 +95,8 @@ const activeDraft = {
 };
 
 describe("submitAppointmentDraft", () => {
+  const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
   beforeEach(() => {
     appointmentDraftFindUniqueMock.mockReset();
     appointmentRequestFindUniqueOrThrowMock.mockReset();
@@ -118,6 +120,7 @@ describe("submitAppointmentDraft", () => {
     sendClinicAppointmentNotificationMock.mockResolvedValue(undefined);
     sendClientAppointmentConfirmationMock.mockResolvedValue(undefined);
     transactionMock.mockImplementation(async (callback: (tx: typeof txMock) => Promise<unknown>) => callback(txMock));
+    consoleErrorSpy.mockClear();
   });
 
   it("reuses the existing owner and pet, creates preferred date keys, and attaches files before marking the draft submitted", async () => {
@@ -186,6 +189,97 @@ describe("submitAppointmentDraft", () => {
     expect(attachFilesToAppointmentRequestMock).toHaveBeenCalledWith(txMock, "draft-1", "request-1", 2);
     expect(txMock.appointmentDraft.update).toHaveBeenCalledTimes(1);
     expect(result).toBe(finalRequest);
+  });
+
+  it("returns the created request without waiting for clinic or client email promises to settle", async () => {
+    const neverSettles = new Promise<void>(() => undefined);
+    const createdRequest = {
+      id: "request-1",
+      owner: {
+        id: "owner-1",
+        firstName: "Amara",
+        lastName: "Okafor",
+        email: "amara@example.com",
+        phoneNumber: "(210) 257-8496",
+        normalizedPhone: "12102578496",
+        preferredContactMethod: "CALL"
+      },
+      pet: {
+        id: "pet-1",
+        ownerId: "owner-1",
+        name: "Milo",
+        species: "DOG",
+        breed: "Mixed",
+        approximateAgeYears: 4,
+        sex: "MALE",
+        weightLbs: null,
+        currentMedications: null
+      },
+      files: []
+    };
+    const finalRequest = { ...createdRequest, draft: { id: "draft-1" } };
+
+    txMock.owner.findFirst.mockResolvedValue(createdRequest.owner);
+    txMock.pet.findFirst.mockResolvedValue(createdRequest.pet);
+    txMock.pet.update.mockResolvedValue(createdRequest.pet);
+    txMock.appointmentRequest.create.mockResolvedValue(createdRequest);
+    appointmentRequestFindUniqueOrThrowMock.mockResolvedValue(finalRequest);
+    sendClinicAppointmentNotificationMock.mockReturnValue(neverSettles);
+    sendClientAppointmentConfirmationMock.mockReturnValue(neverSettles);
+
+    const result = await submitAppointmentDraft("a".repeat(64));
+
+    expect(result).toBe(finalRequest);
+    expect(sendClinicAppointmentNotificationMock).toHaveBeenCalledTimes(1);
+    expect(sendClientAppointmentConfirmationMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("logs email failures but still returns the created request", async () => {
+    const createdRequest = {
+      id: "request-1",
+      owner: {
+        id: "owner-1",
+        firstName: "Amara",
+        lastName: "Okafor",
+        email: "amara@example.com",
+        phoneNumber: "(210) 257-8496",
+        normalizedPhone: "12102578496",
+        preferredContactMethod: "CALL"
+      },
+      pet: {
+        id: "pet-1",
+        ownerId: "owner-1",
+        name: "Milo",
+        species: "DOG",
+        breed: "Mixed",
+        approximateAgeYears: 4,
+        sex: "MALE",
+        weightLbs: null,
+        currentMedications: null
+      },
+      files: []
+    };
+    const finalRequest = { ...createdRequest, draft: { id: "draft-1" } };
+
+    txMock.owner.findFirst.mockResolvedValue(createdRequest.owner);
+    txMock.pet.findFirst.mockResolvedValue(createdRequest.pet);
+    txMock.pet.update.mockResolvedValue(createdRequest.pet);
+    txMock.appointmentRequest.create.mockResolvedValue(createdRequest);
+    appointmentRequestFindUniqueOrThrowMock.mockResolvedValue(finalRequest);
+    sendClinicAppointmentNotificationMock.mockRejectedValue(new Error("clinic smtp down"));
+    sendClientAppointmentConfirmationMock.mockRejectedValue(new Error("client smtp down"));
+
+    const result = await submitAppointmentDraft("a".repeat(64));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(result).toBe(finalRequest);
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("\"event\":\"email_dispatch_failed\"")
+    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("\"requestType\":\"appointment\"")
+    );
   });
 
   it("does not mark the draft submitted when file attachment fails inside the transaction", async () => {

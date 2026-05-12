@@ -5,6 +5,7 @@ import type { CreateNewPatientRequestInput } from "../validators/newPatientSchem
 import { findDuplicateNewPatientCandidate } from "./duplicateService";
 import { assertUnattachedFilesAvailable, attachFilesToNewPatientRequest } from "./fileService";
 import { sendClinicNewPatientNotification } from "./mailService";
+import { dispatchBackgroundEmail } from "./emailDispatchService";
 
 export async function createNewPatientRequest(input: CreateNewPatientRequestInput) {
   const duplicate = await findDuplicateNewPatientCandidate({
@@ -45,13 +46,17 @@ export async function createNewPatientRequest(input: CreateNewPatientRequestInpu
     return request.id;
   });
 
-  await sendClinicNewPatientNotification({
+  dispatchBackgroundEmail({
     requestId,
-    ownerName: input.owner.fullName,
-    petName: input.pet.petName,
-    phoneNumber: input.owner.phoneNumber
-  }).catch((error) => {
-    console.error("New-patient email notification failed", error);
+    requestType: "new_patient",
+    notificationType: "clinic",
+    task: () =>
+      sendClinicNewPatientNotification({
+        requestId,
+        ownerName: input.owner.fullName,
+        petName: input.pet.petName,
+        phoneNumber: input.owner.phoneNumber
+      })
   });
 
   return prisma.newPatientRequest.findUniqueOrThrow({
