@@ -10,6 +10,7 @@ import {
 import {
   getAppointmentRequest,
   listAppointmentRequests,
+  markOverdueAppointments,
   retryAppointmentCalendarSync,
   updateAppointmentRequestStatus
 } from "../services/appointmentRequestService";
@@ -44,6 +45,11 @@ export const patchRequestStatus = asyncHandler(async (req: Request, res: Respons
 export const retryRequestCalendarSync = asyncHandler(async (req: Request, res: Response) => {
   const { id } = idParamSchema.parse(req.params);
   res.json(await retryAppointmentCalendarSync(id));
+});
+
+export const runManualOverdueSweep = asyncHandler(async (_req: Request, res: Response) => {
+  const markedCount = await markOverdueAppointments();
+  res.json({ markedCount });
 });
 
 export const sendRequestRescheduleLink = asyncHandler(async (req: Request, res: Response) => {
