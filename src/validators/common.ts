@@ -17,6 +17,7 @@ export const preferredContactMethodSchema = z.enum(["CALL", "TEXT", "EMAIL"]);
 export const appointmentStatusSchema = z.enum([
   "PENDING_REVIEW",
   "CONFIRMED",
+  "OVERDUE",
   "CANCELLED",
   "COMPLETED",
   "NO_SHOW"
@@ -41,6 +42,10 @@ export const idParamSchema = z.object({
 
 export const sessionTokenParamSchema = z.object({
   sessionToken: z.string().length(64)
+});
+
+export const rescheduleTokenParamSchema = z.object({
+  token: z.string().length(64)
 });
 
 export const listQuerySchema = z.object({

@@ -184,3 +184,32 @@ export async function attachFilesToNewPatientRequest(
     throw new HttpError(409, "One or more uploaded files are expired, already attached, or not found");
   }
 }
+
+export async function cloneAppointmentRequestFilesToRequest(
+  dbClient: DbClient,
+  sourceAppointmentRequestId: string,
+  targetAppointmentRequestId: string
+) {
+  const sourceFiles = await dbClient.uploadedFile.findMany({
+    where: { appointmentRequestId: sourceAppointmentRequestId }
+  });
+
+  if (sourceFiles.length === 0) {
+    return;
+  }
+
+  await dbClient.uploadedFile.createMany({
+    data: sourceFiles.map((file) => ({
+      originalName: file.originalName,
+      storedName: file.storedName,
+      mimeType: file.mimeType,
+      sizeBytes: file.sizeBytes,
+      storageProvider: file.storageProvider,
+      storageKey: file.storageKey,
+      publicUrl: file.publicUrl,
+      attachmentStatus: FileAttachmentStatus.ATTACHED,
+      expiresAt: null,
+      appointmentRequestId: targetAppointmentRequestId
+    }))
+  });
+}

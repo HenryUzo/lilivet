@@ -65,16 +65,20 @@ function renderEmailShell(input: {
   intro: string;
   bodyHtml: string;
   includeAction?: boolean;
+  actionLabel?: string;
+  actionUrl?: string;
 }) {
-  const actionHtml = input.includeAction
+  const actionLabel = input.actionLabel ?? "Visit Our Website";
+  const actionUrl = input.actionUrl ?? EMAIL_WEBSITE;
+  const actionHtml = input.includeAction || input.actionUrl
     ? `
       <tr>
         <td style="padding: 0 32px 28px;">
           <a
-            href="${EMAIL_WEBSITE}"
+            href="${actionUrl}"
             style="display: inline-block; border-radius: 999px; background: #1f8d43; color: #ffffff; font: 700 15px Arial, sans-serif; text-decoration: none; padding: 14px 22px;"
           >
-            Visit Our Website
+            ${escapeHtml(actionLabel)}
           </a>
         </td>
       </tr>
@@ -267,6 +271,63 @@ export async function sendClinicNewPatientNotification(input: {
         { label: "Pet", value: input.petName },
         { label: "Phone", value: input.phoneNumber }
       ])
+    }),
+    attachments: getInlineBrandAttachments()
+  });
+}
+
+export async function sendClientAppointmentRescheduleRequest(input: {
+  email?: string;
+  ownerName: string;
+  petName: string;
+  responseDeadline: Date;
+  confirmedStartAt?: Date | null;
+  rescheduleUrl: string;
+}) {
+  if (!input.email) return;
+
+  const confirmedText = input.confirmedStartAt
+    ? input.confirmedStartAt.toLocaleString("en-US", {
+        dateStyle: "medium",
+        timeStyle: "short"
+      })
+    : "your previous scheduled time";
+  const deadlineText = input.responseDeadline.toLocaleString("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short"
+  });
+
+  await transporter.sendMail({
+    from: env.MAIL_FROM,
+    to: input.email,
+    subject: `Please choose a new appointment date for ${input.petName}`,
+    text: [
+      `Hi ${input.ownerName},`,
+      "",
+      `${input.petName}'s appointment for ${confirmedText} is now overdue.`,
+      `Please choose new preferred dates and times by ${deadlineText}.`,
+      "",
+      `Use this secure link to book a new date: ${input.rescheduleUrl}`,
+      "",
+      "If you need help, please call us at (210) 257-8496."
+    ].join("\n"),
+    html: renderEmailShell({
+      eyebrow: "Appointment Reschedule Needed",
+      title: `Please choose a new date for ${input.petName}`,
+      intro: `Hi ${input.ownerName}, the previously scheduled appointment time has passed, so we need you to choose new preferred dates and times for our team to review.`,
+      bodyHtml: `
+        <p style="margin: 0 0 16px; color: #203227; font: 400 15px/1.7 Arial, sans-serif;">
+          Previous scheduled time: <strong>${escapeHtml(confirmedText)}</strong>
+        </p>
+        <p style="margin: 0 0 16px; color: #203227; font: 400 15px/1.7 Arial, sans-serif;">
+          Please submit new preferred dates by <strong>${escapeHtml(deadlineText)}</strong>.
+        </p>
+        <p style="margin: 0; color: #203227; font: 400 15px/1.7 Arial, sans-serif;">
+          This secure link is intended for one use. If it expires, please contact our team for help.
+        </p>
+      `,
+      actionLabel: "Choose a new date",
+      actionUrl: input.rescheduleUrl
     }),
     attachments: getInlineBrandAttachments()
   });

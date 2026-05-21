@@ -64,6 +64,7 @@ Copy `.env.example` to `.env` and set:
 - `JWT_SECRET` - long random secret for signing staff JWTs. Use at least 32 characters.
 - `JWT_EXPIRES_IN` - staff token lifetime, for example `8h`.
 - `JWT_ISSUER` and `JWT_AUDIENCE` - JWT scope values used when signing and verifying staff tokens.
+- `GOOGLE_CALENDAR_CLIENT_ID`, `GOOGLE_CALENDAR_CLIENT_SECRET`, `GOOGLE_CALENDAR_REFRESH_TOKEN`, and `GOOGLE_CALENDAR_ID` - Google Calendar OAuth credentials and the shared clinic calendar ID used when staff confirms appointments.
 - `STAFF_SEED_EMAIL` and `STAFF_SEED_PASSWORD` - admin staff credentials used by the seed script.
 
 In production, the server refuses to start if `JWT_SECRET` or `STAFF_SEED_PASSWORD` is still using the default bootstrap value.
@@ -72,6 +73,8 @@ In production, the server refuses to start if `JWT_SECRET` or `STAFF_SEED_PASSWO
 
 - Database and API use `Owner`, even if the frontend labels this section as parent information.
 - Appointment requests are created with `PENDING_REVIEW`.
+- Staff confirmation stores an explicit confirmed start/end/timezone separate from the client's preferred selections.
+- Confirmed appointments sync one-way into the configured shared Google Calendar. Calendar sync failures do not roll back the staff confirmation; they are stored on the request and can be retried.
 - The wizard stores partial draft data separately from final appointment requests.
 - Urgent care requests are treated as clinic-review requests, not life-threatening emergency confirmations.
 - Uploads accept only PDF, JPG, and PNG, up to `MAX_UPLOAD_MB`.
@@ -124,6 +127,7 @@ Appointment requests:
 - `GET /api/appointment-requests`
 - `GET /api/appointment-requests/:id`
 - `PATCH /api/appointment-requests/:id/status`
+- `POST /api/appointment-requests/:id/calendar-sync`
 
 New-patient requests:
 
@@ -150,8 +154,32 @@ Protected routes:
 - `GET /api/appointment-requests`
 - `GET /api/appointment-requests/:id`
 - `PATCH /api/appointment-requests/:id/status`
+- `POST /api/appointment-requests/:id/calendar-sync`
 - `GET /api/new-patient-requests`
 - `GET /api/new-patient-requests/:id`
+
+## Google Calendar Setup
+
+This integration is one-way in v1: the backend writes confirmed appointments into one shared clinic Google Calendar after staff confirms a slot in the admin dashboard.
+
+1. Create or choose a dedicated clinic Google account that owns the shared calendar.
+2. Create an OAuth client in Google Cloud with Calendar API enabled.
+3. Generate a refresh token for that clinic account with Calendar write access.
+4. Set these environment variables in the deployed backend:
+
+```text
+GOOGLE_CALENDAR_CLIENT_ID=
+GOOGLE_CALENDAR_CLIENT_SECRET=
+GOOGLE_CALENDAR_REFRESH_TOKEN=
+GOOGLE_CALENDAR_ID=
+```
+
+5. Staff can then confirm appointments from the dashboard by entering:
+   - confirmed start datetime
+   - confirmed end datetime
+   - confirmed timezone
+
+When sync succeeds, the request stores the Google event id and URL. If sync fails, the request remains confirmed and the dashboard exposes a retry action.
 
 ## Sample Requests
 

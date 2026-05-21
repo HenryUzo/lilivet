@@ -85,6 +85,7 @@ model AppointmentDraft {
 
   appointmentRequestId String?             @unique
   appointmentRequest   AppointmentRequest? @relation(fields: [appointmentRequestId], references: [id], onDelete: SetNull)
+  rescheduleToken      AppointmentRescheduleToken?
 
   files UploadedFile[]
 
@@ -113,9 +114,32 @@ model AppointmentRequest {
   visitType VisitType
   status    AppointmentRequestStatus @default(PENDING_REVIEW)
 
+  confirmedStartAt    DateTime?
+  confirmedEndAt      DateTime?
+  confirmedTimezone   String?
+  confirmedByStaffUserId String?
+  confirmedByStaffUser StaffUser? @relation(fields: [confirmedByStaffUserId], references: [id], onDelete: SetNull)
+  rescheduleRequestedAt      DateTime?
+  rescheduleResponseDeadline DateTime?
+  rescheduleEmailSentAt      DateTime?
+  rescheduleTokenIssuedAt    DateTime?
+  rescheduledFromAppointmentRequestId String?
+  rescheduledFromAppointmentRequest   AppointmentRequest?  @relation("AppointmentRequestReschedulesFrom", fields: [rescheduledFromAppointmentRequestId], references: [id], onDelete: SetNull)
+  rescheduleReplacementRequests       AppointmentRequest[] @relation("AppointmentRequestReschedulesFrom")
+  replacementAppointmentRequestId     String?             @unique
+  replacementAppointmentRequest       AppointmentRequest? @relation("AppointmentRequestReplacement", fields: [replacementAppointmentRequestId], references: [id], onDelete: SetNull)
+  replacedOverdueAppointmentRequest   AppointmentRequest? @relation("AppointmentRequestReplacement")
+
   preferredSelections     Json
   timezone                String
   preferredDateSelections AppointmentPreferredDate[]
+  rescheduleTokens        AppointmentRescheduleToken[]
+
+  calendarEventId     String?
+  calendarEventUrl    String?
+  calendarSyncStatus  CalendarSyncStatus @default(NOT_SYNCED)
+  calendarSyncedAt    DateTime?
+  calendarSyncError   String?
 
   symptomsOrConcerns   String?
   currentMedications   String?
@@ -137,6 +161,11 @@ model AppointmentRequest {
   @@index([ownerId])
   @@index([petId])
   @@index([duplicateOfId])
+  @@index([confirmedByStaffUserId])
+  @@index([calendarSyncStatus])
+  @@index([rescheduledFromAppointmentRequestId])
+  @@index([replacementAppointmentRequestId])
+  @@index([rescheduleResponseDeadline])
 }
 
 model AppointmentPreferredDate {
@@ -293,6 +322,8 @@ model StaffUser {
   passwordHash String
   role         StaffRole @default(STAFF)
   isActive     Boolean   @default(true)
+  confirmedAppointments AppointmentRequest[]
+  createdRescheduleTokens AppointmentRescheduleToken[]
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
@@ -300,9 +331,29 @@ model StaffUser {
   @@index([isActive])
 }
 
+model AppointmentRescheduleToken {
+  id                String             @id @default(cuid())
+  appointmentRequestId String
+  appointmentRequest AppointmentRequest @relation(fields: [appointmentRequestId], references: [id], onDelete: Cascade)
+  appointmentDraftId String            @unique
+  appointmentDraft   AppointmentDraft  @relation(fields: [appointmentDraftId], references: [id], onDelete: Cascade)
+  tokenHash         String             @unique
+  expiresAt         DateTime
+  usedAt            DateTime?
+  createdByStaffUserId String
+  createdByStaffUser StaffUser         @relation(fields: [createdByStaffUserId], references: [id], onDelete: Restrict)
+  createdAt         DateTime           @default(now())
+
+  @@index([appointmentRequestId])
+  @@index([expiresAt])
+  @@index([usedAt])
+  @@index([createdByStaffUserId])
+}
+
 enum AppointmentRequestStatus {
   PENDING_REVIEW
   CONFIRMED
+  OVERDUE
   CANCELLED
   COMPLETED
   NO_SHOW
@@ -344,6 +395,12 @@ enum FileAttachmentStatus {
 enum StaffRole {
   ADMIN
   STAFF
+}
+
+enum CalendarSyncStatus {
+  NOT_SYNCED
+  SYNCED
+  FAILED
 }
 
 enum WellnessPlanSpecies {

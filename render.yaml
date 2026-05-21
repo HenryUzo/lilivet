@@ -20,6 +20,8 @@ services:
         value: "24"
       - key: DUPLICATE_WINDOW_HOURS
         value: "48"
+      - key: RESCHEDULE_TOKEN_EXPIRY_HOURS
+        value: "168"
       - key: JWT_SECRET
         sync: false
       - key: JWT_EXPIRES_IN
@@ -28,6 +30,14 @@ services:
         sync: false
       - key: JWT_AUDIENCE
         sync: false
+      - key: GOOGLE_CALENDAR_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CALENDAR_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_CALENDAR_REFRESH_TOKEN
+        sync: false
+      - key: GOOGLE_CALENDAR_ID
+        sync: false
       - key: STAFF_SEED_EMAIL
         sync: false
       - key: STAFF_SEED_PASSWORD
@@ -35,6 +45,8 @@ services:
       - key: DATABASE_URL
         sync: false
       - key: DIRECT_URL
+        sync: false
+      - key: PUBLIC_WEBSITE_URL
         sync: false
       - key: CORS_ORIGIN
         sync: false
@@ -51,4 +63,19 @@ services:
       - key: SMTP_USER
         sync: false
       - key: SMTP_PASS
+        sync: false
+
+  - type: cron
+    name: lilivet-overdue-sweep
+    runtime: node
+    branch: codex/neon-backend-setup
+    schedule: "*/15 * * * *"
+    buildCommand: npm ci && npx prisma generate && npm run build
+    startCommand: npm run appointments:mark-overdue
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
         sync: false
