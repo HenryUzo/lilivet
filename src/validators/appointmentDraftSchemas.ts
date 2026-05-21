@@ -10,6 +10,7 @@ import {
   visitTypeSchema,
   weightSchema
 } from "./common";
+import { hasPastPreferredSelections } from "../utils/preferredSelections";
 
 const timeSlotSchema = z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Time slots must use HH:mm");
 
@@ -74,10 +75,28 @@ export const appointmentStep3Schema = z.object({
   preferredContactMethod: preferredContactMethodSchema
 });
 
-export const appointmentStep4Schema = z.object({
-  preferredSelections: preferredSelectionsSchema,
-  timezone: timezoneSchema
-});
+function addPastSelectionIssue(
+  value: {
+    preferredSelections: z.infer<typeof preferredSelectionsSchema>;
+    timezone: string;
+  },
+  ctx: z.RefinementCtx
+) {
+  if (hasPastPreferredSelections(value.preferredSelections, value.timezone)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["preferredSelections"],
+      message: "Preferred times must be in the future."
+    });
+  }
+}
+
+export const appointmentStep4Schema = z
+  .object({
+    preferredSelections: preferredSelectionsSchema,
+    timezone: timezoneSchema
+  })
+  .superRefine(addPastSelectionIssue);
 
 export const appointmentStep5Schema = z.object({
   symptomsOrConcerns: z.string().trim().max(5000).optional(),
@@ -86,26 +105,28 @@ export const appointmentStep5Schema = z.object({
   symptomDuration: z.string().trim().max(200).optional()
 });
 
-export const fullAppointmentDraftSchema = z.object({
-  visitType: visitTypeSchema,
-  petName: z.string().trim().min(1).max(100),
-  species: petSpeciesSchema,
-  breed: z.string().trim().max(100).nullish(),
-  approximateAgeYears: z.coerce.number().int().min(0).max(80).nullish(),
-  sex: petSexSchema,
-  weightLbs: weightSchema.nullish(),
-  firstName: z.string().trim().min(1).max(100),
-  lastName: z.string().trim().min(1).max(100),
-  email: optionalEmailSchema.nullish(),
-  phoneNumber: phoneSchema,
-  preferredContactMethod: preferredContactMethodSchema,
-  preferredSelections: preferredSelectionsSchema,
-  timezone: timezoneSchema,
-  symptomsOrConcerns: z.string().trim().max(5000).nullish(),
-  currentMedications: z.string().trim().max(2000).nullish(),
-  previousVeterinarian: z.string().trim().max(200).nullish(),
-  symptomDuration: z.string().trim().max(200).nullish()
-});
+export const fullAppointmentDraftSchema = z
+  .object({
+    visitType: visitTypeSchema,
+    petName: z.string().trim().min(1).max(100),
+    species: petSpeciesSchema,
+    breed: z.string().trim().max(100).nullish(),
+    approximateAgeYears: z.coerce.number().int().min(0).max(80).nullish(),
+    sex: petSexSchema,
+    weightLbs: weightSchema.nullish(),
+    firstName: z.string().trim().min(1).max(100),
+    lastName: z.string().trim().min(1).max(100),
+    email: optionalEmailSchema.nullish(),
+    phoneNumber: phoneSchema,
+    preferredContactMethod: preferredContactMethodSchema,
+    preferredSelections: preferredSelectionsSchema,
+    timezone: timezoneSchema,
+    symptomsOrConcerns: z.string().trim().max(5000).nullish(),
+    currentMedications: z.string().trim().max(2000).nullish(),
+    previousVeterinarian: z.string().trim().max(200).nullish(),
+    symptomDuration: z.string().trim().max(200).nullish()
+  })
+  .superRefine(addPastSelectionIssue);
 
 export type AppointmentStep1 = z.infer<typeof appointmentStep1Schema>;
 export type AppointmentStep2 = z.infer<typeof appointmentStep2Schema>;

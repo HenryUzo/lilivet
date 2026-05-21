@@ -64,6 +64,20 @@ vi.mock("../src/services/mailService", () => ({
 
 import { submitAppointmentDraft } from "../src/services/appointmentDraftService";
 
+function createFuturePreferredSelection(dayOffset: number, timeSlot: string) {
+  const date = new Date(Date.now() + dayOffset * 24 * 60 * 60 * 1000);
+  const dateKey = date.toISOString().slice(0, 10);
+
+  return {
+    date: `${dateKey}T00:00:00.000-05:00`,
+    dateKey,
+    timeSlots: [timeSlot]
+  };
+}
+
+const preferredSelectionOne = createFuturePreferredSelection(2, "09:00");
+const preferredSelectionTwo = createFuturePreferredSelection(3, "11:00");
+
 const activeDraft = {
   id: "draft-1",
   sessionToken: "a".repeat(64),
@@ -80,8 +94,8 @@ const activeDraft = {
   phoneNumber: "(210) 257-8496",
   preferredContactMethod: "CALL",
   preferredSelections: [
-    { date: "2026-05-12T00:00:00.000-05:00", timeSlots: ["09:00"] },
-    { date: "2026-05-13T00:00:00.000-05:00", timeSlots: ["11:00"] }
+    { date: preferredSelectionOne.date, timeSlots: preferredSelectionOne.timeSlots },
+    { date: preferredSelectionTwo.date, timeSlots: preferredSelectionTwo.timeSlots }
   ],
   timezone: "America/Chicago",
   symptomsOrConcerns: "Annual wellness exam",
@@ -182,7 +196,10 @@ describe("submitAppointmentDraft", () => {
         ownerId: "owner-1",
         petId: "pet-1",
         preferredDateSelections: {
-          create: [{ dateKey: "2026-05-12" }, { dateKey: "2026-05-13" }]
+          create: [
+            { dateKey: preferredSelectionOne.dateKey },
+            { dateKey: preferredSelectionTwo.dateKey }
+          ]
         }
       })
     }));

@@ -1,7 +1,11 @@
 import type { AppointmentRequestStatus, Prisma } from "@prisma/client";
 import { prisma } from "../prisma/client";
 import { HttpError } from "../utils/httpError";
-import { normalizeDateFilterBoundary } from "../utils/preferredSelections";
+import {
+  hasAnyFuturePreferredSelection,
+  normalizePreferredSelections,
+  normalizeDateFilterBoundary
+} from "../utils/preferredSelections";
 import {
   createOrUpdateCalendarEvent,
   deleteCalendarEvent,
@@ -145,6 +149,26 @@ export async function updateAppointmentRequestStatus(input: UpdateAppointmentReq
   };
 
   if (input.status === "CONFIRMED") {
+    const confirmedStartAt = new Date(input.confirmedStartAt!);
+
+    if (confirmedStartAt <= new Date()) {
+      throw new HttpError(400, "Confirmed appointment time must be in the future.");
+    }
+
+    if (
+      existing.status === "PENDING_REVIEW" &&
+      normalizePreferredSelections(existing.preferredSelections).length > 0 &&
+      !hasAnyFuturePreferredSelection(
+        existing.preferredSelections,
+        existing.timezone ?? input.confirmedTimezone ?? "Africa/Lagos"
+      )
+    ) {
+      throw new HttpError(
+        409,
+        "This request can no longer be confirmed because all requested times have passed."
+      );
+    }
+
     updateData.confirmedStartAt = new Date(input.confirmedStartAt!);
     updateData.confirmedEndAt = new Date(input.confirmedEndAt!);
     updateData.confirmedTimezone = input.confirmedTimezone!;

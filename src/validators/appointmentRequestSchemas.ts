@@ -40,6 +40,14 @@ export const updateAppointmentStatusSchema = z.object({
     const start = new Date(value.confirmedStartAt);
     const end = new Date(value.confirmedEndAt);
 
+    if (start <= new Date()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["confirmedStartAt"],
+        message: "Confirmed appointment time must be in the future."
+      });
+    }
+
     if (end <= start) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

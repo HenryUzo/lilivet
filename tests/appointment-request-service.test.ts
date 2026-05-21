@@ -69,6 +69,13 @@ import {
   updateAppointmentRequestStatus
 } from "../src/services/appointmentRequestService";
 
+function isoOffsetFromNow(offsetMs: number) {
+  return new Date(Date.now() + offsetMs).toISOString();
+}
+
+const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000;
+const THIRTY_MINUTES_MS = 30 * 60 * 1000;
+
 function makeRequest(overrides: Record<string, unknown> = {}) {
   return {
     id: "req-1",
@@ -199,11 +206,13 @@ describe("listAppointmentRequests", () => {
   });
 
   it("confirms an appointment, stores the slot, and syncs a calendar event", async () => {
+    const confirmedStart = isoOffsetFromNow(TWO_DAYS_MS);
+    const confirmedEnd = isoOffsetFromNow(TWO_DAYS_MS + THIRTY_MINUTES_MS);
     const initial = makeRequest();
     const afterStatusUpdate = makeRequest({
       status: "CONFIRMED",
-      confirmedStartAt: new Date("2026-05-14T15:00:00.000Z"),
-      confirmedEndAt: new Date("2026-05-14T15:30:00.000Z"),
+      confirmedStartAt: new Date(confirmedStart),
+      confirmedEndAt: new Date(confirmedEnd),
       confirmedTimezone: "America/Chicago",
       confirmedByStaffUserId: "staff-1"
     });
@@ -227,8 +236,8 @@ describe("listAppointmentRequests", () => {
     const result = await updateAppointmentRequestStatus({
       id: "req-1",
       status: "CONFIRMED",
-      confirmedStartAt: "2026-05-14T15:00:00.000Z",
-      confirmedEndAt: "2026-05-14T15:30:00.000Z",
+      confirmedStartAt: confirmedStart,
+      confirmedEndAt: confirmedEnd,
       confirmedTimezone: "America/Chicago",
       staffUserId: "staff-1"
     });
@@ -253,11 +262,13 @@ describe("listAppointmentRequests", () => {
   });
 
   it("marks sync failed but keeps the appointment confirmed when calendar sync errors", async () => {
+    const confirmedStart = isoOffsetFromNow(TWO_DAYS_MS);
+    const confirmedEnd = isoOffsetFromNow(TWO_DAYS_MS + THIRTY_MINUTES_MS);
     const initial = makeRequest();
     const afterStatusUpdate = makeRequest({
       status: "CONFIRMED",
-      confirmedStartAt: new Date("2026-05-14T15:00:00.000Z"),
-      confirmedEndAt: new Date("2026-05-14T15:30:00.000Z"),
+      confirmedStartAt: new Date(confirmedStart),
+      confirmedEndAt: new Date(confirmedEnd),
       confirmedTimezone: "America/Chicago",
       confirmedByStaffUserId: "staff-1"
     });
@@ -276,8 +287,8 @@ describe("listAppointmentRequests", () => {
     const result = await updateAppointmentRequestStatus({
       id: "req-1",
       status: "CONFIRMED",
-      confirmedStartAt: "2026-05-14T15:00:00.000Z",
-      confirmedEndAt: "2026-05-14T15:30:00.000Z",
+      confirmedStartAt: confirmedStart,
+      confirmedEndAt: confirmedEnd,
       confirmedTimezone: "America/Chicago",
       staffUserId: "staff-1"
     });
@@ -292,10 +303,12 @@ describe("listAppointmentRequests", () => {
   });
 
   it("retries a failed confirmed appointment sync and stores the calendar event", async () => {
+    const confirmedStart = isoOffsetFromNow(TWO_DAYS_MS);
+    const confirmedEnd = isoOffsetFromNow(TWO_DAYS_MS + THIRTY_MINUTES_MS);
     const failedRequest = makeRequest({
       status: "CONFIRMED",
-      confirmedStartAt: new Date("2026-05-14T15:00:00.000Z"),
-      confirmedEndAt: new Date("2026-05-14T15:30:00.000Z"),
+      confirmedStartAt: new Date(confirmedStart),
+      confirmedEndAt: new Date(confirmedEnd),
       confirmedTimezone: "America/Chicago",
       calendarSyncStatus: "FAILED",
       calendarSyncError: "Google down"
