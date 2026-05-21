@@ -33,6 +33,14 @@ function escapeHtml(value: string) {
     .replace(/'/g, "&#39;");
 }
 
+function formatVisitType(value: string) {
+  return value
+    .toLowerCase()
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
 function getInlineBrandAttachments() {
   const attachments: Array<{
     filename: string;
@@ -239,6 +247,62 @@ export async function sendClientAppointmentConfirmation(input: {
         </p>
       `,
       includeAction: true
+    }),
+    attachments: getInlineBrandAttachments()
+  });
+}
+
+export async function sendClientConfirmedAppointmentDetails(input: {
+  email?: string;
+  ownerName: string;
+  petName: string;
+  visitType: string;
+  confirmedStartAt: Date;
+  confirmedEndAt: Date;
+  confirmedTimezone: string;
+}) {
+  if (!input.email) return;
+
+  const startText = input.confirmedStartAt.toLocaleString("en-US", {
+    dateStyle: "full",
+    timeStyle: "short",
+    timeZone: input.confirmedTimezone
+  });
+  const endText = input.confirmedEndAt.toLocaleString("en-US", {
+    timeStyle: "short",
+    timeZone: input.confirmedTimezone
+  });
+
+  await transporter.sendMail({
+    from: env.MAIL_FROM,
+    to: input.email,
+    subject: `${input.petName}'s appointment is confirmed`,
+    text: [
+      `Hi ${input.ownerName},`,
+      "",
+      `${input.petName}'s ${formatVisitType(input.visitType)} appointment has been confirmed.`,
+      `Date and time: ${startText}`,
+      `Ends: ${endText}`,
+      `Timezone: ${input.confirmedTimezone}`,
+      "",
+      `If you need to reach us, please call ${EMAIL_PHONE}.`
+    ].join("\n"),
+    html: renderEmailShell({
+      eyebrow: "Appointment Confirmed",
+      title: `${input.petName}'s visit is confirmed`,
+      intro: `Hi ${input.ownerName}, your appointment with Lili Veterinary Hospital has been scheduled.`,
+      bodyHtml: `
+        <p style="margin: 0 0 16px; color: #203227; font: 400 15px/1.7 Arial, sans-serif;">
+          We have confirmed ${escapeHtml(input.petName)}'s ${escapeHtml(formatVisitType(input.visitType).toLowerCase())} appointment.
+        </p>
+        ${renderKeyValueRows([
+          { label: "Date and Time", value: startText },
+          { label: "Ends", value: endText },
+          { label: "Timezone", value: input.confirmedTimezone }
+        ])}
+      `,
+      includeAction: true,
+      actionLabel: "Visit Our Website"
     }),
     attachments: getInlineBrandAttachments()
   });

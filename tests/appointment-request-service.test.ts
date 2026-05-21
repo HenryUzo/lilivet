@@ -7,14 +7,18 @@ const {
   updateMock,
   updateManyMock,
   createOrUpdateCalendarEventMock,
-  deleteCalendarEventMock
+  deleteCalendarEventMock,
+  sendClientConfirmedAppointmentDetailsMock,
+  dispatchBackgroundEmailMock
 } = vi.hoisted(() => ({
   findManyMock: vi.fn(),
   findUniqueMock: vi.fn(),
   updateMock: vi.fn(),
   updateManyMock: vi.fn(),
   createOrUpdateCalendarEventMock: vi.fn(),
-  deleteCalendarEventMock: vi.fn()
+  deleteCalendarEventMock: vi.fn(),
+  sendClientConfirmedAppointmentDetailsMock: vi.fn(),
+  dispatchBackgroundEmailMock: vi.fn(({ task }) => task())
 }));
 
 vi.mock("../src/prisma/client", () => ({
@@ -60,6 +64,14 @@ vi.mock("../src/services/googleCalendarService", () => ({
       calendarSyncedAt: expect.any(Date)
     };
   }
+}));
+
+vi.mock("../src/services/mailService", () => ({
+  sendClientConfirmedAppointmentDetails: sendClientConfirmedAppointmentDetailsMock
+}));
+
+vi.mock("../src/services/emailDispatchService", () => ({
+  dispatchBackgroundEmail: dispatchBackgroundEmailMock
 }));
 
 import {
@@ -145,6 +157,9 @@ describe("listAppointmentRequests", () => {
     updateManyMock.mockReset();
     createOrUpdateCalendarEventMock.mockReset();
     deleteCalendarEventMock.mockReset();
+    sendClientConfirmedAppointmentDetailsMock.mockReset();
+    dispatchBackgroundEmailMock.mockReset();
+    dispatchBackgroundEmailMock.mockImplementation(({ task }) => task());
   });
 
   it("uses DB date-key filtering and keeps standard keyset pagination when date filters are present", async () => {
@@ -258,6 +273,16 @@ describe("listAppointmentRequests", () => {
         calendarSyncStatus: "SYNCED"
       })
     }));
+    expect(dispatchBackgroundEmailMock).toHaveBeenCalledTimes(1);
+    expect(sendClientConfirmedAppointmentDetailsMock).toHaveBeenCalledWith({
+      email: "jane@example.com",
+      ownerName: "Jane",
+      petName: "Milo",
+      visitType: "WELLNESS_EXAM",
+      confirmedStartAt: new Date(confirmedStart),
+      confirmedEndAt: new Date(confirmedEnd),
+      confirmedTimezone: "America/Chicago"
+    });
     expect(result).toBe(finalRecord);
   });
 
@@ -299,7 +324,46 @@ describe("listAppointmentRequests", () => {
         calendarSyncError: "Google down"
       })
     }));
+    expect(dispatchBackgroundEmailMock).toHaveBeenCalledTimes(1);
+    expect(sendClientConfirmedAppointmentDetailsMock).toHaveBeenCalledTimes(1);
     expect(result).toBe(failedRecord);
+  });
+
+  it("does not send the client confirmation email when an appointment is already confirmed", async () => {
+    const confirmedStart = isoOffsetFromNow(TWO_DAYS_MS);
+    const confirmedEnd = isoOffsetFromNow(TWO_DAYS_MS + THIRTY_MINUTES_MS);
+    const initial = makeRequest({
+      status: "CONFIRMED",
+      confirmedStartAt: new Date(confirmedStart),
+      confirmedEndAt: new Date(confirmedEnd),
+      confirmedTimezone: "America/Chicago",
+      confirmedByStaffUserId: "staff-1"
+    });
+    const afterStatusUpdate = makeRequest({
+      ...initial,
+      calendarSyncStatus: "SYNCED"
+    });
+
+    findUniqueMock.mockResolvedValueOnce(initial);
+    updateMock
+      .mockResolvedValueOnce(afterStatusUpdate)
+      .mockResolvedValueOnce(afterStatusUpdate);
+    createOrUpdateCalendarEventMock.mockResolvedValue({
+      calendarEventId: "event-123",
+      calendarEventUrl: "https://calendar.google.com/event?eid=123"
+    });
+
+    await updateAppointmentRequestStatus({
+      id: "req-1",
+      status: "CONFIRMED",
+      confirmedStartAt: confirmedStart,
+      confirmedEndAt: confirmedEnd,
+      confirmedTimezone: "America/Chicago",
+      staffUserId: "staff-1"
+    });
+
+    expect(dispatchBackgroundEmailMock).not.toHaveBeenCalled();
+    expect(sendClientConfirmedAppointmentDetailsMock).not.toHaveBeenCalled();
   });
 
   it("retries a failed confirmed appointment sync and stores the calendar event", async () => {

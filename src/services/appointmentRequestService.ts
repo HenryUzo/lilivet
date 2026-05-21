@@ -13,6 +13,8 @@ import {
   getCalendarSyncUpdate,
   type AppointmentCalendarRecord
 } from "./googleCalendarService";
+import { dispatchBackgroundEmail } from "./emailDispatchService";
+import { sendClientConfirmedAppointmentDetails } from "./mailService";
 
 const appointmentRequestInclude = {
   owner: true,
@@ -143,6 +145,10 @@ async function syncCalendarState(request: AppointmentCalendarRecord) {
 
 export async function updateAppointmentRequestStatus(input: UpdateAppointmentRequestStatusInput) {
   const existing = await getAppointmentRequest(input.id);
+  const willSendClientConfirmationEmail =
+    input.status === "CONFIRMED" &&
+    existing.status !== "CONFIRMED" &&
+    Boolean(existing.owner.email);
 
   const updateData: Prisma.AppointmentRequestUpdateInput = {
     status: input.status
@@ -212,6 +218,33 @@ export async function updateAppointmentRequestStatus(input: UpdateAppointmentReq
         error: syncError
       }),
       include: appointmentRequestInclude
+    });
+  }
+
+  if (
+    willSendClientConfirmationEmail &&
+    updated.confirmedStartAt &&
+    updated.confirmedEndAt &&
+    updated.confirmedTimezone
+  ) {
+    const confirmedStartAt = updated.confirmedStartAt;
+    const confirmedEndAt = updated.confirmedEndAt;
+    const confirmedTimezone = updated.confirmedTimezone;
+
+    dispatchBackgroundEmail({
+      requestId: updated.id,
+      requestType: "appointment",
+      notificationType: "client",
+      task: () =>
+        sendClientConfirmedAppointmentDetails({
+          email: updated.owner.email ?? undefined,
+          ownerName: updated.owner.firstName,
+          petName: updated.pet.name,
+          visitType: updated.visitType,
+          confirmedStartAt,
+          confirmedEndAt,
+          confirmedTimezone
+        })
     });
   }
 
