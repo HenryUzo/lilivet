@@ -14,7 +14,10 @@ import {
   type AppointmentCalendarRecord
 } from "./googleCalendarService";
 import { dispatchBackgroundEmail } from "./emailDispatchService";
-import { sendClientConfirmedAppointmentDetails } from "./mailService";
+import {
+  sendClientConfirmedAppointmentDetails,
+  sendClinicConfirmedAppointmentNotification
+} from "./mailService";
 
 const appointmentRequestInclude = {
   owner: true,
@@ -149,6 +152,9 @@ export async function updateAppointmentRequestStatus(input: UpdateAppointmentReq
     input.status === "CONFIRMED" &&
     existing.status !== "CONFIRMED" &&
     Boolean(existing.owner.email);
+  const willSendClinicConfirmationEmail =
+    input.status === "CONFIRMED" &&
+    existing.status !== "CONFIRMED";
 
   const updateData: Prisma.AppointmentRequestUpdateInput = {
     status: input.status
@@ -240,6 +246,34 @@ export async function updateAppointmentRequestStatus(input: UpdateAppointmentReq
           email: updated.owner.email ?? undefined,
           ownerName: updated.owner.firstName,
           petName: updated.pet.name,
+          visitType: updated.visitType,
+          confirmedStartAt,
+          confirmedEndAt,
+          confirmedTimezone
+        })
+    });
+  }
+
+  if (
+    willSendClinicConfirmationEmail &&
+    updated.confirmedStartAt &&
+    updated.confirmedEndAt &&
+    updated.confirmedTimezone
+  ) {
+    const confirmedStartAt = updated.confirmedStartAt;
+    const confirmedEndAt = updated.confirmedEndAt;
+    const confirmedTimezone = updated.confirmedTimezone;
+
+    dispatchBackgroundEmail({
+      requestId: updated.id,
+      requestType: "appointment",
+      notificationType: "clinic",
+      task: () =>
+        sendClinicConfirmedAppointmentNotification({
+          requestId: updated.id,
+          ownerName: `${updated.owner.firstName} ${updated.owner.lastName}`.trim(),
+          petName: updated.pet.name,
+          phoneNumber: updated.owner.phoneNumber,
           visitType: updated.visitType,
           confirmedStartAt,
           confirmedEndAt,

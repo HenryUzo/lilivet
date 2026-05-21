@@ -9,6 +9,7 @@ const {
   createOrUpdateCalendarEventMock,
   deleteCalendarEventMock,
   sendClientConfirmedAppointmentDetailsMock,
+  sendClinicConfirmedAppointmentNotificationMock,
   dispatchBackgroundEmailMock
 } = vi.hoisted(() => ({
   findManyMock: vi.fn(),
@@ -18,6 +19,7 @@ const {
   createOrUpdateCalendarEventMock: vi.fn(),
   deleteCalendarEventMock: vi.fn(),
   sendClientConfirmedAppointmentDetailsMock: vi.fn(),
+  sendClinicConfirmedAppointmentNotificationMock: vi.fn(),
   dispatchBackgroundEmailMock: vi.fn(({ task }) => task())
 }));
 
@@ -67,7 +69,8 @@ vi.mock("../src/services/googleCalendarService", () => ({
 }));
 
 vi.mock("../src/services/mailService", () => ({
-  sendClientConfirmedAppointmentDetails: sendClientConfirmedAppointmentDetailsMock
+  sendClientConfirmedAppointmentDetails: sendClientConfirmedAppointmentDetailsMock,
+  sendClinicConfirmedAppointmentNotification: sendClinicConfirmedAppointmentNotificationMock
 }));
 
 vi.mock("../src/services/emailDispatchService", () => ({
@@ -158,6 +161,7 @@ describe("listAppointmentRequests", () => {
     createOrUpdateCalendarEventMock.mockReset();
     deleteCalendarEventMock.mockReset();
     sendClientConfirmedAppointmentDetailsMock.mockReset();
+    sendClinicConfirmedAppointmentNotificationMock.mockReset();
     dispatchBackgroundEmailMock.mockReset();
     dispatchBackgroundEmailMock.mockImplementation(({ task }) => task());
   });
@@ -273,11 +277,21 @@ describe("listAppointmentRequests", () => {
         calendarSyncStatus: "SYNCED"
       })
     }));
-    expect(dispatchBackgroundEmailMock).toHaveBeenCalledTimes(1);
+    expect(dispatchBackgroundEmailMock).toHaveBeenCalledTimes(2);
     expect(sendClientConfirmedAppointmentDetailsMock).toHaveBeenCalledWith({
       email: "jane@example.com",
       ownerName: "Jane",
       petName: "Milo",
+      visitType: "WELLNESS_EXAM",
+      confirmedStartAt: new Date(confirmedStart),
+      confirmedEndAt: new Date(confirmedEnd),
+      confirmedTimezone: "America/Chicago"
+    });
+    expect(sendClinicConfirmedAppointmentNotificationMock).toHaveBeenCalledWith({
+      requestId: "req-1",
+      ownerName: "Jane Doe",
+      petName: "Milo",
+      phoneNumber: "2105550100",
       visitType: "WELLNESS_EXAM",
       confirmedStartAt: new Date(confirmedStart),
       confirmedEndAt: new Date(confirmedEnd),
@@ -324,8 +338,9 @@ describe("listAppointmentRequests", () => {
         calendarSyncError: "Google down"
       })
     }));
-    expect(dispatchBackgroundEmailMock).toHaveBeenCalledTimes(1);
+    expect(dispatchBackgroundEmailMock).toHaveBeenCalledTimes(2);
     expect(sendClientConfirmedAppointmentDetailsMock).toHaveBeenCalledTimes(1);
+    expect(sendClinicConfirmedAppointmentNotificationMock).toHaveBeenCalledTimes(1);
     expect(result).toBe(failedRecord);
   });
 
@@ -364,6 +379,7 @@ describe("listAppointmentRequests", () => {
 
     expect(dispatchBackgroundEmailMock).not.toHaveBeenCalled();
     expect(sendClientConfirmedAppointmentDetailsMock).not.toHaveBeenCalled();
+    expect(sendClinicConfirmedAppointmentNotificationMock).not.toHaveBeenCalled();
   });
 
   it("retries a failed confirmed appointment sync and stores the calendar event", async () => {

@@ -308,6 +308,60 @@ export async function sendClientConfirmedAppointmentDetails(input: {
   });
 }
 
+export async function sendClinicConfirmedAppointmentNotification(input: {
+  requestId: string;
+  ownerName: string;
+  petName: string;
+  phoneNumber: string;
+  visitType: string;
+  confirmedStartAt: Date;
+  confirmedEndAt: Date;
+  confirmedTimezone: string;
+}) {
+  const startText = input.confirmedStartAt.toLocaleString("en-US", {
+    dateStyle: "full",
+    timeStyle: "short",
+    timeZone: input.confirmedTimezone
+  });
+  const endText = input.confirmedEndAt.toLocaleString("en-US", {
+    timeStyle: "short",
+    timeZone: input.confirmedTimezone
+  });
+
+  await transporter.sendMail({
+    from: env.MAIL_FROM,
+    to: env.CLINIC_NOTIFICATION_EMAIL,
+    subject: `Appointment confirmed: ${input.petName}`,
+    text: [
+      "An appointment has been confirmed.",
+      `Request ID: ${input.requestId}`,
+      `Owner: ${input.ownerName}`,
+      `Pet: ${input.petName}`,
+      `Phone: ${input.phoneNumber}`,
+      `Visit type: ${formatVisitType(input.visitType)}`,
+      `Date and time: ${startText}`,
+      `Ends: ${endText}`,
+      `Timezone: ${input.confirmedTimezone}`
+    ].join("\n"),
+    html: renderEmailShell({
+      eyebrow: "Clinic Notification",
+      title: "Appointment confirmed",
+      intro: "A pending appointment request has been confirmed and booked on the calendar.",
+      bodyHtml: renderKeyValueRows([
+        { label: "Request ID", value: input.requestId },
+        { label: "Owner", value: input.ownerName },
+        { label: "Pet", value: input.petName },
+        { label: "Phone", value: input.phoneNumber },
+        { label: "Visit Type", value: formatVisitType(input.visitType) },
+        { label: "Date and Time", value: startText },
+        { label: "Ends", value: endText },
+        { label: "Timezone", value: input.confirmedTimezone }
+      ])
+    }),
+    attachments: getInlineBrandAttachments()
+  });
+}
+
 export async function sendClinicNewPatientNotification(input: {
   requestId: string;
   ownerName: string;
