@@ -331,9 +331,9 @@ export async function sendClinicConfirmedAppointmentNotification(input: {
   await transporter.sendMail({
     from: env.MAIL_FROM,
     to: env.CLINIC_NOTIFICATION_EMAIL,
-    subject: `Appointment confirmed: ${input.petName}`,
+    subject: `Staff Alert: Appointment Confirmed - ${input.petName} (${input.requestId})`,
     text: [
-      "An appointment has been confirmed.",
+      "Clinic notification: an appointment has been confirmed.",
       `Request ID: ${input.requestId}`,
       `Owner: ${input.ownerName}`,
       `Pet: ${input.petName}`,
@@ -345,8 +345,8 @@ export async function sendClinicConfirmedAppointmentNotification(input: {
     ].join("\n"),
     html: renderEmailShell({
       eyebrow: "Clinic Notification",
-      title: "Appointment confirmed",
-      intro: "A pending appointment request has been confirmed and booked on the calendar.",
+      title: "Clinic notification: appointment confirmed",
+      intro: "Internal staff alert: a pending appointment request has been confirmed and booked on the calendar.",
       bodyHtml: renderKeyValueRows([
         { label: "Request ID", value: input.requestId },
         { label: "Owner", value: input.ownerName },
