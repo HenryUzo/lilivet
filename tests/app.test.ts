@@ -43,11 +43,13 @@ describe("app readiness and auth", () => {
     const app = await loadApp();
 
     const missingTokenResponse = await request(app).get("/api/appointment-requests");
+    const missingFileTokenResponse = await request(app).get("/api/files/file-1/content");
     const invalidTokenResponse = await request(app)
       .get("/api/appointment-requests")
       .set("Authorization", "Bearer invalid-token");
 
     expect(missingTokenResponse.status).toBe(401);
+    expect(missingFileTokenResponse.status).toBe(401);
     expect(invalidTokenResponse.status).toBe(401);
   });
 
