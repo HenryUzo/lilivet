@@ -75,7 +75,7 @@ describe("getStaffFileAccess", () => {
     });
 
     await expect(getStaffFileAccess("file-1")).rejects.toMatchObject({
-      statusCode: 404
+      statusCode: 410
     });
   });
 });

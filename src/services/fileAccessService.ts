@@ -21,7 +21,7 @@ export async function getStaffFileAccess(id: string) {
   try {
     await fs.access(absolutePath);
   } catch {
-    throw new HttpError(404, "Stored file not found");
+    throw new HttpError(410, "File is no longer available on the server");
   }
 
   return {
