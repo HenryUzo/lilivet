@@ -65,7 +65,8 @@ Copy `.env.example` to `.env` and set:
 - `DRAFT_EXPIRY_HOURS` - draft expiry window.
 - `UNATTACHED_FILE_EXPIRY_HOURS` - expiry window for files uploaded through `/api/files` before they are attached to a request.
 - `DUPLICATE_WINDOW_HOURS` - short duplicate-detection window.
-- `CLINIC_NOTIFICATION_EMAIL`, `MAIL_FROM`, and SMTP settings for Nodemailer.
+- `CLINIC_NOTIFICATION_EMAIL` - one clinic notification recipient, or a comma-separated list.
+- `MAIL_FROM` and SMTP settings for Nodemailer.
 - `JWT_SECRET` - long random secret for signing staff JWTs. Use at least 32 characters.
 - `JWT_EXPIRES_IN` - staff token lifetime, for example `8h`.
 - `JWT_ISSUER` and `JWT_AUDIENCE` - JWT scope values used when signing and verifying staff tokens.

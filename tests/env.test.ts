@@ -50,3 +50,45 @@ describe("env SMTP boolean parsing", () => {
     expect(env.SMTP_SECURE).toBe(true);
   });
 });
+
+describe("env clinic notification recipients", () => {
+  afterEach(() => {
+    process.env = { ...originalEnv };
+  });
+
+  it("accepts comma-separated clinic notification emails", async () => {
+    process.env = {
+      ...originalEnv,
+      NODE_ENV: "test",
+      DATABASE_URL:
+        originalEnv.DATABASE_URL ??
+        "postgresql://test:test@localhost:5432/lilivet_test?sslmode=disable",
+      JWT_SECRET:
+        originalEnv.JWT_SECRET ?? "test-secret-value-that-is-long-enough",
+      JWT_ISSUER: originalEnv.JWT_ISSUER ?? "lili-vet-backend",
+      JWT_AUDIENCE: originalEnv.JWT_AUDIENCE ?? "lili-vet-staff",
+      CLINIC_NOTIFICATION_EMAIL: "frontdesk@example.com, manager@example.com",
+    };
+
+    const { env } = await loadEnvModule();
+
+    expect(env.CLINIC_NOTIFICATION_EMAIL).toBe("frontdesk@example.com, manager@example.com");
+  });
+
+  it("rejects invalid addresses in clinic notification emails", async () => {
+    process.env = {
+      ...originalEnv,
+      NODE_ENV: "test",
+      DATABASE_URL:
+        originalEnv.DATABASE_URL ??
+        "postgresql://test:test@localhost:5432/lilivet_test?sslmode=disable",
+      JWT_SECRET:
+        originalEnv.JWT_SECRET ?? "test-secret-value-that-is-long-enough",
+      JWT_ISSUER: originalEnv.JWT_ISSUER ?? "lili-vet-backend",
+      JWT_AUDIENCE: originalEnv.JWT_AUDIENCE ?? "lili-vet-staff",
+      CLINIC_NOTIFICATION_EMAIL: "frontdesk@example.com, not-an-email",
+    };
+
+    await expect(loadEnvModule()).rejects.toThrow("Invalid email address: not-an-email");
+  });
+});

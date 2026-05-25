@@ -26,6 +26,36 @@ const booleanEnv = z.preprocess((value) => {
   return value;
 }, z.boolean());
 
+const commaSeparatedEmailsSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .superRefine((value, context) => {
+    const emails = value
+      .split(",")
+      .map((email) => email.trim())
+      .filter(Boolean);
+
+    if (emails.length === 0) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "At least one email address is required"
+      });
+      return;
+    }
+
+    for (const email of emails) {
+      const result = z.string().email().safeParse(email);
+
+      if (!result.success) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Invalid email address: ${email}`
+        });
+      }
+    }
+  });
+
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().positive().default(4000),
@@ -45,7 +75,7 @@ const envSchema = z.object({
   DRAFT_EXPIRY_HOURS: z.coerce.number().positive().default(72),
   UNATTACHED_FILE_EXPIRY_HOURS: z.coerce.number().positive().default(24),
   DUPLICATE_WINDOW_HOURS: z.coerce.number().positive().default(48),
-  CLINIC_NOTIFICATION_EMAIL: z.string().email().default("frontdesk@lilivethospital.example"),
+  CLINIC_NOTIFICATION_EMAIL: commaSeparatedEmailsSchema.default("frontdesk@lilivethospital.example"),
   MAIL_FROM: z.string().min(1).default("Lili Vet Hospital <no-reply@lilivethospital.example>"),
   PUBLIC_WEBSITE_URL: z.string().url().default("https://www.liliveterinaryhospital.com"),
   SMTP_HOST: z.string().min(1).default("localhost"),
