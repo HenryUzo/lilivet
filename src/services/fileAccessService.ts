@@ -1,6 +1,5 @@
-import fs from "fs/promises";
-import path from "path";
 import { prisma } from "../prisma/client";
+import { getStorageProvider } from "../storage";
 import { HttpError } from "../utils/httpError";
 
 export async function getStaffFileAccess(id: string) {
@@ -12,20 +11,11 @@ export async function getStaffFileAccess(id: string) {
     throw new HttpError(404, "File not found");
   }
 
-  if (file.storageProvider !== "local") {
-    throw new HttpError(501, "Storage provider is not supported for direct staff file access");
-  }
-
-  const absolutePath = path.resolve(file.storageKey);
-
-  try {
-    await fs.access(absolutePath);
-  } catch {
-    throw new HttpError(410, "File is no longer available on the server");
-  }
+  const provider = getStorageProvider(file.storageProvider);
+  const target = await provider.open(file);
 
   return {
     file,
-    absolutePath
+    target
   };
 }

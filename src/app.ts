@@ -49,6 +49,7 @@ app.get("/health", async (_req, res, next) => {
     res.json({
       status: "ok",
       commit: process.env.RENDER_GIT_COMMIT?.slice(0, 7) ?? null,
+      storageProvider: env.STORAGE_PROVIDER,
       uploadDir: env.UPLOAD_DIR
     });
   } catch (error) {

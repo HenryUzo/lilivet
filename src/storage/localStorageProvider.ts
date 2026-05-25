@@ -1,18 +1,14 @@
-import crypto from "crypto";
 import fs from "fs/promises";
 import os from "os";
 import path from "path";
 import type { Express } from "express";
 import { env } from "../config/env";
-import type { StorageProvider, StoredFile } from "./storageProvider";
-
-const extensionByMimeType: Record<string, string> = {
-  "application/pdf": ".pdf",
-  "image/jpeg": ".jpg",
-  "image/png": ".png"
-};
+import { HttpError } from "../utils/httpError";
+import { createStoredFileName } from "./storageNaming";
+import type { StorageProvider, StoredFile, StoredFileRecord } from "./storageProvider";
 
 export class LocalStorageProvider implements StorageProvider {
+  readonly name = "local";
   private readonly uploadDir: string;
   private readonly fallbackUploadDir: string;
 
@@ -22,7 +18,7 @@ export class LocalStorageProvider implements StorageProvider {
   }
 
   async save(file: Express.Multer.File): Promise<StoredFile> {
-    const storedName = `${crypto.randomUUID()}${extensionByMimeType[file.mimetype] ?? ""}`;
+    const storedName = createStoredFileName(file.mimetype);
     const storageKey = await this.moveToUploadDir(file.path, storedName);
 
     return {
@@ -32,6 +28,21 @@ export class LocalStorageProvider implements StorageProvider {
       sizeBytes: file.size,
       storageProvider: "local",
       storageKey
+    };
+  }
+
+  async open(file: StoredFileRecord) {
+    const absolutePath = path.resolve(file.storageKey);
+
+    try {
+      await fs.access(absolutePath);
+    } catch {
+      throw new HttpError(410, "File is no longer available on the server");
+    }
+
+    return {
+      kind: "local" as const,
+      absolutePath
     };
   }
 
@@ -69,5 +80,3 @@ export class LocalStorageProvider implements StorageProvider {
     return storageKey;
   }
 }
-
-export const storageProvider = new LocalStorageProvider();

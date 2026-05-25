@@ -17,7 +17,7 @@ vi.mock("../src/prisma/client", () => ({
   }
 }));
 
-vi.mock("../src/storage/localStorageProvider", () => ({
+vi.mock("../src/storage", () => ({
   storageProvider: {
     save: storageSaveMock
   }

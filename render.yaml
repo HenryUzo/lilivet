@@ -10,8 +10,26 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: STORAGE_PROVIDER
+        sync: false
       - key: UPLOAD_DIR
         value: /tmp/lilivet-uploads
+      - key: S3_ENDPOINT
+        sync: false
+      - key: S3_REGION
+        sync: false
+      - key: S3_BUCKET
+        sync: false
+      - key: S3_ACCESS_KEY_ID
+        sync: false
+      - key: S3_SECRET_ACCESS_KEY
+        sync: false
+      - key: S3_PUBLIC_BASE_URL
+        sync: false
+      - key: S3_KEY_PREFIX
+        sync: false
+      - key: S3_FORCE_PATH_STYLE
+        sync: false
       - key: MAX_UPLOAD_MB
         value: "10"
       - key: DRAFT_EXPIRY_HOURS

@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { pipeline } from "stream/promises";
 import { asyncHandler } from "../utils/asyncHandler";
 import { getStaffFileAccess } from "../services/fileAccessService";
 import { createUploadedFiles } from "../services/fileService";
@@ -16,7 +17,7 @@ function buildContentDisposition(type: "attachment" | "inline", fileName: string
 
 export const getFileContent = asyncHandler(async (req: Request, res: Response) => {
   const { id } = idParamSchema.parse(req.params);
-  const { file, absolutePath } = await getStaffFileAccess(id);
+  const { file, target } = await getStaffFileAccess(id);
   const shouldDownload = req.query.download === "1" || req.query.download === "true";
 
   res.type(file.mimeType);
@@ -25,14 +26,23 @@ export const getFileContent = asyncHandler(async (req: Request, res: Response) =
     buildContentDisposition(shouldDownload ? "attachment" : "inline", file.originalName)
   );
 
-  await new Promise<void>((resolve, reject) => {
-    res.sendFile(absolutePath, (error) => {
-      if (error) {
-        reject(error);
-        return;
-      }
+  if (target.kind === "local") {
+    await new Promise<void>((resolve, reject) => {
+      res.sendFile(target.absolutePath, (error) => {
+        if (error) {
+          reject(error);
+          return;
+        }
 
-      resolve();
+        resolve();
+      });
     });
-  });
+    return;
+  }
+
+  if (target.sizeBytes) {
+    res.setHeader("Content-Length", String(target.sizeBytes));
+  }
+
+  await pipeline(target.stream as NodeJS.ReadableStream, res);
 });

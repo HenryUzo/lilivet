@@ -55,7 +55,12 @@ Copy `.env.example` to `.env` and set:
 - `DATABASE_URL` - Neon pooled PostgreSQL connection string. Use the pooler host and include SSL settings.
 - `DIRECT_URL` - Neon direct PostgreSQL connection string for Prisma migrations.
 - `CORS_ORIGIN` - frontend origin list separated by commas, or `*` for development.
+- `STORAGE_PROVIDER` - `local` for development or `s3` for durable object storage.
 - `UPLOAD_DIR` - local upload folder.
+- `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, and `S3_SECRET_ACCESS_KEY` - required when `STORAGE_PROVIDER=s3`.
+- `S3_KEY_PREFIX` - optional object key prefix. Defaults to `uploads`.
+- `S3_PUBLIC_BASE_URL` - optional public base URL if you want upload records to include a direct public URL.
+- `S3_FORCE_PATH_STYLE` - optional boolean for S3-compatible providers that require path-style requests.
 - `MAX_UPLOAD_MB` - upload limit. Defaults to 10.
 - `DRAFT_EXPIRY_HOURS` - draft expiry window.
 - `UNATTACHED_FILE_EXPIRY_HOURS` - expiry window for files uploaded through `/api/files` before they are attached to a request.

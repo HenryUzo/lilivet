@@ -17,7 +17,7 @@ const uploadedFileDto = {
   properties: {
     id: { type: "string" }, originalName: { type: "string" }, storedName: { type: "string" },
     mimeType: { type: "string", enum: ["application/pdf", "image/jpeg", "image/png"] },
-    sizeBytes: { type: "integer" }, storageProvider: { type: "string", enum: ["local"] }, storageKey: { type: "string" },
+    sizeBytes: { type: "integer" }, storageProvider: { type: "string", enum: ["local", "s3"] }, storageKey: { type: "string" },
     publicUrl: { type: "string", nullable: true }, attachmentStatus: { $ref: "#/components/schemas/FileAttachmentStatus" },
     expiresAt: { type: "string", format: "date-time", nullable: true }, appointmentDraftId: { type: "string", nullable: true },
     appointmentRequestId: { type: "string", nullable: true }, newPatientRequestId: { type: "string", nullable: true },

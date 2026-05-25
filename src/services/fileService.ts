@@ -3,7 +3,7 @@ import fs from "fs/promises";
 import { FileAttachmentStatus, type Prisma } from "@prisma/client";
 import { prisma } from "../prisma/client";
 import { env } from "../config/env";
-import { storageProvider } from "../storage/localStorageProvider";
+import { storageProvider } from "../storage";
 import { HttpError } from "../utils/httpError";
 
 type DbClient = Prisma.TransactionClient | typeof prisma;

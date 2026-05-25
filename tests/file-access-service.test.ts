@@ -1,10 +1,9 @@
-import fs from "fs/promises";
-import os from "os";
-import path from "path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const { uploadedFileFindUniqueMock } = vi.hoisted(() => ({
-  uploadedFileFindUniqueMock: vi.fn()
+const { uploadedFileFindUniqueMock, getStorageProviderMock, providerOpenMock } = vi.hoisted(() => ({
+  uploadedFileFindUniqueMock: vi.fn(),
+  getStorageProviderMock: vi.fn(),
+  providerOpenMock: vi.fn()
 }));
 
 vi.mock("../src/prisma/client", () => ({
@@ -15,45 +14,61 @@ vi.mock("../src/prisma/client", () => ({
   }
 }));
 
+vi.mock("../src/storage", () => ({
+  getStorageProvider: getStorageProviderMock
+}));
+
 import { getStaffFileAccess } from "../src/services/fileAccessService";
 
 describe("getStaffFileAccess", () => {
-  let tempFilePath: string;
-
-  beforeEach(async () => {
+  beforeEach(() => {
     uploadedFileFindUniqueMock.mockReset();
-    tempFilePath = path.join(os.tmpdir(), `lili-vet-staff-file-${Date.now()}.pdf`);
-    await fs.writeFile(tempFilePath, Buffer.from("pdf"));
+    getStorageProviderMock.mockReset();
+    providerOpenMock.mockReset();
+    getStorageProviderMock.mockReturnValue({
+      open: providerOpenMock
+    });
   });
 
-  afterEach(async () => {
-    await fs.unlink(tempFilePath).catch(() => undefined);
+  afterEach(() => {
+    vi.clearAllMocks();
   });
 
-  it("returns the local file path for attached request files", async () => {
-    uploadedFileFindUniqueMock.mockResolvedValue({
+  it("returns a storage target for attached request files", async () => {
+    const fileRecord = {
       id: "file-1",
       originalName: "record.pdf",
+      sizeBytes: 512,
       mimeType: "application/pdf",
       storageProvider: "local",
-      storageKey: tempFilePath,
+      storageKey: "/tmp/record.pdf",
       appointmentRequestId: "appointment-1",
       newPatientRequestId: null
-    });
+    };
+    const storageTarget = {
+      kind: "local" as const,
+      absolutePath: "C:/tmp/record.pdf"
+    };
+
+    uploadedFileFindUniqueMock.mockResolvedValue(fileRecord);
+    providerOpenMock.mockResolvedValue(storageTarget);
 
     const result = await getStaffFileAccess("file-1");
 
     expect(result.file.id).toBe("file-1");
-    expect(result.absolutePath).toBe(path.resolve(tempFilePath));
+    expect(getStorageProviderMock).toHaveBeenCalledWith("local");
+    expect(providerOpenMock).toHaveBeenCalledWith(fileRecord);
+    expect(result.target).toEqual(storageTarget);
   });
 
   it("rejects files that are not attached to a submitted request", async () => {
     uploadedFileFindUniqueMock.mockResolvedValue({
       id: "file-1",
       originalName: "record.pdf",
+      sizeBytes: 512,
       mimeType: "application/pdf",
       storageProvider: "local",
-      storageKey: tempFilePath,
+      storageKey: "/tmp/record.pdf",
       appointmentRequestId: null,
       newPatientRequestId: null
     });
@@ -63,15 +78,20 @@ describe("getStaffFileAccess", () => {
     });
   });
 
-  it("rejects missing files on disk", async () => {
+  it("propagates provider access failures", async () => {
     uploadedFileFindUniqueMock.mockResolvedValue({
       id: "file-1",
       originalName: "record.pdf",
+      sizeBytes: 512,
       mimeType: "application/pdf",
-      storageProvider: "local",
-      storageKey: `${tempFilePath}.missing`,
+      storageProvider: "s3",
+      storageKey: "uploads/record.pdf",
       appointmentRequestId: null,
       newPatientRequestId: "new-patient-1"
+    });
+    providerOpenMock.mockRejectedValue({
+      statusCode: 410,
+      message: "File is no longer available on the server"
     });
 
     await expect(getStaffFileAccess("file-1")).rejects.toMatchObject({
