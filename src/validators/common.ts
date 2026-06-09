@@ -22,6 +22,16 @@ export const appointmentStatusSchema = z.enum([
   "COMPLETED",
   "NO_SHOW"
 ]);
+export const newPatientReferralSourceSchema = z.enum([
+  "PET_PARADISE",
+  "WEBSITE",
+  "GOOGLE",
+  "PET_BARN",
+  "WELCOME_HOME_MAGAZINE",
+  "REFERRED_BY_ANOTHER_VETERINARIAN",
+  "REFERRED_BY_FRIEND_OR_FAMILY_MEMBER",
+  "OTHER"
+]);
 
 export const phoneSchema = z.string().trim().min(7).max(30);
 export const optionalEmailSchema = z
@@ -47,6 +57,8 @@ export const sessionTokenParamSchema = z.object({
 export const rescheduleTokenParamSchema = z.object({
   token: z.string().length(64)
 });
+
+export const referralSourceCaptureTokenSchema = z.string().length(64);
 
 export const listQuerySchema = z.object({
   search: z.string().trim().min(1).max(200).optional(),

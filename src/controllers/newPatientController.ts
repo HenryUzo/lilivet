@@ -1,8 +1,12 @@
 import type { Request, Response } from "express";
 import { asyncHandler } from "../utils/asyncHandler";
-import { idParamSchema, listQuerySchema } from "../validators/common";
-import { createNewPatientRequestSchema } from "../validators/newPatientSchemas";
-import { createNewPatientRequest, getNewPatientRequest, listNewPatientRequests } from "../services/newPatientService";
+import { createNewPatientRequestSchema, captureNewPatientReferralSourceSchema, newPatientListQuerySchema, newPatientReferralIdParamSchema } from "../validators/newPatientSchemas";
+import {
+  captureNewPatientReferralSource,
+  createNewPatientRequest,
+  getNewPatientRequest,
+  listNewPatientRequests
+} from "../services/newPatientService";
 
 export const createNewPatient = asyncHandler(async (req: Request, res: Response) => {
   const input = createNewPatientRequestSchema.parse(req.body);
@@ -10,12 +14,18 @@ export const createNewPatient = asyncHandler(async (req: Request, res: Response)
   res.status(201).json(request);
 });
 
+export const captureReferralSource = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = newPatientReferralIdParamSchema.parse(req.params);
+  const input = captureNewPatientReferralSourceSchema.parse(req.body);
+  res.json(await captureNewPatientReferralSource(id, input));
+});
+
 export const listNewPatients = asyncHandler(async (req: Request, res: Response) => {
-  const query = listQuerySchema.parse(req.query);
+  const query = newPatientListQuerySchema.parse(req.query);
   res.json(await listNewPatientRequests(query));
 });
 
 export const getNewPatient = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = idParamSchema.parse(req.params);
+  const { id } = newPatientReferralIdParamSchema.parse(req.params);
   res.json(await getNewPatientRequest(id));
 });

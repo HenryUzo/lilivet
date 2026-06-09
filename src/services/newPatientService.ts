@@ -1,18 +1,47 @@
-import { Prisma } from "@prisma/client";
+import crypto from "crypto";
+import { Prisma, type NewPatientReferralSource } from "@prisma/client";
 import { prisma } from "../prisma/client";
 import { HttpError } from "../utils/httpError";
-import type { CreateNewPatientRequestInput } from "../validators/newPatientSchemas";
+import type {
+  CaptureNewPatientReferralSourceInput,
+  CreateNewPatientRequestInput,
+  NewPatientListQueryInput
+} from "../validators/newPatientSchemas";
 import { findDuplicateNewPatientCandidate } from "./duplicateService";
 import { assertUnattachedFilesAvailable, attachFilesToNewPatientRequest } from "./fileService";
 import { sendClinicNewPatientNotification } from "./mailService";
 import { dispatchBackgroundEmail } from "./emailDispatchService";
 
-export async function createNewPatientRequest(input: CreateNewPatientRequestInput) {
+const REFERRAL_SOURCE_CAPTURE_TOKEN_TTL_MS = 2 * 60 * 60 * 1000;
+
+function createCaptureToken() {
+  return crypto.randomBytes(32).toString("hex");
+}
+
+function hashToken(token: string) {
+  return crypto.createHash("sha256").update(token).digest("hex");
+}
+
+type NewPatientRequestWithFiles = Prisma.NewPatientRequestGetPayload<{
+  include: { files: true };
+}>;
+
+export type NewPatientCreateResponse = NewPatientRequestWithFiles & {
+  referralSourceCaptureToken: string;
+};
+
+export async function createNewPatientRequest(
+  input: CreateNewPatientRequestInput
+): Promise<NewPatientCreateResponse> {
   const duplicate = await findDuplicateNewPatientCandidate({
     phoneNumber: input.owner.phoneNumber,
     email: input.owner.email,
     petName: input.pet.petName
   });
+
+  const rawCaptureToken = createCaptureToken();
+  const captureTokenHash = hashToken(rawCaptureToken);
+  const captureTokenExpiresAt = new Date(Date.now() + REFERRAL_SOURCE_CAPTURE_TOKEN_TTL_MS);
 
   const requestId = await prisma.$transaction(async (tx) => {
     await assertUnattachedFilesAvailable(input.uploadedFileIds, tx);
@@ -24,10 +53,14 @@ export async function createNewPatientRequest(input: CreateNewPatientRequestInpu
         ownerPhoneNumber: input.owner.phoneNumber,
         reasonForVisit: input.visit.reasonForVisit,
         isUrgent: input.visit.isUrgent,
-        preferredDateTime: input.visit.preferredDateTime ? new Date(input.visit.preferredDateTime) : undefined,
+        preferredDateTime: input.visit.preferredDateTime
+          ? new Date(input.visit.preferredDateTime)
+          : undefined,
         timezone: input.visit.timezone,
         previousVetClinic: input.visit.previousVetClinic,
         consentToElectronicComms: input.visit.consentToElectronicComms,
+        referralSourceCaptureTokenHash: captureTokenHash,
+        referralSourceCaptureTokenExpiresAt: captureTokenExpiresAt,
         petName: input.pet.petName,
         species: input.pet.species,
         breed: input.pet.breed,
@@ -46,6 +79,11 @@ export async function createNewPatientRequest(input: CreateNewPatientRequestInpu
     return request.id;
   });
 
+  const request = await prisma.newPatientRequest.findUniqueOrThrow({
+    where: { id: requestId },
+    include: { files: true }
+  });
+
   dispatchBackgroundEmail({
     requestId,
     requestType: "new_patient",
@@ -59,19 +97,51 @@ export async function createNewPatientRequest(input: CreateNewPatientRequestInpu
       })
   });
 
-  return prisma.newPatientRequest.findUniqueOrThrow({
-    where: { id: requestId },
+  return {
+    ...request,
+    referralSourceCaptureToken: rawCaptureToken
+  };
+}
+
+export async function captureNewPatientReferralSource(
+  id: string,
+  input: CaptureNewPatientReferralSourceInput
+) {
+  const request = await prisma.newPatientRequest.findUnique({
+    where: { id },
+    include: { files: true }
+  });
+
+  if (!request) {
+    throw new HttpError(404, "New patient request not found");
+  }
+
+  if (!request.referralSourceCaptureTokenHash || !request.referralSourceCaptureTokenExpiresAt) {
+    throw new HttpError(409, "Referral source is no longer available for this request");
+  }
+
+  if (request.referralSourceCaptureTokenExpiresAt <= new Date()) {
+    throw new HttpError(410, "Referral source capture has expired");
+  }
+
+  if (request.referralSourceCaptureTokenHash !== hashToken(input.token)) {
+    throw new HttpError(404, "Referral source token is invalid");
+  }
+
+  return prisma.newPatientRequest.update({
+    where: { id },
+    data: {
+      referralSource: input.source,
+      referralSourceOther: input.source === "OTHER" ? input.otherText : null,
+      referralSourceCapturedAt: new Date(),
+      referralSourceCaptureTokenHash: null,
+      referralSourceCaptureTokenExpiresAt: null
+    },
     include: { files: true }
   });
 }
 
-export async function listNewPatientRequests(input: {
-  search?: string;
-  dateFrom?: string;
-  dateTo?: string;
-  limit: number;
-  cursor?: string;
-}) {
+export async function listNewPatientRequests(input: NewPatientListQueryInput) {
   const where: Prisma.NewPatientRequestWhereInput = {
     createdAt: {
       gte: input.dateFrom ? new Date(input.dateFrom) : undefined,
@@ -79,13 +149,20 @@ export async function listNewPatientRequests(input: {
     }
   };
 
+  if (input.referralSource === "NOT_CAPTURED") {
+    where.referralSource = null;
+  } else if (input.referralSource) {
+    where.referralSource = input.referralSource as NewPatientReferralSource;
+  }
+
   if (input.search) {
     where.OR = [
       { ownerFullName: { contains: input.search, mode: "insensitive" } },
       { ownerEmail: { contains: input.search, mode: "insensitive" } },
       { ownerPhoneNumber: { contains: input.search, mode: "insensitive" } },
       { petName: { contains: input.search, mode: "insensitive" } },
-      { reasonForVisit: { contains: input.search, mode: "insensitive" } }
+      { reasonForVisit: { contains: input.search, mode: "insensitive" } },
+      { referralSourceOther: { contains: input.search, mode: "insensitive" } }
     ];
   }
 

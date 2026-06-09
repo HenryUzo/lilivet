@@ -1,5 +1,16 @@
 import { z } from "zod";
-import { dateStringSchema, optionalEmailSchema, petSexSchema, petSpeciesSchema, phoneSchema, timezoneSchema, weightSchema } from "./common";
+import {
+  dateStringSchema,
+  idParamSchema,
+  newPatientReferralSourceSchema,
+  optionalEmailSchema,
+  petSexSchema,
+  petSpeciesSchema,
+  phoneSchema,
+  referralSourceCaptureTokenSchema,
+  timezoneSchema,
+  weightSchema
+} from "./common";
 
 export const createNewPatientRequestSchema = z.object({
   owner: z.object({
@@ -29,4 +40,43 @@ export const createNewPatientRequestSchema = z.object({
   uploadedFileIds: z.array(z.string().min(1)).optional().default([])
 });
 
+export const captureNewPatientReferralSourceSchema = z.object({
+  token: referralSourceCaptureTokenSchema,
+  source: newPatientReferralSourceSchema,
+  otherText: z
+    .string()
+    .trim()
+    .max(200)
+    .optional()
+    .or(z.literal("").transform(() => undefined))
+}).superRefine((value, ctx) => {
+  if (value.source !== "OTHER") {
+    return;
+  }
+
+  if (value.otherText && value.otherText.length > 200) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.too_big,
+      maximum: 200,
+      inclusive: true,
+      path: ["otherText"],
+      type: "string",
+      message: "Other referral text must be 200 characters or fewer"
+    });
+  }
+});
+
+export const newPatientListQuerySchema = z.object({
+  search: z.string().trim().min(1).max(200).optional(),
+  dateFrom: dateStringSchema.optional(),
+  dateTo: dateStringSchema.optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(25),
+  cursor: z.string().optional(),
+  referralSource: z.union([newPatientReferralSourceSchema, z.literal("NOT_CAPTURED")]).optional()
+});
+
+export const newPatientReferralIdParamSchema = idParamSchema;
+
 export type CreateNewPatientRequestInput = z.infer<typeof createNewPatientRequestSchema>;
+export type CaptureNewPatientReferralSourceInput = z.infer<typeof captureNewPatientReferralSourceSchema>;
+export type NewPatientListQueryInput = z.infer<typeof newPatientListQuerySchema>;

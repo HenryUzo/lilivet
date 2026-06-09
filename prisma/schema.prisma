@@ -200,6 +200,11 @@ model NewPatientRequest {
   timezone                 String?
   previousVetClinic        String?
   consentToElectronicComms Boolean   @default(false)
+  referralSource                NewPatientReferralSource?
+  referralSourceOther           String?
+  referralSourceCapturedAt      DateTime?
+  referralSourceCaptureTokenHash String?
+  referralSourceCaptureTokenExpiresAt DateTime?
 
   ownerId String?
   owner   Owner?  @relation(fields: [ownerId], references: [id], onDelete: SetNull)
@@ -225,6 +230,7 @@ model NewPatientRequest {
   @@index([ownerId])
   @@index([petId])
   @@index([duplicateOfId])
+  @@index([referralSource])
 }
 
 model UploadedFile {
@@ -401,6 +407,17 @@ enum CalendarSyncStatus {
   NOT_SYNCED
   SYNCED
   FAILED
+}
+
+enum NewPatientReferralSource {
+  PET_PARADISE
+  WEBSITE
+  GOOGLE
+  PET_BARN
+  WELCOME_HOME_MAGAZINE
+  REFERRED_BY_ANOTHER_VETERINARIAN
+  REFERRED_BY_FRIEND_OR_FAMILY_MEMBER
+  OTHER
 }
 
 enum WellnessPlanSpecies {

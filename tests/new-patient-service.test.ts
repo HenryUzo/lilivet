@@ -3,6 +3,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const {
   transactionMock,
   findUniqueOrThrowMock,
+  findUniqueMock,
+  findManyMock,
+  updateMock,
   findDuplicateNewPatientCandidateMock,
   assertUnattachedFilesAvailableMock,
   attachFilesToNewPatientRequestMock,
@@ -11,6 +14,9 @@ const {
 } = vi.hoisted(() => ({
   transactionMock: vi.fn(),
   findUniqueOrThrowMock: vi.fn(),
+  findUniqueMock: vi.fn(),
+  findManyMock: vi.fn(),
+  updateMock: vi.fn(),
   findDuplicateNewPatientCandidateMock: vi.fn(),
   assertUnattachedFilesAvailableMock: vi.fn(),
   attachFilesToNewPatientRequestMock: vi.fn(),
@@ -26,7 +32,10 @@ vi.mock("../src/prisma/client", () => ({
   prisma: {
     $transaction: transactionMock,
     newPatientRequest: {
-      findUniqueOrThrow: findUniqueOrThrowMock
+      findUniqueOrThrow: findUniqueOrThrowMock,
+      findUnique: findUniqueMock,
+      findMany: findManyMock,
+      update: updateMock
     }
   }
 }));
@@ -44,7 +53,11 @@ vi.mock("../src/services/mailService", () => ({
   sendClinicNewPatientNotification: sendClinicNewPatientNotificationMock
 }));
 
-import { createNewPatientRequest } from "../src/services/newPatientService";
+import {
+  captureNewPatientReferralSource,
+  createNewPatientRequest,
+  listNewPatientRequests
+} from "../src/services/newPatientService";
 
 const baseInput = {
   owner: {
@@ -74,12 +87,15 @@ const baseInput = {
   uploadedFileIds: ["file-1"]
 };
 
-describe("createNewPatientRequest", () => {
+describe("newPatientService", () => {
   const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
   beforeEach(() => {
     transactionMock.mockReset();
     findUniqueOrThrowMock.mockReset();
+    findUniqueMock.mockReset();
+    findManyMock.mockReset();
+    updateMock.mockReset();
     findDuplicateNewPatientCandidateMock.mockReset();
     assertUnattachedFilesAvailableMock.mockReset();
     attachFilesToNewPatientRequestMock.mockReset();
@@ -93,18 +109,31 @@ describe("createNewPatientRequest", () => {
       id: "new-request-1",
       files: []
     });
+    findUniqueMock.mockResolvedValue({
+      id: "new-request-1",
+      files: []
+    });
     transactionMock.mockImplementation(async (callback: (tx: typeof txMock) => Promise<unknown>) => callback(txMock));
   });
 
-  it("returns the created request without waiting for the clinic email promise to settle", async () => {
+  it("returns the created request with a referral capture token without waiting for clinic email", async () => {
     sendClinicNewPatientNotificationMock.mockReturnValue(new Promise<void>(() => undefined));
 
     const result = await createNewPatientRequest(baseInput);
 
     expect(result).toEqual({
       id: "new-request-1",
-      files: []
+      files: [],
+      referralSourceCaptureToken: expect.stringMatching(/^[a-f0-9]{64}$/)
     });
+    expect(txMock.newPatientRequest.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          referralSourceCaptureTokenHash: expect.any(String),
+          referralSourceCaptureTokenExpiresAt: expect.any(Date)
+        })
+      })
+    );
     expect(sendClinicNewPatientNotificationMock).toHaveBeenCalledTimes(1);
   });
 
@@ -115,15 +144,101 @@ describe("createNewPatientRequest", () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(result).toEqual({
-      id: "new-request-1",
-      files: []
-    });
+    expect(result.id).toBe("new-request-1");
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       expect.stringContaining("\"event\":\"email_dispatch_failed\"")
     );
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       expect.stringContaining("\"requestType\":\"new_patient\"")
+    );
+  });
+
+  it("captures referral source and clears the token fields", async () => {
+    const token = "a".repeat(64);
+    findUniqueMock.mockResolvedValue({
+      id: "new-request-1",
+      files: [],
+      referralSourceCaptureTokenHash: "ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb",
+      referralSourceCaptureTokenExpiresAt: new Date(Date.now() + 60_000)
+    });
+    updateMock.mockResolvedValue({
+      id: "new-request-1",
+      referralSource: "OTHER",
+      referralSourceOther: "Neighbour flyer",
+      files: []
+    });
+
+    const result = await captureNewPatientReferralSource("new-request-1", {
+      token,
+      source: "OTHER",
+      otherText: "Neighbour flyer"
+    });
+
+    expect(updateMock).toHaveBeenCalledWith({
+      where: { id: "new-request-1" },
+      data: expect.objectContaining({
+        referralSource: "OTHER",
+        referralSourceOther: "Neighbour flyer",
+        referralSourceCapturedAt: expect.any(Date),
+        referralSourceCaptureTokenHash: null,
+        referralSourceCaptureTokenExpiresAt: null
+      }),
+      include: { files: true }
+    });
+    expect(result).toEqual({
+      id: "new-request-1",
+      referralSource: "OTHER",
+      referralSourceOther: "Neighbour flyer",
+      files: []
+    });
+  });
+
+  it("rejects invalid referral source tokens", async () => {
+    findUniqueMock.mockResolvedValue({
+      id: "new-request-1",
+      files: [],
+      referralSourceCaptureTokenHash: "different-hash",
+      referralSourceCaptureTokenExpiresAt: new Date(Date.now() + 60_000)
+    });
+
+    await expect(
+      captureNewPatientReferralSource("new-request-1", {
+        token: "b".repeat(64),
+        source: "GOOGLE"
+      })
+    ).rejects.toMatchObject({
+      statusCode: 404,
+      message: "Referral source token is invalid"
+    });
+  });
+
+  it("applies referral source filters to the staff queue query", async () => {
+    findManyMock.mockResolvedValue([]);
+
+    await listNewPatientRequests({
+      limit: 25,
+      referralSource: "NOT_CAPTURED"
+    });
+
+    expect(findManyMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          referralSource: null
+        })
+      })
+    );
+
+    await listNewPatientRequests({
+      limit: 25,
+      referralSource: "GOOGLE"
+    });
+
+    expect(findManyMock).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          referralSource: "GOOGLE"
+        })
+      })
     );
   });
 });
