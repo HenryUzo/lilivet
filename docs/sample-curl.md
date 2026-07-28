@@ -90,6 +90,20 @@ curl -X POST "$BASE_URL/api/new-patient-requests" \
   }'
 ```
 
+Create a Pet Care newsletter double-opt-in confirmation request:
+
+```bash
+curl -X POST "$BASE_URL/api/pet-care/newsletter-subscriptions" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "owner@example.com",
+    "petPreference": "DOG",
+    "consent": true,
+    "source": "pet-care-library",
+    "website": ""
+  }'
+```
+
 Update appointment status after clinic review:
 
 ```bash

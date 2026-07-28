@@ -26,6 +26,14 @@ const booleanEnv = z.preprocess((value) => {
   return value;
 }, z.boolean());
 
+const optionalPositiveIntEnv = z.preprocess((value) => {
+  if (typeof value === "string" && value.trim() === "") {
+    return undefined;
+  }
+
+  return value;
+}, z.coerce.number().int().positive().optional());
+
 const commaSeparatedEmailsSchema = z
   .string()
   .trim()
@@ -87,6 +95,13 @@ const envSchema = z.object({
   GOOGLE_CALENDAR_CLIENT_SECRET: z.string().optional().default(""),
   GOOGLE_CALENDAR_REFRESH_TOKEN: z.string().optional().default(""),
   GOOGLE_CALENDAR_ID: z.string().optional().default(""),
+  PET_CARE_NEWSLETTER_ENABLED: booleanEnv.default(false),
+  BREVO_API_KEY: z.string().optional().default(""),
+  BREVO_PET_CARE_LIST_ID: optionalPositiveIntEnv,
+  BREVO_DOI_TEMPLATE_ID: optionalPositiveIntEnv,
+  BREVO_DOI_REDIRECT_URL: z.string().url().default("https://liliveterinaryhospital.com/pet-care?subscription=confirmed"),
+  BREVO_PET_PREFERENCE_ATTRIBUTE: z.string().trim().min(1).max(64).default("PET_PREFERENCE"),
+  BREVO_API_BASE_URL: z.string().url().default("https://api.brevo.com/v3"),
   JWT_SECRET: z.string().min(32).default(DEFAULT_JWT_SECRET),
   JWT_EXPIRES_IN: z.string().min(1).default("8h"),
   JWT_ISSUER: z.string().min(1).default("lili-vet-backend"),
@@ -94,6 +109,42 @@ const envSchema = z.object({
   RESCHEDULE_TOKEN_EXPIRY_HOURS: z.coerce.number().positive().default(72),
   STAFF_SEED_EMAIL: z.string().email().default("admin@lilivethospital.example"),
   STAFF_SEED_PASSWORD: z.string().min(8).default(DEFAULT_STAFF_SEED_PASSWORD)
+}).superRefine((value, context) => {
+  if (!value.PET_CARE_NEWSLETTER_ENABLED) {
+    return;
+  }
+
+  if (!value.BREVO_API_KEY) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "BREVO_API_KEY is required when PET_CARE_NEWSLETTER_ENABLED=true",
+      path: ["BREVO_API_KEY"]
+    });
+  }
+
+  if (!value.BREVO_PET_CARE_LIST_ID) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "BREVO_PET_CARE_LIST_ID is required when PET_CARE_NEWSLETTER_ENABLED=true",
+      path: ["BREVO_PET_CARE_LIST_ID"]
+    });
+  }
+
+  if (!value.BREVO_DOI_TEMPLATE_ID) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "BREVO_DOI_TEMPLATE_ID is required when PET_CARE_NEWSLETTER_ENABLED=true",
+      path: ["BREVO_DOI_TEMPLATE_ID"]
+    });
+  }
+
+  if (value.NODE_ENV === "production" && !value.BREVO_DOI_REDIRECT_URL.startsWith("https://")) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "BREVO_DOI_REDIRECT_URL must use HTTPS in production",
+      path: ["BREVO_DOI_REDIRECT_URL"]
+    });
+  }
 });
 
 export const env = envSchema.parse(process.env);

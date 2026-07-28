@@ -12,6 +12,7 @@ import { appointmentDraftRoutes } from "./routes/appointmentDraft.routes";
 import { appointmentRequestRoutes } from "./routes/appointmentRequest.routes";
 import { fileRoutes } from "./routes/file.routes";
 import { newPatientRoutes } from "./routes/newPatientRequest.routes";
+import { petCareNewsletterRoutes } from "./routes/petCareNewsletter.routes";
 import { staffAuthRoutes } from "./routes/staffAuth.routes";
 import { HttpError } from "./utils/httpError";
 
@@ -65,6 +66,7 @@ app.use("/api/appointment-drafts", appointmentDraftRoutes);
 app.use("/api/staff/auth", staffAuthRoutes);
 app.use("/api/appointment-requests", appointmentRequestRoutes);
 app.use("/api/new-patient-requests", newPatientRoutes);
+app.use("/api/pet-care", petCareNewsletterRoutes);
 app.use("/api/files", fileRoutes);
 
 app.use(notFoundHandler);

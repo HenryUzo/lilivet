@@ -71,9 +71,18 @@ Copy `.env.example` to `.env` and set:
 - `JWT_EXPIRES_IN` - staff token lifetime, for example `8h`.
 - `JWT_ISSUER` and `JWT_AUDIENCE` - JWT scope values used when signing and verifying staff tokens.
 - `GOOGLE_CALENDAR_CLIENT_ID`, `GOOGLE_CALENDAR_CLIENT_SECRET`, `GOOGLE_CALENDAR_REFRESH_TOKEN`, and `GOOGLE_CALENDAR_ID` - Google Calendar OAuth credentials and the shared clinic calendar ID used when staff confirms appointments.
+- `PET_CARE_NEWSLETTER_ENABLED` - feature flag for the Pet Care newsletter Brevo double-opt-in endpoint. Defaults to `false`.
+- `BREVO_API_KEY` - server-only Brevo API key. Add this directly in Render; do not expose it to frontend code.
+- `BREVO_PET_CARE_LIST_ID` - Brevo list id for `Lili Vet Pet Care Subscribers`.
+- `BREVO_DOI_TEMPLATE_ID` - Brevo double-opt-in confirmation template id.
+- `BREVO_DOI_REDIRECT_URL` - HTTPS page Brevo should send users to after confirmation.
+- `BREVO_PET_PREFERENCE_ATTRIBUTE` - Brevo contact attribute used for `DOG`, `CAT`, or `BOTH`. Defaults to `PET_PREFERENCE`.
+- `BREVO_API_BASE_URL` - Brevo API base URL. Defaults to `https://api.brevo.com/v3`.
 - `STAFF_SEED_EMAIL` and `STAFF_SEED_PASSWORD` - admin staff credentials used by the seed script.
 
 In production, the server refuses to start if `JWT_SECRET` or `STAFF_SEED_PASSWORD` is still using the default bootstrap value.
+
+When `PET_CARE_NEWSLETTER_ENABLED=true`, startup validates all required Brevo configuration and fails closed if anything is missing. When the feature is disabled, blank Brevo values do not block the rest of the API.
 
 ## Important API Rules
 
@@ -140,6 +149,10 @@ New-patient requests:
 - `POST /api/new-patient-requests`
 - `GET /api/new-patient-requests`
 - `GET /api/new-patient-requests/:id`
+
+Pet Care newsletter:
+
+- `POST /api/pet-care/newsletter-subscriptions`
 
 Files:
 
@@ -209,6 +222,30 @@ POST /api/files
 ```
 
 Pass returned file ids as `uploadedFileIds` when creating `POST /api/new-patient-requests`.
+
+## Pet Care Newsletter Setup
+
+The public Pet Care newsletter uses Brevo double opt-in. The browser sends the signup to this backend, and only the backend talks to Brevo.
+
+Manual Brevo setup required:
+
+1. Create or choose the main list: `Lili Vet Pet Care Subscribers`.
+2. Create a contact attribute named `PET_PREFERENCE` with allowed values `DOG`, `CAT`, and `BOTH`.
+3. Create and approve a double-opt-in confirmation template.
+4. Verify the sender and sending domain in Brevo.
+5. Set the confirmation redirect URL to `https://liliveterinaryhospital.com/pet-care?subscription=confirmed`.
+6. Add the env vars in Render, keeping `BREVO_API_KEY` server-only.
+7. Set `PET_CARE_NEWSLETTER_ENABLED=true` only after the list id, template id, redirect URL, and API key are configured.
+
+Sample request:
+
+```bash
+curl -X POST "https://lilivet.onrender.com/api/pet-care/newsletter-subscriptions" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"owner@example.com","petPreference":"DOG","consent":true,"source":"pet-care-library","website":""}'
+```
+
+Successful requests return `202 Accepted` with `status: "confirmation_required"`. The response intentionally does not reveal whether an address already exists. Brevo failures return a generic `503`; logs include a safe correlation id and masked/hash email only.
 
 ## Notes for Production
 

@@ -75,6 +75,18 @@
       }
     },
     {
+      "name": "Create Pet Care Newsletter Subscription",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/pet-care/newsletter-subscriptions",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"owner@example.com\",\"petPreference\":\"DOG\",\"consent\":true,\"source\":\"pet-care-library\",\"website\":\"\"}"
+        }
+      }
+    },
+    {
       "name": "List Appointment Requests",
       "request": { "method": "GET", "url": "{{baseUrl}}/api/appointment-requests" }
     },

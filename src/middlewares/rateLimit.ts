@@ -29,3 +29,11 @@ export const publicUploadRateLimit = rateLimit({
   legacyHeaders: false,
   message: jsonRateLimitMessage
 });
+
+export const petCareNewsletterRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: jsonRateLimitMessage
+});
