@@ -134,6 +134,30 @@ describe("pet care newsletter subscriptions", () => {
     expect(response.body.status).toBe("confirmation_required");
   });
 
+  it.each([
+    "list does not exist",
+    "template does not exist"
+  ])("does not mask Brevo configuration errors: %s", async (bodyText) => {
+    configureNewsletterEnv(true);
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(new Response(bodyText, { status: 400 }))
+    );
+    const app = await loadApp();
+
+    const response = await request(app)
+      .post("/api/pet-care/newsletter-subscriptions")
+      .send({ email: "owner@example.com", petPreference: "BOTH", consent: true, website: "" });
+
+    expect(response.status).toBe(503);
+    expect(response.body.error.message).toBe(
+      "Pet care newsletter signup is temporarily unavailable."
+    );
+    expect(response.body.error.details.correlationId).toEqual(expect.any(String));
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+  });
+
   it("returns a generic 503 for Brevo failures and does not leak the API key", async () => {
     configureNewsletterEnv(true);
     const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);

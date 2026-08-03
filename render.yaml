@@ -82,6 +82,18 @@ services:
         sync: false
       - key: SMTP_PASS
         sync: false
+      - key: PET_CARE_NEWSLETTER_ENABLED
+        value: "true"
+      - key: BREVO_API_KEY
+        sync: false
+      - key: BREVO_PET_CARE_LIST_ID
+        value: "4"
+      - key: BREVO_DOI_TEMPLATE_ID
+        value: "1"
+      - key: BREVO_DOI_REDIRECT_URL
+        value: "https://liliveterinaryhospital.com/pet-care?subscription=confirmed"
+      - key: BREVO_PET_PREFERENCE_ATTRIBUTE
+        value: "PET_PREFERENCE"
 
   - type: cron
     name: lilivet-overdue-sweep

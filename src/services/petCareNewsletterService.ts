@@ -31,7 +31,9 @@ function isSafeExistingSubscriptionResponse(status: number, bodyText: string) {
     return false;
   }
 
-  return /(already|exist|duplicate|pending)/i.test(normalized);
+  return /(?:contact|email|subscriber).*(?:already (?:exists|subscribed)|duplicate|pending)|(?:already (?:exists|subscribed)|duplicate|pending).*(?:contact|email|subscriber)/i.test(
+    normalized
+  );
 }
 
 function logBrevoFailure(input: {
