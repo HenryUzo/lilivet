@@ -247,6 +247,29 @@ curl -X POST "https://lilivet.onrender.com/api/pet-care/newsletter-subscriptions
 
 Successful requests return `202 Accepted` with `status: "confirmation_required"`. The response intentionally does not reveal whether an address already exists. Brevo failures return a generic `503`; logs include a safe correlation id and masked/hash email only.
 
+## Pet Care Publishing Workflow
+
+Pet Care articles are managed by administrators at `/pet-care` in the staff dashboard. The enforced lifecycle is:
+
+```text
+DRAFT -> IN_REVIEW -> APPROVED -> PUBLISHED -> ARCHIVED
+```
+
+- A veterinary reviewer must be assigned before an article can enter review.
+- Approval records the medical review date and sets the next review deadline one year later.
+- Only approved, medically reviewed articles can be published.
+- Editing approved or published medical content returns it to draft for a new review.
+- Public endpoints return published articles only: `GET /api/pet-care/articles` and `GET /api/pet-care/articles/:slug`.
+
+For the first production rollout, deploy the migration and then import the existing checked-in library:
+
+```text
+npm run prisma:deploy
+npm run pet-care:seed
+```
+
+The seed is idempotent. It preserves the current article slugs and marks the existing catalog as published with its named reviewer and recorded review dates.
+
 ## Notes for Production
 
 - Use `npm run prisma:deploy` in deployed environments.

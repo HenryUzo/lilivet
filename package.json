@@ -16,7 +16,8 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
-    "prisma:seed": "tsx prisma/seed.ts"
+    "prisma:seed": "tsx prisma/seed.ts",
+    "pet-care:seed": "tsx scripts/seed-pet-care.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

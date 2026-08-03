@@ -1,0 +1,1570 @@
+{
+  "categories": [
+    {
+      "slug": "urgent-care",
+      "label": "Urgent Care",
+      "description": "Guidance on symptoms that may need prompt veterinary attention."
+    },
+    {
+      "slug": "dogs",
+      "label": "Dogs",
+      "description": "Everyday dog health topics."
+    },
+    {
+      "slug": "cats",
+      "label": "Cats",
+      "description": "Cat care, behavior, and health."
+    },
+    {
+      "slug": "puppy-kitten-care",
+      "label": "Puppy & Kitten Care",
+      "description": "Early-life care for young pets."
+    },
+    {
+      "slug": "preventive-care",
+      "label": "Preventive Care",
+      "description": "Wellness exams, screening, and long-term prevention."
+    },
+    {
+      "slug": "vaccinations",
+      "label": "Vaccinations",
+      "description": "Vaccine timing and protection basics."
+    },
+    {
+      "slug": "dental-health",
+      "label": "Dental Health",
+      "description": "Oral health signs, prevention, and cleanings."
+    },
+    {
+      "slug": "surgery-recovery",
+      "label": "Surgery & Recovery",
+      "description": "Preparation and aftercare for procedures."
+    },
+    {
+      "slug": "wellness-plans",
+      "label": "Wellness Plans",
+      "description": "Predictable preventive care planning."
+    },
+    {
+      "slug": "seasonal-pet-safety",
+      "label": "Seasonal Pet Safety",
+      "description": "South Texas heat, holidays, parasites, and safety."
+    }
+  ],
+  "reviewers": [
+    {
+      "id": "olatade-okafor",
+      "name": "Dr. Olatade Okafor",
+      "credentials": "DVM",
+      "role": "Veterinarian",
+      "photoKey": "drOkafor",
+      "photoFile": "dr-okafor.webp",
+      "shortBio": "Dr. Okafor reviews Lili Vet educational resources so pet parents have calm, practical guidance before deciding on the right next step.",
+      "active": true
+    }
+  ],
+  "author": {
+    "id": "lili-vet-care-team",
+    "name": "Lili Veterinary Hospital Care Team",
+    "role": "Veterinary Care Team"
+  },
+  "articles": [
+    {
+      "authorId": "lili-vet-care-team",
+      "reviewerId": "olatade-okafor",
+      "publishedAt": "2026-05-12",
+      "updatedAt": "2026-06-18",
+      "reviewedAt": "2026-06-18",
+      "status": "published",
+      "reviewStatus": "medically-reviewed",
+      "keyTakeaways": [
+        "Sudden, severe, or worsening symptoms deserve prompt guidance.",
+        "Breathing trouble, collapse, uncontrolled seizures, severe trauma, or heavy bleeding are emergencies.",
+        "Calling early helps the team guide you to urgent care, routine care, or an emergency hospital."
+      ],
+      "monitorAtHome": [
+        "When the symptom started and whether it is changing",
+        "Eating, drinking, bathroom habits, and energy level",
+        "Pain, breathing changes, vomiting, diarrhea, or visible swelling"
+      ],
+      "warningCallout": "Educational information only. This article is not a diagnosis and does not replace a veterinary examination. If symptoms feel urgent or life-threatening, call a veterinarian or seek emergency care immediately.",
+      "vetQuote": "When you are unsure, calling early is often the safest next step.",
+      "faqs": [
+        {
+          "question": "Should I wait to see if symptoms improve?",
+          "answer": "If symptoms are severe, repeated, painful, or worsening, call a veterinarian instead of waiting."
+        },
+        {
+          "question": "Can I give human medication at home?",
+          "answer": "Do not give human medication unless a veterinarian specifically tells you it is safe for your pet."
+        },
+        {
+          "question": "What should I bring to the visit?",
+          "answer": "Bring medication names, vaccine history, photos or videos of symptoms, and any packaging for possible toxin exposure."
+        }
+      ],
+      "references": [
+        {
+          "label": "American Veterinary Medical Association: Pet health resources",
+          "url": "https://www.avma.org/resources/pet-owners"
+        },
+        {
+          "label": "Merck Veterinary Manual: Owner-focused pet health topics",
+          "url": "https://www.merckvetmanual.com/"
+        }
+      ],
+      "sections": [
+        {
+          "id": "immediate-answer",
+          "title": "Immediate answer",
+          "content": [
+            "You should contact a veterinarian promptly when your dog has symptoms that are sudden, severe, worsening, or unusual for them. Trouble breathing, collapse, repeated vomiting, uncontrolled bleeding, severe pain, major trauma, or seizures should be treated as emergencies.",
+            "If you are unsure, it is safer to call the clinic and describe what you are seeing. A veterinary team can help decide whether your pet should be seen urgently, monitored closely, or routed to a full emergency hospital."
+          ]
+        },
+        {
+          "id": "common-signs",
+          "title": "Common signs that may need urgent care",
+          "content": [
+            "Dogs often show discomfort through behavior changes before symptoms look dramatic. Watch for sudden lethargy, repeated vomiting or diarrhea, limping, coughing, breathing changes, pale gums, swelling, eye injuries, or signs of pain."
+          ],
+          "bullets": [
+            "Repeated vomiting or diarrhea, especially with blood",
+            "Difficulty breathing, persistent coughing, or blue/pale gums",
+            "Sudden weakness, collapse, seizures, or disorientation",
+            "Limping, wounds, swelling, or signs of severe pain",
+            "Eye injuries, toxin exposure, or heat stress"
+          ]
+        },
+        {
+          "id": "possible-causes",
+          "title": "Possible causes",
+          "content": [
+            "Urgent symptoms can come from infections, injuries, stomach or intestinal problems, toxin exposure, heat stress, allergic reactions, pain, or chronic disease flare-ups.",
+            "The same symptom can have several causes, so a veterinary exam is the safest way to narrow down what is happening."
+          ]
+        },
+        {
+          "id": "monitor-at-home",
+          "title": "What pet parents can monitor",
+          "content": [
+            "If your dog is stable and you are waiting for guidance, note when symptoms started, how often they are happening, appetite, water intake, bathroom habits, energy level, gum color, and any possible exposure to food, plants, medications, or chemicals."
+          ]
+        },
+        {
+          "id": "contact-vet",
+          "title": "When to contact a veterinarian",
+          "content": [
+            "Call if symptoms are new, worsening, painful, repeated, or hard to explain. Puppies, senior dogs, and pets with existing health issues should be assessed more cautiously.",
+            "If your pet is struggling to breathe, unconscious, having uncontrolled seizures, bleeding heavily, or experiencing severe trauma, seek emergency care immediately."
+          ]
+        },
+        {
+          "id": "visit-expectations",
+          "title": "What to expect during the visit",
+          "content": [
+            "The veterinary team will ask about your dog's symptoms, timeline, appetite, medications, vaccine status, and possible exposures. The visit may include a physical exam, pain assessment, lab work, imaging, medication, fluids, or a referral if emergency-level care is needed."
+          ]
+        },
+        {
+          "id": "prevention",
+          "title": "Prevention and next steps",
+          "content": [
+            "Regular wellness care, vaccinations, parasite prevention, dental care, safe storage of medications and toxins, and early attention to small changes can reduce many urgent visits."
+          ]
+        }
+      ],
+      "id": "urgent-dog",
+      "slug": "dog-urgent-care",
+      "title": "When Should You Take Your Dog to Urgent Care?",
+      "seoTitle": "Dog Urgent Care Signs | Lili Veterinary Hospital",
+      "seoDescription": "Learn which dog symptoms may need same-day veterinary attention, what to monitor safely, and when to contact Lili Veterinary Hospital.",
+      "excerpt": "Learn which dog symptoms may need same-day veterinary attention and which warning signs should be treated as emergencies.",
+      "summary": "A practical guide to deciding when your dog needs urgent veterinary care and what to expect when you call or visit.",
+      "categorySlug": "urgent-care",
+      "tags": [
+        "dog symptoms",
+        "urgent care",
+        "emergency",
+        "same-day care"
+      ],
+      "heroImageKey": "limpingDog",
+      "heroImageFile": "limping.png",
+      "heroImageAlt": "Concerned dog resting while being monitored for urgent symptoms",
+      "relatedService": {
+        "title": "Urgent Care",
+        "path": "/urgent-care"
+      },
+      "relatedArticleSlugs": [
+        "dog-limping-when-to-call-vet",
+        "vomiting-diarrhea-when-urgent"
+      ],
+      "featured": true,
+      "popular": true,
+      "seasonal": false,
+      "readingTimeMinutes": 7
+    },
+    {
+      "authorId": "lili-vet-care-team",
+      "reviewerId": "olatade-okafor",
+      "publishedAt": "2026-05-12",
+      "updatedAt": "2026-06-18",
+      "reviewedAt": "2026-06-18",
+      "status": "published",
+      "reviewStatus": "medically-reviewed",
+      "keyTakeaways": [
+        "Small changes in behavior can be early health clues.",
+        "A veterinarian can help decide what is urgent and what can be monitored.",
+        "Preventive care makes it easier to catch problems earlier."
+      ],
+      "monitorAtHome": [
+        "When the symptom started and whether it is changing",
+        "Eating, drinking, bathroom habits, and energy level",
+        "Pain, breathing changes, vomiting, diarrhea, or visible swelling"
+      ],
+      "warningCallout": "Educational information only. This article is not a diagnosis and does not replace a veterinary examination. If symptoms feel urgent or life-threatening, call a veterinarian or seek emergency care immediately.",
+      "vetQuote": "When you are unsure, calling early is often the safest next step.",
+      "faqs": [
+        {
+          "question": "Should I wait to see if symptoms improve?",
+          "answer": "If symptoms are severe, repeated, painful, or worsening, call a veterinarian instead of waiting."
+        },
+        {
+          "question": "Can I give human medication at home?",
+          "answer": "Do not give human medication unless a veterinarian specifically tells you it is safe for your pet."
+        },
+        {
+          "question": "What should I bring to the visit?",
+          "answer": "Bring medication names, vaccine history, photos or videos of symptoms, and any packaging for possible toxin exposure."
+        }
+      ],
+      "references": [
+        {
+          "label": "American Veterinary Medical Association: Pet health resources",
+          "url": "https://www.avma.org/resources/pet-owners"
+        },
+        {
+          "label": "Merck Veterinary Manual: Owner-focused pet health topics",
+          "url": "https://www.merckvetmanual.com/"
+        }
+      ],
+      "sections": [
+        {
+          "id": "immediate-answer",
+          "title": "Immediate answer",
+          "content": [
+            "Cats can stop eating for many reasons. Learn what to monitor and when appetite changes need veterinary care."
+          ]
+        },
+        {
+          "id": "common-signs",
+          "title": "Common signs",
+          "content": [
+            "Pet parents should watch for changes in appetite, energy, bathroom habits, breathing, mobility, comfort, and behavior."
+          ]
+        },
+        {
+          "id": "possible-causes",
+          "title": "Possible causes",
+          "content": [
+            "Many symptoms can have several possible causes, from minor irritation to conditions that need prompt veterinary care."
+          ]
+        },
+        {
+          "id": "monitor-at-home",
+          "title": "What pet parents can monitor",
+          "content": [
+            "Write down what changed, when it started, how often it occurs, and whether your pet is eating, drinking, and acting normally."
+          ]
+        },
+        {
+          "id": "contact-vet",
+          "title": "When to contact a veterinarian",
+          "content": [
+            "Contact the clinic when symptoms are severe, repeated, worsening, painful, or unusual for your pet."
+          ]
+        },
+        {
+          "id": "visit-expectations",
+          "title": "What to expect during the visit",
+          "content": [
+            "The team may recommend a physical exam, diagnostic testing, preventive care updates, medication, or follow-up monitoring."
+          ]
+        },
+        {
+          "id": "prevention",
+          "title": "Prevention and next steps",
+          "content": [
+            "Wellness exams, vaccines, parasite prevention, dental care, and early visits help keep small concerns from becoming bigger problems."
+          ]
+        }
+      ],
+      "id": "cat-not-eating",
+      "slug": "cat-not-eating",
+      "title": "Why Is My Cat Not Eating?",
+      "seoTitle": "Why Is My Cat Not Eating? | Lili Vet Pet Care",
+      "seoDescription": "Learn common reasons cats stop eating, what appetite changes to monitor at home, and when to contact Lili Veterinary Hospital for guidance.",
+      "excerpt": "Cats can stop eating for many reasons. Learn what to monitor and when appetite changes need veterinary care.",
+      "categorySlug": "cats",
+      "tags": [
+        "cat appetite",
+        "not eating",
+        "cat symptoms"
+      ],
+      "heroImageKey": "catResting",
+      "heroImageFile": "catResting.png",
+      "heroImageAlt": "Resting cat being monitored by its owner",
+      "relatedService": {
+        "title": "Diagnostic Care",
+        "path": "/services/diagnostic-care"
+      },
+      "relatedArticleSlugs": [
+        "vomiting-diarrhea-when-urgent",
+        "pet-wellness-exam"
+      ],
+      "featured": false,
+      "popular": true,
+      "seasonal": false,
+      "readingTimeMinutes": 6
+    },
+    {
+      "authorId": "lili-vet-care-team",
+      "reviewerId": "olatade-okafor",
+      "publishedAt": "2026-05-12",
+      "updatedAt": "2026-06-18",
+      "reviewedAt": "2026-06-18",
+      "status": "published",
+      "reviewStatus": "medically-reviewed",
+      "keyTakeaways": [
+        "Small changes in behavior can be early health clues.",
+        "A veterinarian can help decide what is urgent and what can be monitored.",
+        "Preventive care makes it easier to catch problems earlier."
+      ],
+      "monitorAtHome": [
+        "When the symptom started and whether it is changing",
+        "Eating, drinking, bathroom habits, and energy level",
+        "Pain, breathing changes, vomiting, diarrhea, or visible swelling"
+      ],
+      "warningCallout": "Educational information only. This article is not a diagnosis and does not replace a veterinary examination. If symptoms feel urgent or life-threatening, call a veterinarian or seek emergency care immediately.",
+      "vetQuote": "When you are unsure, calling early is often the safest next step.",
+      "faqs": [
+        {
+          "question": "Should I wait to see if symptoms improve?",
+          "answer": "If symptoms are severe, repeated, painful, or worsening, call a veterinarian instead of waiting."
+        },
+        {
+          "question": "Can I give human medication at home?",
+          "answer": "Do not give human medication unless a veterinarian specifically tells you it is safe for your pet."
+        },
+        {
+          "question": "What should I bring to the visit?",
+          "answer": "Bring medication names, vaccine history, photos or videos of symptoms, and any packaging for possible toxin exposure."
+        }
+      ],
+      "references": [
+        {
+          "label": "American Veterinary Medical Association: Pet health resources",
+          "url": "https://www.avma.org/resources/pet-owners"
+        },
+        {
+          "label": "Merck Veterinary Manual: Owner-focused pet health topics",
+          "url": "https://www.merckvetmanual.com/"
+        }
+      ],
+      "sections": [
+        {
+          "id": "immediate-answer",
+          "title": "Immediate answer",
+          "content": [
+            "A simple timeline for puppy vaccines, boosters, and protection as your puppy grows."
+          ]
+        },
+        {
+          "id": "common-signs",
+          "title": "Common signs",
+          "content": [
+            "Pet parents should watch for changes in appetite, energy, bathroom habits, breathing, mobility, comfort, and behavior."
+          ]
+        },
+        {
+          "id": "possible-causes",
+          "title": "Possible causes",
+          "content": [
+            "Many symptoms can have several possible causes, from minor irritation to conditions that need prompt veterinary care."
+          ]
+        },
+        {
+          "id": "monitor-at-home",
+          "title": "What pet parents can monitor",
+          "content": [
+            "Write down what changed, when it started, how often it occurs, and whether your pet is eating, drinking, and acting normally."
+          ]
+        },
+        {
+          "id": "contact-vet",
+          "title": "When to contact a veterinarian",
+          "content": [
+            "Contact the clinic when symptoms are severe, repeated, worsening, painful, or unusual for your pet."
+          ]
+        },
+        {
+          "id": "visit-expectations",
+          "title": "What to expect during the visit",
+          "content": [
+            "The team may recommend a physical exam, diagnostic testing, preventive care updates, medication, or follow-up monitoring."
+          ]
+        },
+        {
+          "id": "prevention",
+          "title": "Prevention and next steps",
+          "content": [
+            "Wellness exams, vaccines, parasite prevention, dental care, and early visits help keep small concerns from becoming bigger problems."
+          ]
+        }
+      ],
+      "id": "puppy-vaccines",
+      "slug": "puppy-vaccination-schedule-san-antonio",
+      "title": "Puppy Vaccination Schedule for San Antonio Pet Parents",
+      "seoTitle": "Puppy Vaccination Schedule in San Antonio | Lili Vet",
+      "seoDescription": "Review a simple puppy vaccine timeline for San Antonio pet parents, including boosters, lifestyle risks, and preventive care planning.",
+      "excerpt": "A simple timeline for puppy vaccines, boosters, and protection as your puppy grows.",
+      "categorySlug": "vaccinations",
+      "tags": [
+        "puppy",
+        "vaccines",
+        "San Antonio",
+        "preventive care"
+      ],
+      "heroImageKey": "puppyPlan",
+      "heroImageFile": "puppy-plan.png",
+      "heroImageAlt": "Young puppy receiving preventive veterinary care",
+      "relatedService": {
+        "title": "Vaccination",
+        "path": "/services/vaccination"
+      },
+      "relatedArticleSlugs": [
+        "pet-wellness-exam",
+        "fleas-ticks-heartworm-south-texas"
+      ],
+      "featured": false,
+      "popular": true,
+      "seasonal": false,
+      "readingTimeMinutes": 6
+    },
+    {
+      "authorId": "lili-vet-care-team",
+      "reviewerId": "olatade-okafor",
+      "publishedAt": "2026-05-12",
+      "updatedAt": "2026-06-18",
+      "reviewedAt": "2026-06-18",
+      "status": "published",
+      "reviewStatus": "medically-reviewed",
+      "keyTakeaways": [
+        "Small changes in behavior can be early health clues.",
+        "A veterinarian can help decide what is urgent and what can be monitored.",
+        "Preventive care makes it easier to catch problems earlier."
+      ],
+      "monitorAtHome": [
+        "When the symptom started and whether it is changing",
+        "Eating, drinking, bathroom habits, and energy level",
+        "Pain, breathing changes, vomiting, diarrhea, or visible swelling"
+      ],
+      "warningCallout": "Educational information only. This article is not a diagnosis and does not replace a veterinary examination. If symptoms feel urgent or life-threatening, call a veterinarian or seek emergency care immediately.",
+      "vetQuote": "When you are unsure, calling early is often the safest next step.",
+      "faqs": [
+        {
+          "question": "Should I wait to see if symptoms improve?",
+          "answer": "If symptoms are severe, repeated, painful, or worsening, call a veterinarian instead of waiting."
+        },
+        {
+          "question": "Can I give human medication at home?",
+          "answer": "Do not give human medication unless a veterinarian specifically tells you it is safe for your pet."
+        },
+        {
+          "question": "What should I bring to the visit?",
+          "answer": "Bring medication names, vaccine history, photos or videos of symptoms, and any packaging for possible toxin exposure."
+        }
+      ],
+      "references": [
+        {
+          "label": "American Veterinary Medical Association: Pet health resources",
+          "url": "https://www.avma.org/resources/pet-owners"
+        },
+        {
+          "label": "Merck Veterinary Manual: Owner-focused pet health topics",
+          "url": "https://www.merckvetmanual.com/"
+        }
+      ],
+      "sections": [
+        {
+          "id": "immediate-answer",
+          "title": "Immediate answer",
+          "content": [
+            "See how routine exams help your veterinary team check your pet's health from nose to tail."
+          ]
+        },
+        {
+          "id": "common-signs",
+          "title": "Common signs",
+          "content": [
+            "Pet parents should watch for changes in appetite, energy, bathroom habits, breathing, mobility, comfort, and behavior."
+          ]
+        },
+        {
+          "id": "possible-causes",
+          "title": "Possible causes",
+          "content": [
+            "Many symptoms can have several possible causes, from minor irritation to conditions that need prompt veterinary care."
+          ]
+        },
+        {
+          "id": "monitor-at-home",
+          "title": "What pet parents can monitor",
+          "content": [
+            "Write down what changed, when it started, how often it occurs, and whether your pet is eating, drinking, and acting normally."
+          ]
+        },
+        {
+          "id": "contact-vet",
+          "title": "When to contact a veterinarian",
+          "content": [
+            "Contact the clinic when symptoms are severe, repeated, worsening, painful, or unusual for your pet."
+          ]
+        },
+        {
+          "id": "visit-expectations",
+          "title": "What to expect during the visit",
+          "content": [
+            "The team may recommend a physical exam, diagnostic testing, preventive care updates, medication, or follow-up monitoring."
+          ]
+        },
+        {
+          "id": "prevention",
+          "title": "Prevention and next steps",
+          "content": [
+            "Wellness exams, vaccines, parasite prevention, dental care, and early visits help keep small concerns from becoming bigger problems."
+          ]
+        }
+      ],
+      "id": "wellness-exam",
+      "slug": "pet-wellness-exam",
+      "title": "What Happens During a Pet Wellness Exam?",
+      "seoTitle": "Pet Wellness Exam Guide | Lili Veterinary Hospital",
+      "seoDescription": "See how routine pet wellness exams help your veterinary team check health, comfort, prevention, and early changes before symptoms progress.",
+      "excerpt": "See how routine exams help your veterinary team check your pet's health from nose to tail.",
+      "categorySlug": "preventive-care",
+      "tags": [
+        "wellness exam",
+        "preventive care",
+        "checkup"
+      ],
+      "heroImageKey": "calmDogWithVet",
+      "heroImageFile": "calm-dog-with-vet.png",
+      "heroImageAlt": "Veterinarian examining a pet",
+      "relatedService": {
+        "title": "Wellness Plans",
+        "path": "/services/wellness-plans"
+      },
+      "relatedArticleSlugs": [
+        "wellness-plans-vs-pet-insurance",
+        "puppy-vaccination-schedule-san-antonio"
+      ],
+      "featured": false,
+      "popular": true,
+      "seasonal": false,
+      "readingTimeMinutes": 6
+    },
+    {
+      "authorId": "lili-vet-care-team",
+      "reviewerId": "olatade-okafor",
+      "publishedAt": "2026-05-12",
+      "updatedAt": "2026-06-18",
+      "reviewedAt": "2026-06-18",
+      "status": "published",
+      "reviewStatus": "medically-reviewed",
+      "keyTakeaways": [
+        "Small changes in behavior can be early health clues.",
+        "A veterinarian can help decide what is urgent and what can be monitored.",
+        "Preventive care makes it easier to catch problems earlier."
+      ],
+      "monitorAtHome": [
+        "When the symptom started and whether it is changing",
+        "Eating, drinking, bathroom habits, and energy level",
+        "Pain, breathing changes, vomiting, diarrhea, or visible swelling"
+      ],
+      "warningCallout": "Educational information only. This article is not a diagnosis and does not replace a veterinary examination. If symptoms feel urgent or life-threatening, call a veterinarian or seek emergency care immediately.",
+      "vetQuote": "When you are unsure, calling early is often the safest next step.",
+      "faqs": [
+        {
+          "question": "Should I wait to see if symptoms improve?",
+          "answer": "If symptoms are severe, repeated, painful, or worsening, call a veterinarian instead of waiting."
+        },
+        {
+          "question": "Can I give human medication at home?",
+          "answer": "Do not give human medication unless a veterinarian specifically tells you it is safe for your pet."
+        },
+        {
+          "question": "What should I bring to the visit?",
+          "answer": "Bring medication names, vaccine history, photos or videos of symptoms, and any packaging for possible toxin exposure."
+        }
+      ],
+      "references": [
+        {
+          "label": "American Veterinary Medical Association: Pet health resources",
+          "url": "https://www.avma.org/resources/pet-owners"
+        },
+        {
+          "label": "Merck Veterinary Manual: Owner-focused pet health topics",
+          "url": "https://www.merckvetmanual.com/"
+        }
+      ],
+      "sections": [
+        {
+          "id": "immediate-answer",
+          "title": "Immediate answer",
+          "content": [
+            "Bad breath, tartar, drooling, or trouble chewing can point to dental disease in dogs and cats."
+          ]
+        },
+        {
+          "id": "common-signs",
+          "title": "Common signs",
+          "content": [
+            "Pet parents should watch for changes in appetite, energy, bathroom habits, breathing, mobility, comfort, and behavior."
+          ]
+        },
+        {
+          "id": "possible-causes",
+          "title": "Possible causes",
+          "content": [
+            "Many symptoms can have several possible causes, from minor irritation to conditions that need prompt veterinary care."
+          ]
+        },
+        {
+          "id": "monitor-at-home",
+          "title": "What pet parents can monitor",
+          "content": [
+            "Write down what changed, when it started, how often it occurs, and whether your pet is eating, drinking, and acting normally."
+          ]
+        },
+        {
+          "id": "contact-vet",
+          "title": "When to contact a veterinarian",
+          "content": [
+            "Contact the clinic when symptoms are severe, repeated, worsening, painful, or unusual for your pet."
+          ]
+        },
+        {
+          "id": "visit-expectations",
+          "title": "What to expect during the visit",
+          "content": [
+            "The team may recommend a physical exam, diagnostic testing, preventive care updates, medication, or follow-up monitoring."
+          ]
+        },
+        {
+          "id": "prevention",
+          "title": "Prevention and next steps",
+          "content": [
+            "Wellness exams, vaccines, parasite prevention, dental care, and early visits help keep small concerns from becoming bigger problems."
+          ]
+        }
+      ],
+      "id": "dental-cleaning",
+      "slug": "pet-dental-cleaning-signs",
+      "title": "Signs Your Pet May Need a Dental Cleaning",
+      "seoTitle": "Signs Your Pet Needs Dental Cleaning | Lili Vet",
+      "seoDescription": "Bad breath, tartar, drooling, or trouble chewing may point to dental disease. Learn when to ask your veterinarian about dental care.",
+      "excerpt": "Bad breath, tartar, drooling, or trouble chewing can point to dental disease in dogs and cats.",
+      "categorySlug": "dental-health",
+      "tags": [
+        "dental",
+        "bad breath",
+        "cleaning",
+        "oral health"
+      ],
+      "heroImageKey": "dogHead",
+      "heroImageFile": "dog-head.png",
+      "heroImageAlt": "Dog face used for dental health guidance",
+      "relatedService": {
+        "title": "Dental Care",
+        "path": "/services/dental-care"
+      },
+      "relatedArticleSlugs": [
+        "pet-wellness-exam",
+        "wellness-plans-vs-pet-insurance"
+      ],
+      "featured": false,
+      "popular": false,
+      "seasonal": false,
+      "readingTimeMinutes": 6
+    },
+    {
+      "authorId": "lili-vet-care-team",
+      "reviewerId": "olatade-okafor",
+      "publishedAt": "2026-05-12",
+      "updatedAt": "2026-06-18",
+      "reviewedAt": "2026-06-18",
+      "status": "published",
+      "reviewStatus": "medically-reviewed",
+      "keyTakeaways": [
+        "Small changes in behavior can be early health clues.",
+        "A veterinarian can help decide what is urgent and what can be monitored.",
+        "Preventive care makes it easier to catch problems earlier."
+      ],
+      "monitorAtHome": [
+        "When the symptom started and whether it is changing",
+        "Eating, drinking, bathroom habits, and energy level",
+        "Pain, breathing changes, vomiting, diarrhea, or visible swelling"
+      ],
+      "warningCallout": "Educational information only. This article is not a diagnosis and does not replace a veterinary examination. If symptoms feel urgent or life-threatening, call a veterinarian or seek emergency care immediately.",
+      "vetQuote": "When you are unsure, calling early is often the safest next step.",
+      "faqs": [
+        {
+          "question": "Should I wait to see if symptoms improve?",
+          "answer": "If symptoms are severe, repeated, painful, or worsening, call a veterinarian instead of waiting."
+        },
+        {
+          "question": "Can I give human medication at home?",
+          "answer": "Do not give human medication unless a veterinarian specifically tells you it is safe for your pet."
+        },
+        {
+          "question": "What should I bring to the visit?",
+          "answer": "Bring medication names, vaccine history, photos or videos of symptoms, and any packaging for possible toxin exposure."
+        }
+      ],
+      "references": [
+        {
+          "label": "American Veterinary Medical Association: Pet health resources",
+          "url": "https://www.avma.org/resources/pet-owners"
+        },
+        {
+          "label": "Merck Veterinary Manual: Owner-focused pet health topics",
+          "url": "https://www.merckvetmanual.com/"
+        }
+      ],
+      "sections": [
+        {
+          "id": "immediate-answer",
+          "title": "Immediate answer",
+          "content": [
+            "What to expect before surgery, how to follow fasting instructions, and how to plan a calm recovery."
+          ]
+        },
+        {
+          "id": "common-signs",
+          "title": "Common signs",
+          "content": [
+            "Pet parents should watch for changes in appetite, energy, bathroom habits, breathing, mobility, comfort, and behavior."
+          ]
+        },
+        {
+          "id": "possible-causes",
+          "title": "Possible causes",
+          "content": [
+            "Many symptoms can have several possible causes, from minor irritation to conditions that need prompt veterinary care."
+          ]
+        },
+        {
+          "id": "monitor-at-home",
+          "title": "What pet parents can monitor",
+          "content": [
+            "Write down what changed, when it started, how often it occurs, and whether your pet is eating, drinking, and acting normally."
+          ]
+        },
+        {
+          "id": "contact-vet",
+          "title": "When to contact a veterinarian",
+          "content": [
+            "Contact the clinic when symptoms are severe, repeated, worsening, painful, or unusual for your pet."
+          ]
+        },
+        {
+          "id": "visit-expectations",
+          "title": "What to expect during the visit",
+          "content": [
+            "The team may recommend a physical exam, diagnostic testing, preventive care updates, medication, or follow-up monitoring."
+          ]
+        },
+        {
+          "id": "prevention",
+          "title": "Prevention and next steps",
+          "content": [
+            "Wellness exams, vaccines, parasite prevention, dental care, and early visits help keep small concerns from becoming bigger problems."
+          ]
+        }
+      ],
+      "id": "surgery-prep",
+      "slug": "prepare-pet-for-surgery",
+      "title": "How to Prepare Your Pet for Surgery",
+      "seoTitle": "How to Prepare Your Pet for Surgery | Lili Vet",
+      "seoDescription": "Learn what to expect before pet surgery, how to follow fasting instructions, and how to prepare your home for a calmer recovery.",
+      "excerpt": "What to expect before surgery, how to follow fasting instructions, and how to plan a calm recovery.",
+      "categorySlug": "surgery-recovery",
+      "tags": [
+        "surgery",
+        "recovery",
+        "aftercare"
+      ],
+      "heroImageKey": "modernRecoveryArea",
+      "heroImageFile": "modern-recovery-area.webp",
+      "heroImageAlt": "Modern veterinary recovery area",
+      "relatedService": {
+        "title": "Surgery",
+        "path": "/services/surgery"
+      },
+      "relatedArticleSlugs": [
+        "pet-wellness-exam",
+        "dog-urgent-care"
+      ],
+      "featured": false,
+      "popular": false,
+      "seasonal": false,
+      "readingTimeMinutes": 6
+    },
+    {
+      "authorId": "lili-vet-care-team",
+      "reviewerId": "olatade-okafor",
+      "publishedAt": "2026-05-12",
+      "updatedAt": "2026-06-18",
+      "reviewedAt": "2026-06-18",
+      "status": "published",
+      "reviewStatus": "medically-reviewed",
+      "keyTakeaways": [
+        "Small changes in behavior can be early health clues.",
+        "A veterinarian can help decide what is urgent and what can be monitored.",
+        "Preventive care makes it easier to catch problems earlier."
+      ],
+      "monitorAtHome": [
+        "When the symptom started and whether it is changing",
+        "Eating, drinking, bathroom habits, and energy level",
+        "Pain, breathing changes, vomiting, diarrhea, or visible swelling"
+      ],
+      "warningCallout": "Educational information only. This article is not a diagnosis and does not replace a veterinary examination. If symptoms feel urgent or life-threatening, call a veterinarian or seek emergency care immediately.",
+      "vetQuote": "When you are unsure, calling early is often the safest next step.",
+      "faqs": [
+        {
+          "question": "Should I wait to see if symptoms improve?",
+          "answer": "If symptoms are severe, repeated, painful, or worsening, call a veterinarian instead of waiting."
+        },
+        {
+          "question": "Can I give human medication at home?",
+          "answer": "Do not give human medication unless a veterinarian specifically tells you it is safe for your pet."
+        },
+        {
+          "question": "What should I bring to the visit?",
+          "answer": "Bring medication names, vaccine history, photos or videos of symptoms, and any packaging for possible toxin exposure."
+        }
+      ],
+      "references": [
+        {
+          "label": "American Veterinary Medical Association: Pet health resources",
+          "url": "https://www.avma.org/resources/pet-owners"
+        },
+        {
+          "label": "Merck Veterinary Manual: Owner-focused pet health topics",
+          "url": "https://www.merckvetmanual.com/"
+        }
+      ],
+      "sections": [
+        {
+          "id": "immediate-answer",
+          "title": "Immediate answer",
+          "content": [
+            "South Texas heat can become dangerous quickly. Learn the warning signs and prevention steps."
+          ]
+        },
+        {
+          "id": "common-signs",
+          "title": "Common signs",
+          "content": [
+            "Pet parents should watch for changes in appetite, energy, bathroom habits, breathing, mobility, comfort, and behavior."
+          ]
+        },
+        {
+          "id": "possible-causes",
+          "title": "Possible causes",
+          "content": [
+            "Many symptoms can have several possible causes, from minor irritation to conditions that need prompt veterinary care."
+          ]
+        },
+        {
+          "id": "monitor-at-home",
+          "title": "What pet parents can monitor",
+          "content": [
+            "Write down what changed, when it started, how often it occurs, and whether your pet is eating, drinking, and acting normally."
+          ]
+        },
+        {
+          "id": "contact-vet",
+          "title": "When to contact a veterinarian",
+          "content": [
+            "Contact the clinic when symptoms are severe, repeated, worsening, painful, or unusual for your pet."
+          ]
+        },
+        {
+          "id": "visit-expectations",
+          "title": "What to expect during the visit",
+          "content": [
+            "The team may recommend a physical exam, diagnostic testing, preventive care updates, medication, or follow-up monitoring."
+          ]
+        },
+        {
+          "id": "prevention",
+          "title": "Prevention and next steps",
+          "content": [
+            "Wellness exams, vaccines, parasite prevention, dental care, and early visits help keep small concerns from becoming bigger problems."
+          ]
+        }
+      ],
+      "id": "heatstroke",
+      "slug": "heatstroke-in-dogs",
+      "title": "Heatstroke in Dogs: Warning Signs and Prevention",
+      "seoTitle": "Heatstroke in Dogs | Warning Signs and Prevention",
+      "seoDescription": "South Texas heat can become dangerous quickly. Learn warning signs of heatstroke in dogs, prevention steps, and when to seek urgent care.",
+      "excerpt": "South Texas heat can become dangerous quickly. Learn the warning signs and prevention steps.",
+      "categorySlug": "seasonal-pet-safety",
+      "tags": [
+        "heatstroke",
+        "summer",
+        "South Texas",
+        "dog safety"
+      ],
+      "heroImageKey": "happyDogs",
+      "heroImageFile": "happy-dogs.png",
+      "heroImageAlt": "Dogs outdoors during warm South Texas weather",
+      "relatedService": {
+        "title": "Urgent Care",
+        "path": "/urgent-care"
+      },
+      "relatedArticleSlugs": [
+        "fireworks-safety-for-pets",
+        "dog-urgent-care"
+      ],
+      "featured": false,
+      "popular": false,
+      "seasonal": true,
+      "readingTimeMinutes": 6
+    },
+    {
+      "authorId": "lili-vet-care-team",
+      "reviewerId": "olatade-okafor",
+      "publishedAt": "2026-05-12",
+      "updatedAt": "2026-06-18",
+      "reviewedAt": "2026-06-18",
+      "status": "published",
+      "reviewStatus": "medically-reviewed",
+      "keyTakeaways": [
+        "Small changes in behavior can be early health clues.",
+        "A veterinarian can help decide what is urgent and what can be monitored.",
+        "Preventive care makes it easier to catch problems earlier."
+      ],
+      "monitorAtHome": [
+        "When the symptom started and whether it is changing",
+        "Eating, drinking, bathroom habits, and energy level",
+        "Pain, breathing changes, vomiting, diarrhea, or visible swelling"
+      ],
+      "warningCallout": "Educational information only. This article is not a diagnosis and does not replace a veterinary examination. If symptoms feel urgent or life-threatening, call a veterinarian or seek emergency care immediately.",
+      "vetQuote": "When you are unsure, calling early is often the safest next step.",
+      "faqs": [
+        {
+          "question": "Should I wait to see if symptoms improve?",
+          "answer": "If symptoms are severe, repeated, painful, or worsening, call a veterinarian instead of waiting."
+        },
+        {
+          "question": "Can I give human medication at home?",
+          "answer": "Do not give human medication unless a veterinarian specifically tells you it is safe for your pet."
+        },
+        {
+          "question": "What should I bring to the visit?",
+          "answer": "Bring medication names, vaccine history, photos or videos of symptoms, and any packaging for possible toxin exposure."
+        }
+      ],
+      "references": [
+        {
+          "label": "American Veterinary Medical Association: Pet health resources",
+          "url": "https://www.avma.org/resources/pet-owners"
+        },
+        {
+          "label": "Merck Veterinary Manual: Owner-focused pet health topics",
+          "url": "https://www.merckvetmanual.com/"
+        }
+      ],
+      "sections": [
+        {
+          "id": "immediate-answer",
+          "title": "Immediate answer",
+          "content": [
+            "Understand how wellness plans and pet insurance differ so you can plan for preventive care and unexpected needs."
+          ]
+        },
+        {
+          "id": "common-signs",
+          "title": "Common signs",
+          "content": [
+            "Pet parents should watch for changes in appetite, energy, bathroom habits, breathing, mobility, comfort, and behavior."
+          ]
+        },
+        {
+          "id": "possible-causes",
+          "title": "Possible causes",
+          "content": [
+            "Many symptoms can have several possible causes, from minor irritation to conditions that need prompt veterinary care."
+          ]
+        },
+        {
+          "id": "monitor-at-home",
+          "title": "What pet parents can monitor",
+          "content": [
+            "Write down what changed, when it started, how often it occurs, and whether your pet is eating, drinking, and acting normally."
+          ]
+        },
+        {
+          "id": "contact-vet",
+          "title": "When to contact a veterinarian",
+          "content": [
+            "Contact the clinic when symptoms are severe, repeated, worsening, painful, or unusual for your pet."
+          ]
+        },
+        {
+          "id": "visit-expectations",
+          "title": "What to expect during the visit",
+          "content": [
+            "The team may recommend a physical exam, diagnostic testing, preventive care updates, medication, or follow-up monitoring."
+          ]
+        },
+        {
+          "id": "prevention",
+          "title": "Prevention and next steps",
+          "content": [
+            "Wellness exams, vaccines, parasite prevention, dental care, and early visits help keep small concerns from becoming bigger problems."
+          ]
+        }
+      ],
+      "id": "plans-insurance",
+      "slug": "wellness-plans-vs-pet-insurance",
+      "title": "Wellness Plans vs. Pet Insurance",
+      "seoTitle": "Wellness Plans vs. Pet Insurance for Pets | Lili Vet",
+      "seoDescription": "Understand how wellness plans and pet insurance differ so you can plan for preventive care, routine visits, and unexpected health needs.",
+      "excerpt": "Understand how wellness plans and pet insurance differ so you can plan for preventive care and unexpected needs.",
+      "categorySlug": "wellness-plans",
+      "tags": [
+        "wellness plans",
+        "insurance",
+        "preventive care",
+        "costs"
+      ],
+      "heroImageKey": "wellnessPlanXray",
+      "heroImageFile": "wellness-plan-xray.jpeg",
+      "heroImageAlt": "Veterinary wellness planning with diagnostic imaging",
+      "relatedService": {
+        "title": "Wellness Plans",
+        "path": "/services/wellness-plans"
+      },
+      "relatedArticleSlugs": [
+        "pet-wellness-exam",
+        "puppy-vaccination-schedule-san-antonio"
+      ],
+      "featured": false,
+      "popular": false,
+      "seasonal": true,
+      "readingTimeMinutes": 6
+    },
+    {
+      "authorId": "lili-vet-care-team",
+      "reviewerId": "olatade-okafor",
+      "publishedAt": "2026-05-12",
+      "updatedAt": "2026-06-18",
+      "reviewedAt": "2026-06-18",
+      "status": "published",
+      "reviewStatus": "medically-reviewed",
+      "keyTakeaways": [
+        "Small changes in behavior can be early health clues.",
+        "A veterinarian can help decide what is urgent and what can be monitored.",
+        "Preventive care makes it easier to catch problems earlier."
+      ],
+      "monitorAtHome": [
+        "When the symptom started and whether it is changing",
+        "Eating, drinking, bathroom habits, and energy level",
+        "Pain, breathing changes, vomiting, diarrhea, or visible swelling"
+      ],
+      "warningCallout": "Educational information only. This article is not a diagnosis and does not replace a veterinary examination. If symptoms feel urgent or life-threatening, call a veterinarian or seek emergency care immediately.",
+      "vetQuote": "When you are unsure, calling early is often the safest next step.",
+      "faqs": [
+        {
+          "question": "Should I wait to see if symptoms improve?",
+          "answer": "If symptoms are severe, repeated, painful, or worsening, call a veterinarian instead of waiting."
+        },
+        {
+          "question": "Can I give human medication at home?",
+          "answer": "Do not give human medication unless a veterinarian specifically tells you it is safe for your pet."
+        },
+        {
+          "question": "What should I bring to the visit?",
+          "answer": "Bring medication names, vaccine history, photos or videos of symptoms, and any packaging for possible toxin exposure."
+        }
+      ],
+      "references": [
+        {
+          "label": "American Veterinary Medical Association: Pet health resources",
+          "url": "https://www.avma.org/resources/pet-owners"
+        },
+        {
+          "label": "Merck Veterinary Manual: Owner-focused pet health topics",
+          "url": "https://www.merckvetmanual.com/"
+        }
+      ],
+      "sections": [
+        {
+          "id": "immediate-answer",
+          "title": "Immediate answer",
+          "content": [
+            "Plan ahead for loud holiday nights with calm spaces, updated ID tags, and medication guidance when needed."
+          ]
+        },
+        {
+          "id": "common-signs",
+          "title": "Common signs",
+          "content": [
+            "Pet parents should watch for changes in appetite, energy, bathroom habits, breathing, mobility, comfort, and behavior."
+          ]
+        },
+        {
+          "id": "possible-causes",
+          "title": "Possible causes",
+          "content": [
+            "Many symptoms can have several possible causes, from minor irritation to conditions that need prompt veterinary care."
+          ]
+        },
+        {
+          "id": "monitor-at-home",
+          "title": "What pet parents can monitor",
+          "content": [
+            "Write down what changed, when it started, how often it occurs, and whether your pet is eating, drinking, and acting normally."
+          ]
+        },
+        {
+          "id": "contact-vet",
+          "title": "When to contact a veterinarian",
+          "content": [
+            "Contact the clinic when symptoms are severe, repeated, worsening, painful, or unusual for your pet."
+          ]
+        },
+        {
+          "id": "visit-expectations",
+          "title": "What to expect during the visit",
+          "content": [
+            "The team may recommend a physical exam, diagnostic testing, preventive care updates, medication, or follow-up monitoring."
+          ]
+        },
+        {
+          "id": "prevention",
+          "title": "Prevention and next steps",
+          "content": [
+            "Wellness exams, vaccines, parasite prevention, dental care, and early visits help keep small concerns from becoming bigger problems."
+          ]
+        }
+      ],
+      "id": "fireworks-safety",
+      "slug": "fireworks-safety-for-pets",
+      "title": "Fireworks Safety for Pets",
+      "seoTitle": "Fireworks Safety for Pets | Lili Veterinary Hospital",
+      "seoDescription": "Plan ahead for loud holiday nights with calm spaces, updated ID tags, escape prevention, and medication guidance when pets need extra help.",
+      "excerpt": "Plan ahead for loud holiday nights with calm spaces, updated ID tags, and medication guidance when needed.",
+      "categorySlug": "seasonal-pet-safety",
+      "tags": [
+        "fireworks",
+        "anxiety",
+        "holiday safety",
+        "San Antonio"
+      ],
+      "heroImageKey": "cozyCatDog",
+      "heroImageFile": "cozy-cat-dog.png",
+      "heroImageAlt": "Dog and cat resting safely indoors",
+      "relatedService": {
+        "title": "Book an Appointment",
+        "path": "/book-appointment"
+      },
+      "relatedArticleSlugs": [
+        "heatstroke-in-dogs",
+        "fleas-ticks-heartworm-south-texas"
+      ],
+      "featured": false,
+      "popular": false,
+      "seasonal": true,
+      "readingTimeMinutes": 5
+    },
+    {
+      "authorId": "lili-vet-care-team",
+      "reviewerId": "olatade-okafor",
+      "publishedAt": "2026-05-12",
+      "updatedAt": "2026-06-18",
+      "reviewedAt": "2026-06-18",
+      "status": "published",
+      "reviewStatus": "medically-reviewed",
+      "keyTakeaways": [
+        "Small changes in behavior can be early health clues.",
+        "A veterinarian can help decide what is urgent and what can be monitored.",
+        "Preventive care makes it easier to catch problems earlier."
+      ],
+      "monitorAtHome": [
+        "When the symptom started and whether it is changing",
+        "Eating, drinking, bathroom habits, and energy level",
+        "Pain, breathing changes, vomiting, diarrhea, or visible swelling"
+      ],
+      "warningCallout": "Educational information only. This article is not a diagnosis and does not replace a veterinary examination. If symptoms feel urgent or life-threatening, call a veterinarian or seek emergency care immediately.",
+      "vetQuote": "When you are unsure, calling early is often the safest next step.",
+      "faqs": [
+        {
+          "question": "Should I wait to see if symptoms improve?",
+          "answer": "If symptoms are severe, repeated, painful, or worsening, call a veterinarian instead of waiting."
+        },
+        {
+          "question": "Can I give human medication at home?",
+          "answer": "Do not give human medication unless a veterinarian specifically tells you it is safe for your pet."
+        },
+        {
+          "question": "What should I bring to the visit?",
+          "answer": "Bring medication names, vaccine history, photos or videos of symptoms, and any packaging for possible toxin exposure."
+        }
+      ],
+      "references": [
+        {
+          "label": "American Veterinary Medical Association: Pet health resources",
+          "url": "https://www.avma.org/resources/pet-owners"
+        },
+        {
+          "label": "Merck Veterinary Manual: Owner-focused pet health topics",
+          "url": "https://www.merckvetmanual.com/"
+        }
+      ],
+      "sections": [
+        {
+          "id": "immediate-answer",
+          "title": "Immediate answer",
+          "content": [
+            "Warm weather makes year-round parasite prevention important for San Antonio dogs and cats."
+          ]
+        },
+        {
+          "id": "common-signs",
+          "title": "Common signs",
+          "content": [
+            "Pet parents should watch for changes in appetite, energy, bathroom habits, breathing, mobility, comfort, and behavior."
+          ]
+        },
+        {
+          "id": "possible-causes",
+          "title": "Possible causes",
+          "content": [
+            "Many symptoms can have several possible causes, from minor irritation to conditions that need prompt veterinary care."
+          ]
+        },
+        {
+          "id": "monitor-at-home",
+          "title": "What pet parents can monitor",
+          "content": [
+            "Write down what changed, when it started, how often it occurs, and whether your pet is eating, drinking, and acting normally."
+          ]
+        },
+        {
+          "id": "contact-vet",
+          "title": "When to contact a veterinarian",
+          "content": [
+            "Contact the clinic when symptoms are severe, repeated, worsening, painful, or unusual for your pet."
+          ]
+        },
+        {
+          "id": "visit-expectations",
+          "title": "What to expect during the visit",
+          "content": [
+            "The team may recommend a physical exam, diagnostic testing, preventive care updates, medication, or follow-up monitoring."
+          ]
+        },
+        {
+          "id": "prevention",
+          "title": "Prevention and next steps",
+          "content": [
+            "Wellness exams, vaccines, parasite prevention, dental care, and early visits help keep small concerns from becoming bigger problems."
+          ]
+        }
+      ],
+      "id": "fleas-ticks-heartworm",
+      "slug": "fleas-ticks-heartworm-south-texas",
+      "title": "Fleas, Ticks and Heartworm in South Texas",
+      "seoTitle": "Fleas, Ticks and Heartworm in South Texas | Lili Vet",
+      "seoDescription": "Warm weather makes year-round parasite prevention important for San Antonio dogs and cats. Learn what to discuss at your next wellness visit.",
+      "excerpt": "Warm weather makes year-round parasite prevention important for San Antonio dogs and cats.",
+      "categorySlug": "preventive-care",
+      "tags": [
+        "fleas",
+        "ticks",
+        "heartworm",
+        "parasite prevention",
+        "South Texas"
+      ],
+      "heroImageKey": "vetExaminHeart",
+      "heroImageFile": "vet-examin-heart.webp",
+      "heroImageAlt": "Veterinarian listening to a pet's heart",
+      "relatedService": {
+        "title": "Wellness Plans",
+        "path": "/services/wellness-plans"
+      },
+      "relatedArticleSlugs": [
+        "pet-wellness-exam",
+        "heatstroke-in-dogs"
+      ],
+      "featured": false,
+      "popular": false,
+      "seasonal": true,
+      "readingTimeMinutes": 6
+    },
+    {
+      "authorId": "lili-vet-care-team",
+      "reviewerId": "olatade-okafor",
+      "publishedAt": "2026-05-12",
+      "updatedAt": "2026-06-18",
+      "reviewedAt": "2026-06-18",
+      "status": "published",
+      "reviewStatus": "medically-reviewed",
+      "keyTakeaways": [
+        "Small changes in behavior can be early health clues.",
+        "A veterinarian can help decide what is urgent and what can be monitored.",
+        "Preventive care makes it easier to catch problems earlier."
+      ],
+      "monitorAtHome": [
+        "When the symptom started and whether it is changing",
+        "Eating, drinking, bathroom habits, and energy level",
+        "Pain, breathing changes, vomiting, diarrhea, or visible swelling"
+      ],
+      "warningCallout": "Educational information only. This article is not a diagnosis and does not replace a veterinary examination. If symptoms feel urgent or life-threatening, call a veterinarian or seek emergency care immediately.",
+      "vetQuote": "When you are unsure, calling early is often the safest next step.",
+      "faqs": [
+        {
+          "question": "Should I wait to see if symptoms improve?",
+          "answer": "If symptoms are severe, repeated, painful, or worsening, call a veterinarian instead of waiting."
+        },
+        {
+          "question": "Can I give human medication at home?",
+          "answer": "Do not give human medication unless a veterinarian specifically tells you it is safe for your pet."
+        },
+        {
+          "question": "What should I bring to the visit?",
+          "answer": "Bring medication names, vaccine history, photos or videos of symptoms, and any packaging for possible toxin exposure."
+        }
+      ],
+      "references": [
+        {
+          "label": "American Veterinary Medical Association: Pet health resources",
+          "url": "https://www.avma.org/resources/pet-owners"
+        },
+        {
+          "label": "Merck Veterinary Manual: Owner-focused pet health topics",
+          "url": "https://www.merckvetmanual.com/"
+        }
+      ],
+      "sections": [
+        {
+          "id": "immediate-answer",
+          "title": "Immediate answer",
+          "content": [
+            "Learn which limping signs can wait briefly, which need same-day care, and what details to share when you call."
+          ]
+        },
+        {
+          "id": "common-signs",
+          "title": "Common signs",
+          "content": [
+            "Pet parents should watch for changes in appetite, energy, bathroom habits, breathing, mobility, comfort, and behavior."
+          ]
+        },
+        {
+          "id": "possible-causes",
+          "title": "Possible causes",
+          "content": [
+            "Many symptoms can have several possible causes, from minor irritation to conditions that need prompt veterinary care."
+          ]
+        },
+        {
+          "id": "monitor-at-home",
+          "title": "What pet parents can monitor",
+          "content": [
+            "Write down what changed, when it started, how often it occurs, and whether your pet is eating, drinking, and acting normally."
+          ]
+        },
+        {
+          "id": "contact-vet",
+          "title": "When to contact a veterinarian",
+          "content": [
+            "Contact the clinic when symptoms are severe, repeated, worsening, painful, or unusual for your pet."
+          ]
+        },
+        {
+          "id": "visit-expectations",
+          "title": "What to expect during the visit",
+          "content": [
+            "The team may recommend a physical exam, diagnostic testing, preventive care updates, medication, or follow-up monitoring."
+          ]
+        },
+        {
+          "id": "prevention",
+          "title": "Prevention and next steps",
+          "content": [
+            "Wellness exams, vaccines, parasite prevention, dental care, and early visits help keep small concerns from becoming bigger problems."
+          ]
+        }
+      ],
+      "id": "dog-limping-urgent",
+      "slug": "dog-limping-when-to-call-vet",
+      "title": "Dog Limping: When Should You Call the Vet?",
+      "seoTitle": "Dog Limping: When to Call the Veterinarian | Lili Vet",
+      "seoDescription": "Learn which limping signs can wait briefly, which need same-day care, and what details to share when you call your veterinary team.",
+      "excerpt": "Learn which limping signs can wait briefly, which need same-day care, and what details to share when you call.",
+      "categorySlug": "urgent-care",
+      "tags": [
+        "dog limping",
+        "pain",
+        "injury",
+        "urgent care"
+      ],
+      "heroImageKey": "limpingDog",
+      "heroImageFile": "limping.png",
+      "heroImageAlt": "Dog showing signs of limping or leg discomfort",
+      "relatedService": {
+        "title": "Urgent Care",
+        "path": "/urgent-care"
+      },
+      "relatedArticleSlugs": [
+        "dog-urgent-care",
+        "vomiting-diarrhea-when-urgent"
+      ],
+      "featured": false,
+      "popular": true,
+      "seasonal": false,
+      "readingTimeMinutes": 6
+    },
+    {
+      "authorId": "lili-vet-care-team",
+      "reviewerId": "olatade-okafor",
+      "publishedAt": "2026-05-12",
+      "updatedAt": "2026-06-18",
+      "reviewedAt": "2026-06-18",
+      "status": "published",
+      "reviewStatus": "medically-reviewed",
+      "keyTakeaways": [
+        "Small changes in behavior can be early health clues.",
+        "A veterinarian can help decide what is urgent and what can be monitored.",
+        "Preventive care makes it easier to catch problems earlier."
+      ],
+      "monitorAtHome": [
+        "When the symptom started and whether it is changing",
+        "Eating, drinking, bathroom habits, and energy level",
+        "Pain, breathing changes, vomiting, diarrhea, or visible swelling"
+      ],
+      "warningCallout": "Educational information only. This article is not a diagnosis and does not replace a veterinary examination. If symptoms feel urgent or life-threatening, call a veterinarian or seek emergency care immediately.",
+      "vetQuote": "When you are unsure, calling early is often the safest next step.",
+      "faqs": [
+        {
+          "question": "Should I wait to see if symptoms improve?",
+          "answer": "If symptoms are severe, repeated, painful, or worsening, call a veterinarian instead of waiting."
+        },
+        {
+          "question": "Can I give human medication at home?",
+          "answer": "Do not give human medication unless a veterinarian specifically tells you it is safe for your pet."
+        },
+        {
+          "question": "What should I bring to the visit?",
+          "answer": "Bring medication names, vaccine history, photos or videos of symptoms, and any packaging for possible toxin exposure."
+        }
+      ],
+      "references": [
+        {
+          "label": "American Veterinary Medical Association: Pet health resources",
+          "url": "https://www.avma.org/resources/pet-owners"
+        },
+        {
+          "label": "Merck Veterinary Manual: Owner-focused pet health topics",
+          "url": "https://www.merckvetmanual.com/"
+        }
+      ],
+      "sections": [
+        {
+          "id": "immediate-answer",
+          "title": "Immediate answer",
+          "content": [
+            "Repeated stomach symptoms, blood, weakness, or dehydration can need prompt veterinary guidance."
+          ]
+        },
+        {
+          "id": "common-signs",
+          "title": "Common signs",
+          "content": [
+            "Pet parents should watch for changes in appetite, energy, bathroom habits, breathing, mobility, comfort, and behavior."
+          ]
+        },
+        {
+          "id": "possible-causes",
+          "title": "Possible causes",
+          "content": [
+            "Many symptoms can have several possible causes, from minor irritation to conditions that need prompt veterinary care."
+          ]
+        },
+        {
+          "id": "monitor-at-home",
+          "title": "What pet parents can monitor",
+          "content": [
+            "Write down what changed, when it started, how often it occurs, and whether your pet is eating, drinking, and acting normally."
+          ]
+        },
+        {
+          "id": "contact-vet",
+          "title": "When to contact a veterinarian",
+          "content": [
+            "Contact the clinic when symptoms are severe, repeated, worsening, painful, or unusual for your pet."
+          ]
+        },
+        {
+          "id": "visit-expectations",
+          "title": "What to expect during the visit",
+          "content": [
+            "The team may recommend a physical exam, diagnostic testing, preventive care updates, medication, or follow-up monitoring."
+          ]
+        },
+        {
+          "id": "prevention",
+          "title": "Prevention and next steps",
+          "content": [
+            "Wellness exams, vaccines, parasite prevention, dental care, and early visits help keep small concerns from becoming bigger problems."
+          ]
+        }
+      ],
+      "id": "vomiting-diarrhea-urgent",
+      "slug": "vomiting-diarrhea-when-urgent",
+      "title": "Vomiting or Diarrhea: When Is It Urgent?",
+      "seoTitle": "Vomiting or Diarrhea in Pets | When It Is Urgent",
+      "seoDescription": "Repeated stomach symptoms, blood, weakness, or dehydration can need prompt veterinary guidance. Learn what to monitor and when to call.",
+      "excerpt": "Repeated stomach symptoms, blood, weakness, or dehydration can need prompt veterinary guidance.",
+      "categorySlug": "urgent-care",
+      "tags": [
+        "vomiting",
+        "diarrhea",
+        "dehydration",
+        "urgent care"
+      ],
+      "heroImageKey": "lossOfAppetite",
+      "heroImageFile": "no-appetite.png",
+      "heroImageAlt": "Pet resting at home while appetite and stomach symptoms are monitored",
+      "relatedService": {
+        "title": "Urgent Care",
+        "path": "/urgent-care"
+      },
+      "relatedArticleSlugs": [
+        "dog-urgent-care",
+        "dog-limping-when-to-call-vet"
+      ],
+      "featured": false,
+      "popular": true,
+      "seasonal": false,
+      "readingTimeMinutes": 5
+    }
+  ]
+}

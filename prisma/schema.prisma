@@ -337,6 +337,77 @@ model StaffUser {
   @@index([isActive])
 }
 
+model PetCareReviewer {
+  id          String           @id @default(cuid())
+  slug        String           @unique
+  name        String
+  credentials String
+  role        String
+  photoUrl    String?
+  shortBio    String
+  isActive    Boolean          @default(true)
+  articles    PetCareArticle[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([isActive])
+  @@index([name])
+}
+
+model PetCareArticle {
+  id                     String                  @id @default(cuid())
+  slug                   String                  @unique
+  title                  String
+  seoTitle               String
+  seoDescription         String
+  excerpt                String
+  summary                String
+  categorySlug           String
+  categoryLabel          String
+  tags                   String[]
+  heroImageUrl           String?
+  heroImageKey           String?
+  heroImageFile          String?
+  heroImageAlt           String
+  authorName             String
+  authorRole             String
+  reviewerId             String?
+  reviewer               PetCareReviewer?        @relation(fields: [reviewerId], references: [id], onDelete: SetNull)
+  status                 PetCarePublishingStatus @default(DRAFT)
+  reviewStatus           PetCareReviewStatus     @default(NOT_REVIEWED)
+  reviewedAt             DateTime?
+  reviewDueAt             DateTime?
+  publishedAt            DateTime?
+  readingTimeMinutes     Int
+  relatedService         Json
+  relatedArticleSlugs    String[]
+  featured               Boolean                 @default(false)
+  seasonal               Boolean                 @default(false)
+  popular                Boolean                 @default(false)
+  keyTakeaways           Json
+  monitorAtHome          Json
+  warningCallout         String?
+  vetQuote               String?
+  faqs                   Json
+  references             Json
+  sections               Json
+  submittedForReviewAt   DateTime?
+  approvedAt             DateTime?
+  archivedAt             DateTime?
+  createdByStaffUserId   String?
+  updatedByStaffUserId   String?
+  approvedByStaffUserId  String?
+  publishedByStaffUserId String?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+
+  @@index([status, updatedAt])
+  @@index([categorySlug, status])
+  @@index([reviewerId])
+  @@index([reviewDueAt])
+  @@index([featured, status])
+}
+
 model AppointmentRescheduleToken {
   id                String             @id @default(cuid())
   appointmentRequestId String
@@ -458,4 +529,18 @@ enum WellnessPlanServiceType {
   URINALYSIS
   BLOOD_PRESSURE_SCREENING
   TECH_VISIT
+}
+
+enum PetCarePublishingStatus {
+  DRAFT
+  IN_REVIEW
+  APPROVED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum PetCareReviewStatus {
+  NOT_REVIEWED
+  IN_REVIEW
+  MEDICALLY_REVIEWED
 }
