@@ -50,7 +50,7 @@ async function main() {
       seoTitle: article.seoTitle,
       seoDescription: article.seoDescription,
       excerpt: article.excerpt,
-      summary: article.summary,
+      summary: article.summary ?? article.excerpt,
       categorySlug: article.categorySlug,
       categoryLabel: categoryLabels.get(article.categorySlug) ?? article.categorySlug,
       tags: article.tags,
