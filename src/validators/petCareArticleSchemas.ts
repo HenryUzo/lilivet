@@ -1,4 +1,4 @@
-import { PetCarePublishingStatus } from "@prisma/client";
+import { PetCarePreviewShareType, PetCarePublishingStatus } from "@prisma/client";
 import { z } from "zod";
 
 export const slugSchema = z.string().trim().min(2).max(120).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
@@ -89,5 +89,17 @@ export const reviewerInputSchema = z.object({
 });
 
 export const reviewerUpdateSchema = reviewerInputSchema.partial();
+
+export const previewShareInputSchema = z.object({
+  shareType: z.nativeEnum(PetCarePreviewShareType),
+  expiresInDays: z.coerce.number().int().min(1).max(30).default(7)
+});
+
+export const previewTokenParamsSchema = z.object({ token: z.string().length(64).regex(/^[a-f0-9]+$/) });
+
+export const previewCommentInputSchema = z.object({
+  authorName: z.string().trim().min(2).max(100),
+  comment: z.string().trim().min(2).max(3000)
+});
 
 export type PetCareArticleInput = z.infer<typeof petCareArticleInputSchema>;

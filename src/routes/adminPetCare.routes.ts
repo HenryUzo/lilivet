@@ -1,8 +1,8 @@
 import { StaffRole } from "@prisma/client";
 import { Router } from "express";
 import {
-  approveAdminArticle,
   archiveAdminArticle,
+  createAdminPreviewShare,
   createAdminArticle,
   createAdminReviewer,
   getAdminArticle,
@@ -23,7 +23,7 @@ adminPetCareRoutes.post("/articles", createAdminArticle);
 adminPetCareRoutes.get("/articles/:id", getAdminArticle);
 adminPetCareRoutes.patch("/articles/:id", updateAdminArticle);
 adminPetCareRoutes.post("/articles/:id/submit-review", submitAdminArticleForReview);
-adminPetCareRoutes.post("/articles/:id/approve", approveAdminArticle);
+adminPetCareRoutes.post("/articles/:id/preview-shares", createAdminPreviewShare);
 adminPetCareRoutes.post("/articles/:id/publish", publishAdminArticle);
 adminPetCareRoutes.post("/articles/:id/archive", archiveAdminArticle);
 adminPetCareRoutes.get("/reviewers", listAdminReviewers);

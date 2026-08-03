@@ -3,7 +3,13 @@ import { prisma } from "../prisma/client";
 import { HttpError } from "../utils/httpError";
 import type { PetCareArticleInput } from "../validators/petCareArticleSchemas";
 
-const articleInclude = { reviewer: true } as const;
+const articleInclude = {
+  reviewer: true,
+  previewShares: {
+    orderBy: { createdAt: "desc" as const },
+    include: { comments: { orderBy: { createdAt: "asc" as const } } }
+  }
+} as const;
 
 function json(value: unknown) {
   return value as Prisma.InputJsonValue;

@@ -373,6 +373,7 @@ model PetCareArticle {
   authorRole             String
   reviewerId             String?
   reviewer               PetCareReviewer?        @relation(fields: [reviewerId], references: [id], onDelete: SetNull)
+  previewShares          PetCarePreviewShare[]
   status                 PetCarePublishingStatus @default(DRAFT)
   reviewStatus           PetCareReviewStatus     @default(NOT_REVIEWED)
   reviewedAt             DateTime?
@@ -406,6 +407,33 @@ model PetCareArticle {
   @@index([reviewerId])
   @@index([reviewDueAt])
   @@index([featured, status])
+}
+
+model PetCarePreviewShare {
+  id                   String                  @id @default(cuid())
+  articleId            String
+  article              PetCareArticle          @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tokenHash            String                  @unique
+  shareType            PetCarePreviewShareType
+  expiresAt            DateTime
+  revokedAt            DateTime?
+  createdByStaffUserId String
+  comments             PetCarePreviewComment[]
+  createdAt            DateTime                @default(now())
+
+  @@index([articleId, createdAt])
+  @@index([expiresAt])
+}
+
+model PetCarePreviewComment {
+  id         String              @id @default(cuid())
+  shareId    String
+  share      PetCarePreviewShare @relation(fields: [shareId], references: [id], onDelete: Cascade)
+  authorName String
+  comment    String
+  createdAt  DateTime            @default(now())
+
+  @@index([shareId, createdAt])
 }
 
 model AppointmentRescheduleToken {
@@ -543,4 +571,9 @@ enum PetCareReviewStatus {
   NOT_REVIEWED
   IN_REVIEW
   MEDICALLY_REVIEWED
+}
+
+enum PetCarePreviewShareType {
+  COMMENT
+  REVIEWER
 }

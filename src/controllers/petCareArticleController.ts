@@ -25,6 +25,17 @@ import {
   reviewerUpdateSchema,
   slugSchema
 } from "../validators/petCareArticleSchemas";
+import {
+  addPetCarePreviewComment,
+  approvePetCarePreview,
+  createPetCarePreviewShare,
+  getPetCarePreview
+} from "../services/petCarePreviewService";
+import {
+  previewCommentInputSchema,
+  previewShareInputSchema,
+  previewTokenParamsSchema
+} from "../validators/petCareArticleSchemas";
 
 const idParamsSchema = z.object({ id: z.string().cuid() });
 const slugParamsSchema = z.object({ slug: slugSchema });
@@ -95,4 +106,26 @@ export const createAdminReviewer = asyncHandler(async (req: Request, res: Respon
 export const updateAdminReviewer = asyncHandler(async (req: Request, res: Response) => {
   const { id } = idParamsSchema.parse(req.params);
   res.json(await updatePetCareReviewer(id, reviewerUpdateSchema.parse(req.body)));
+});
+
+export const createAdminPreviewShare = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = idParamsSchema.parse(req.params);
+  const input = previewShareInputSchema.parse(req.body);
+  res.status(201).json(await createPetCarePreviewShare(id, input.shareType, input.expiresInDays, staffUserId(req)));
+});
+
+export const getPublicPreview = asyncHandler(async (req: Request, res: Response) => {
+  const { token } = previewTokenParamsSchema.parse(req.params);
+  res.json(await getPetCarePreview(token));
+});
+
+export const createPublicPreviewComment = asyncHandler(async (req: Request, res: Response) => {
+  const { token } = previewTokenParamsSchema.parse(req.params);
+  const input = previewCommentInputSchema.parse(req.body);
+  res.status(201).json(await addPetCarePreviewComment(token, input.authorName, input.comment));
+});
+
+export const approvePublicPreview = asyncHandler(async (req: Request, res: Response) => {
+  const { token } = previewTokenParamsSchema.parse(req.params);
+  res.json(await approvePetCarePreview(token));
 });
