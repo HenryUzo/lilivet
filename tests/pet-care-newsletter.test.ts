@@ -178,6 +178,29 @@ describe("pet care newsletter subscriptions", () => {
     expect(String(consoleErrorSpy.mock.calls[0][0])).not.toContain("test-brevo-api-key");
   });
 
+  it("sanitizes Brevo error details before logging them", async () => {
+    configureNewsletterEnv(true);
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(new Response(
+        JSON.stringify({ message: "Invalid contact owner@example.com for xkeysib-secret-value" }),
+        { status: 400 }
+      ))
+    );
+    const app = await loadApp();
+
+    await request(app)
+      .post("/api/pet-care/newsletter-subscriptions")
+      .send({ email: "owner@example.com", petPreference: "DOG", consent: true, website: "" });
+
+    const logLine = String(consoleErrorSpy.mock.calls[0][0]);
+    expect(logLine).toContain("[email redacted]");
+    expect(logLine).toContain("[api key redacted]");
+    expect(logLine).not.toContain("owner@example.com");
+    expect(logLine).not.toContain("xkeysib-secret-value");
+  });
+
   it("rate limits repeated newsletter requests", async () => {
     configureNewsletterEnv(true);
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("", { status: 201 })));

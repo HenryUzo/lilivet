@@ -41,14 +41,22 @@ function logBrevoFailure(input: {
   status: number;
   email: string;
   errorMessage?: string;
+  upstreamResponse?: string;
 }) {
+  const sanitizedUpstreamResponse = input.upstreamResponse
+    ?.replace(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g, "[email redacted]")
+    .replace(/xkeysib-[\w-]+/gi, "[api key redacted]")
+    .replaceAll(env.BREVO_API_KEY, "[api key redacted]")
+    .slice(0, 500);
+
   console.error(JSON.stringify({
     event: "pet_care_newsletter_brevo_failed",
     correlationId: input.correlationId,
     status: input.status,
     emailHash: hashEmail(input.email),
     emailMasked: maskEmail(input.email),
-    error: input.errorMessage ?? "Brevo request failed"
+    error: input.errorMessage ?? "Brevo request failed",
+    upstreamResponse: sanitizedUpstreamResponse || undefined
   }));
 }
 
@@ -78,7 +86,8 @@ export async function subscribeToPetCareNewsletter(
     correlationId,
     status: result.status,
     email: input.email,
-    errorMessage: result.errorMessage
+    errorMessage: result.errorMessage,
+    upstreamResponse: result.bodyText
   });
 
   throw new HttpError(
