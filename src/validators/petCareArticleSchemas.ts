@@ -13,8 +13,25 @@ export const relatedServiceSchema = z.object({
 export const articleSectionSchema = z.object({
   id: slugSchema,
   title: z.string().trim().min(1).max(180),
-  content: z.array(textItemSchema).min(1).max(20),
-  bullets: z.array(textItemSchema).max(30).optional()
+  type: z.enum(["CONTENT", "IMAGE"]).default("CONTENT"),
+  content: z.array(textItemSchema).max(20).default([]),
+  bullets: z.array(textItemSchema).max(30).optional(),
+  imageUrl: z.string().url().max(1000).nullable().optional(),
+  imageAlt: z.string().trim().max(240).nullable().optional(),
+  caption: z.string().trim().max(500).nullable().optional()
+}).superRefine((section, context) => {
+  if (section.type === "CONTENT" && section.content.length === 0) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: "Add section content", path: ["content"] });
+  }
+
+  if (section.type === "IMAGE") {
+    if (!section.imageUrl) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: "Upload a section image", path: ["imageUrl"] });
+    }
+    if (!section.imageAlt || section.imageAlt.length < 5) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: "Describe the section image", path: ["imageAlt"] });
+    }
+  }
 });
 
 export const articleFaqSchema = z.object({

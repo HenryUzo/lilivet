@@ -46,6 +46,37 @@ function detectFileMimeType(signature: Uint8Array) {
     return "image/png";
   }
 
+  if (
+    signature.length >= 12 &&
+    signature[0] === 0x52 &&
+    signature[1] === 0x49 &&
+    signature[2] === 0x46 &&
+    signature[3] === 0x46 &&
+    signature[8] === 0x57 &&
+    signature[9] === 0x45 &&
+    signature[10] === 0x42 &&
+    signature[11] === 0x50
+  ) {
+    return "image/webp";
+  }
+
+  const asciiHeader = Buffer.from(signature).toString("ascii");
+  if (asciiHeader.startsWith("GIF87a") || asciiHeader.startsWith("GIF89a")) {
+    return "image/gif";
+  }
+
+  if (
+    signature.length >= 12 &&
+    asciiHeader.slice(4, 8) === "ftyp" &&
+    ["avif", "avis"].includes(asciiHeader.slice(8, 12))
+  ) {
+    return "image/avif";
+  }
+
+  if (signature.length >= 2 && signature[0] === 0x42 && signature[1] === 0x4d) {
+    return "image/bmp";
+  }
+
   return null;
 }
 
@@ -53,7 +84,7 @@ export async function validateUploadedFileSignature(file: Express.Multer.File) {
   const handle = await fs.open(file.path, "r");
 
   try {
-    const buffer = Buffer.alloc(8);
+    const buffer = Buffer.alloc(16);
     const { bytesRead } = await handle.read(buffer, 0, buffer.length, 0);
     const actualMimeType = detectFileMimeType(buffer.subarray(0, bytesRead));
 

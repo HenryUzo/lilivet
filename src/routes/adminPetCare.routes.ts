@@ -15,14 +15,14 @@ import {
   uploadAdminHeroImage
 } from "../controllers/petCareArticleController";
 import { requireRole, requireStaffAuth } from "../middlewares/staffAuth";
-import { upload } from "../middlewares/upload";
+import { petCareImageUpload } from "../middlewares/upload";
 
 export const adminPetCareRoutes = Router();
 
 adminPetCareRoutes.use(requireStaffAuth, requireRole(StaffRole.ADMIN));
 adminPetCareRoutes.get("/articles", listAdminArticles);
 adminPetCareRoutes.post("/articles", createAdminArticle);
-adminPetCareRoutes.post("/images", upload.single("image"), uploadAdminHeroImage);
+adminPetCareRoutes.post("/images", petCareImageUpload.single("image"), uploadAdminHeroImage);
 adminPetCareRoutes.get("/articles/:id", getAdminArticle);
 adminPetCareRoutes.patch("/articles/:id", updateAdminArticle);
 adminPetCareRoutes.post("/articles/:id/submit-review", submitAdminArticleForReview);
