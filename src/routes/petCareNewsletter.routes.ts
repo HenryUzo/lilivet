@@ -3,6 +3,7 @@ import { createPetCareNewsletterSubscription } from "../controllers/petCareNewsl
 import {
   approvePublicPreview,
   createPublicPreviewComment,
+  getPublicPetCareImage,
   getPublicPreview,
   getPublishedArticle,
   listPublishedArticles
@@ -12,6 +13,7 @@ import { petCareNewsletterRateLimit } from "../middlewares/rateLimit";
 export const petCareNewsletterRoutes = Router();
 
 petCareNewsletterRoutes.get("/articles", listPublishedArticles);
+petCareNewsletterRoutes.get("/images/:token", getPublicPetCareImage);
 petCareNewsletterRoutes.get("/articles/:slug", getPublishedArticle);
 petCareNewsletterRoutes.get("/previews/:token", getPublicPreview);
 petCareNewsletterRoutes.post("/previews/:token/comments", createPublicPreviewComment);

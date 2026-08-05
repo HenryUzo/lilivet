@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { pipeline } from "stream/promises";
 import { z } from "zod";
 import {
   approvePetCareArticle,
@@ -16,7 +17,7 @@ import {
   updatePetCareReviewer
 } from "../services/petCareArticleService";
 import { asyncHandler } from "../utils/asyncHandler";
-import { savePetCareHeroImage } from "../services/petCareImageService";
+import { openPublicPetCareImage, savePetCareHeroImage } from "../services/petCareImageService";
 import {
   petCareArticleInputSchema,
   petCareArticleListQuerySchema,
@@ -66,7 +67,26 @@ export const getAdminArticle = asyncHandler(async (req: Request, res: Response) 
 });
 
 export const uploadAdminHeroImage = asyncHandler(async (req: Request, res: Response) => {
-  res.status(201).json(await savePetCareHeroImage(req.file));
+  const apiBaseUrl = `${req.protocol}://${req.get("host")}`;
+  res.status(201).json(await savePetCareHeroImage(req.file, apiBaseUrl));
+});
+
+export const getPublicPetCareImage = asyncHandler(async (req: Request, res: Response) => {
+  const { payload, target } = await openPublicPetCareImage(String(req.params.token ?? ""));
+  res.type(payload.mimeType);
+  res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+  res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+  res.setHeader("Content-Disposition", `inline; filename*=UTF-8''${encodeURIComponent(payload.fileName)}`);
+
+  if (target.kind === "local") {
+    res.sendFile(target.absolutePath);
+    return;
+  }
+
+  if (target.sizeBytes) {
+    res.setHeader("Content-Length", String(target.sizeBytes));
+  }
+  await pipeline(target.stream as NodeJS.ReadableStream, res);
 });
 
 export const createAdminArticle = asyncHandler(async (req: Request, res: Response) => {
