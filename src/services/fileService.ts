@@ -49,7 +49,7 @@ function detectFileMimeType(signature: Uint8Array) {
   return null;
 }
 
-async function validateUploadedFileSignature(file: Express.Multer.File) {
+export async function validateUploadedFileSignature(file: Express.Multer.File) {
   const handle = await fs.open(file.path, "r");
 
   try {
@@ -65,7 +65,7 @@ async function validateUploadedFileSignature(file: Express.Multer.File) {
   }
 }
 
-async function cleanupTempFile(file: Express.Multer.File) {
+export async function cleanupTempFile(file: Express.Multer.File) {
   await fs.unlink(file.path).catch(() => undefined);
 }
 

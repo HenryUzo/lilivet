@@ -16,6 +16,7 @@ import {
   updatePetCareReviewer
 } from "../services/petCareArticleService";
 import { asyncHandler } from "../utils/asyncHandler";
+import { savePetCareHeroImage } from "../services/petCareImageService";
 import {
   petCareArticleInputSchema,
   petCareArticleListQuerySchema,
@@ -62,6 +63,10 @@ export const listAdminArticles = asyncHandler(async (req: Request, res: Response
 export const getAdminArticle = asyncHandler(async (req: Request, res: Response) => {
   const { id } = idParamsSchema.parse(req.params);
   res.json(await getAdminPetCareArticle(id));
+});
+
+export const uploadAdminHeroImage = asyncHandler(async (req: Request, res: Response) => {
+  res.status(201).json(await savePetCareHeroImage(req.file));
 });
 
 export const createAdminArticle = asyncHandler(async (req: Request, res: Response) => {
