@@ -1,19 +1,24 @@
 import { PetCarePreviewShareType, PetCarePublishingStatus } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { shareFindUnique, articleUpdate, shareUpdate, transaction } = vi.hoisted(() => ({
-  shareFindUnique: vi.fn(), articleUpdate: vi.fn(), shareUpdate: vi.fn(), transaction: vi.fn()
+const { shareFindUnique, shareCreate, articleFindUnique, articleUpdate, shareUpdate, transaction, sendEmail } = vi.hoisted(() => ({
+  shareFindUnique: vi.fn(), shareCreate: vi.fn(), articleFindUnique: vi.fn(), articleUpdate: vi.fn(), shareUpdate: vi.fn(), transaction: vi.fn(), sendEmail: vi.fn()
 }));
 
 vi.mock("../src/prisma/client", () => ({
   prisma: {
-    petCarePreviewShare: { findUnique: shareFindUnique },
+    petCarePreviewShare: { findUnique: shareFindUnique, create: shareCreate, update: shareUpdate },
+    petCareArticle: { findUnique: articleFindUnique },
     petCarePreviewComment: { create: vi.fn() },
     $transaction: transaction
   }
 }));
 
-import { approvePetCarePreview, getPetCarePreview } from "../src/services/petCarePreviewService";
+vi.mock("../src/integrations/brevo/brevoClient", () => ({
+  sendBrevoTransactionalEmail: sendEmail
+}));
+
+import { approvePetCarePreview, getPetCarePreview, sendPetCareReviewInvitation } from "../src/services/petCarePreviewService";
 
 function share(overrides: Record<string, unknown> = {}) {
   return {
@@ -61,5 +66,40 @@ describe("Pet Care private review links", () => {
       data: expect.objectContaining({ status: "APPROVED", reviewStatus: "MEDICALLY_REVIEWED" })
     }));
     expect(shareUpdate).toHaveBeenCalledWith(expect.objectContaining({ data: { revokedAt: expect.any(Date) } }));
+  });
+
+  it("sends a review invitation and records its recipient and timestamp", async () => {
+    articleFindUnique.mockResolvedValue({
+      id: "article-1",
+      title: "Safe pet care",
+      reviewerId: "reviewer-1",
+      status: PetCarePublishingStatus.IN_REVIEW,
+      reviewer: { id: "reviewer-1", name: "Dr. Reviewer", credentials: "DVM", email: "vet@example.com" }
+    });
+    shareCreate.mockResolvedValue({ id: "share-1", expiresAt: new Date(Date.now() + 86_400_000) });
+    shareUpdate.mockResolvedValue({});
+    sendEmail.mockResolvedValue({ ok: true });
+
+    await expect(sendPetCareReviewInvitation("article-1", "staff-1")).resolves.toMatchObject({ recipient: "vet@example.com" });
+    expect(sendEmail).toHaveBeenCalledWith(expect.objectContaining({ to: { email: "vet@example.com", name: "Dr. Reviewer, DVM" } }));
+    expect(shareUpdate).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ invitationRecipient: "vet@example.com", invitationSentAt: expect.any(Date) })
+    }));
+  });
+
+  it("revokes the approval link when Brevo delivery fails", async () => {
+    articleFindUnique.mockResolvedValue({
+      id: "article-1",
+      title: "Safe pet care",
+      reviewerId: "reviewer-1",
+      status: PetCarePublishingStatus.IN_REVIEW,
+      reviewer: { id: "reviewer-1", name: "Dr. Reviewer", credentials: "DVM", email: "vet@example.com" }
+    });
+    shareCreate.mockResolvedValue({ id: "share-2", expiresAt: new Date(Date.now() + 86_400_000) });
+    shareUpdate.mockResolvedValue({});
+    sendEmail.mockResolvedValue({ ok: false, status: 500, bodyText: "delivery failed" });
+
+    await expect(sendPetCareReviewInvitation("article-1", "staff-1")).rejects.toMatchObject({ statusCode: 502 });
+    expect(shareUpdate).toHaveBeenCalledWith({ where: { id: "share-2" }, data: { revokedAt: expect.any(Date) } });
   });
 });

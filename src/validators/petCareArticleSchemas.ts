@@ -98,6 +98,7 @@ export const publicPetCareArticleListQuerySchema = z.object({
 export const reviewerInputSchema = z.object({
   slug: slugSchema,
   name: z.string().trim().min(2).max(160),
+  email: z.string().trim().email().max(320),
   credentials: z.string().trim().min(1).max(80),
   role: z.string().trim().min(2).max(120),
   photoUrl: z.string().trim().max(1000).nullable().optional(),

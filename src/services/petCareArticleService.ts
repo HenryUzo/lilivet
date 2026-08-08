@@ -11,6 +11,20 @@ const articleInclude = {
   }
 } as const;
 
+const publicArticleInclude = {
+  reviewer: {
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      credentials: true,
+      role: true,
+      photoUrl: true,
+      shortBio: true
+    }
+  }
+} as const;
+
 function json(value: unknown) {
   return value as Prisma.InputJsonValue;
 }
@@ -36,7 +50,7 @@ export async function listPublishedPetCareArticles(filters: { category?: string;
         ]
       } : {})
     },
-    include: articleInclude,
+    include: publicArticleInclude,
     orderBy: [{ featured: "desc" }, { publishedAt: "desc" }, { updatedAt: "desc" }]
   });
 }
@@ -44,7 +58,7 @@ export async function listPublishedPetCareArticles(filters: { category?: string;
 export async function getPublishedPetCareArticle(slug: string) {
   const article = await prisma.petCareArticle.findFirst({
     where: { slug, status: PetCarePublishingStatus.PUBLISHED },
-    include: articleInclude
+    include: publicArticleInclude
   });
   if (!article) throw new HttpError(404, "Pet care article not found");
   return article;

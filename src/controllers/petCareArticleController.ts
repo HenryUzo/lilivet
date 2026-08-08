@@ -31,7 +31,8 @@ import {
   addPetCarePreviewComment,
   approvePetCarePreview,
   createPetCarePreviewShare,
-  getPetCarePreview
+  getPetCarePreview,
+  sendPetCareReviewInvitation
 } from "../services/petCarePreviewService";
 import {
   previewCommentInputSchema,
@@ -137,6 +138,11 @@ export const createAdminPreviewShare = asyncHandler(async (req: Request, res: Re
   const { id } = idParamsSchema.parse(req.params);
   const input = previewShareInputSchema.parse(req.body);
   res.status(201).json(await createPetCarePreviewShare(id, input.shareType, input.expiresInDays, staffUserId(req)));
+});
+
+export const sendAdminReviewInvitation = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = idParamsSchema.parse(req.params);
+  res.status(201).json(await sendPetCareReviewInvitation(id, staffUserId(req)));
 });
 
 export const getPublicPreview = asyncHandler(async (req: Request, res: Response) => {

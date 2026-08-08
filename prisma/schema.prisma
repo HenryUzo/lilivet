@@ -341,6 +341,7 @@ model PetCareReviewer {
   id          String           @id @default(cuid())
   slug        String           @unique
   name        String
+  email       String?
   credentials String
   role        String
   photoUrl    String?
@@ -352,6 +353,7 @@ model PetCareReviewer {
 
   @@index([isActive])
   @@index([name])
+  @@index([email])
 }
 
 model PetCareArticle {
@@ -418,11 +420,14 @@ model PetCarePreviewShare {
   expiresAt            DateTime
   revokedAt            DateTime?
   createdByStaffUserId String
+  invitationRecipient String?
+  invitationSentAt     DateTime?
   comments             PetCarePreviewComment[]
   createdAt            DateTime                @default(now())
 
   @@index([articleId, createdAt])
   @@index([expiresAt])
+  @@index([invitationSentAt])
 }
 
 model PetCarePreviewComment {

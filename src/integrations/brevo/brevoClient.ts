@@ -6,6 +6,13 @@ type DoubleOptInInput = {
   petPreference: "DOG" | "CAT" | "BOTH";
 };
 
+type TransactionalEmailInput = {
+  to: { email: string; name: string };
+  subject: string;
+  htmlContent: string;
+  textContent: string;
+};
+
 type BrevoResult =
   | { ok: true }
   | { ok: false; status: number; bodyText: string; errorMessage?: string };
@@ -24,6 +31,51 @@ export function hashEmail(email: string) {
 
 function normalizeBrevoBaseUrl() {
   return env.BREVO_API_BASE_URL.replace(/\/+$/, "");
+}
+
+function parseSender() {
+  const match = env.MAIL_FROM.match(/^\s*(.*?)\s*<([^>]+)>\s*$/);
+  return match
+    ? { name: match[1].replace(/^['"]|['"]$/g, "") || "Lili Veterinary Hospital", email: match[2] }
+    : { name: "Lili Veterinary Hospital", email: env.MAIL_FROM.trim() };
+}
+
+export async function sendBrevoTransactionalEmail(input: TransactionalEmailInput): Promise<BrevoResult> {
+  if (!env.BREVO_API_KEY) {
+    return { ok: false, status: 0, bodyText: "", errorMessage: "BREVO_API_KEY is not configured" };
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), BREVO_TIMEOUT_MS);
+  try {
+    const response = await fetch(`${normalizeBrevoBaseUrl()}/smtp/email`, {
+      method: "POST",
+      headers: {
+        accept: "application/json",
+        "api-key": env.BREVO_API_KEY,
+        "content-type": "application/json"
+      },
+      signal: controller.signal,
+      body: JSON.stringify({
+        sender: parseSender(),
+        to: [input.to],
+        subject: input.subject,
+        htmlContent: input.htmlContent,
+        textContent: input.textContent
+      })
+    });
+    if (response.ok) return { ok: true };
+    return { ok: false, status: response.status, bodyText: (await response.text()).slice(0, 1000) };
+  } catch (error) {
+    return {
+      ok: false,
+      status: 0,
+      bodyText: "",
+      errorMessage: error instanceof Error ? error.message : "Brevo request failed"
+    };
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 export async function sendPetCareDoubleOptIn(input: DoubleOptInInput): Promise<BrevoResult> {

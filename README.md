@@ -73,6 +73,7 @@ Copy `.env.example` to `.env` and set:
 - `GOOGLE_CALENDAR_CLIENT_ID`, `GOOGLE_CALENDAR_CLIENT_SECRET`, `GOOGLE_CALENDAR_REFRESH_TOKEN`, and `GOOGLE_CALENDAR_ID` - Google Calendar OAuth credentials and the shared clinic calendar ID used when staff confirms appointments.
 - `PET_CARE_NEWSLETTER_ENABLED` - feature flag for the Pet Care newsletter Brevo double-opt-in endpoint. Defaults to `false`.
 - `BREVO_API_KEY` - server-only Brevo API key. Add this directly in Render; do not expose it to frontend code.
+- Pet Care veterinary review invitations use the same Brevo API key and `MAIL_FROM` sender. The assigned reviewer must have an email address in the staff dashboard before an invitation can be sent.
 - `BREVO_PET_CARE_LIST_ID` - Brevo list id for `Lili Vet Pet Care Subscribers`.
 - `BREVO_DOI_TEMPLATE_ID` - Brevo double-opt-in confirmation template id.
 - `BREVO_DOI_REDIRECT_URL` - HTTPS page Brevo should send users to after confirmation.
