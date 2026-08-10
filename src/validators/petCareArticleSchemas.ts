@@ -120,4 +120,8 @@ export const previewCommentInputSchema = z.object({
   comment: z.string().trim().min(2).max(3000)
 });
 
+export const previewReviewerQuoteInputSchema = z.object({
+  quote: z.string().trim().min(2).max(3000)
+});
+
 export type PetCareArticleInput = z.infer<typeof petCareArticleInputSchema>;

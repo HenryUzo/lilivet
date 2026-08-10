@@ -32,10 +32,12 @@ import {
   approvePetCarePreview,
   createPetCarePreviewShare,
   getPetCarePreview,
-  sendPetCareReviewInvitation
+  sendPetCareReviewInvitation,
+  updatePetCarePreviewReviewerQuote
 } from "../services/petCarePreviewService";
 import {
   previewCommentInputSchema,
+  previewReviewerQuoteInputSchema,
   previewShareInputSchema,
   previewTokenParamsSchema
 } from "../validators/petCareArticleSchemas";
@@ -154,6 +156,12 @@ export const createPublicPreviewComment = asyncHandler(async (req: Request, res:
   const { token } = previewTokenParamsSchema.parse(req.params);
   const input = previewCommentInputSchema.parse(req.body);
   res.status(201).json(await addPetCarePreviewComment(token, input.authorName, input.comment));
+});
+
+export const updatePublicPreviewReviewerQuote = asyncHandler(async (req: Request, res: Response) => {
+  const { token } = previewTokenParamsSchema.parse(req.params);
+  const { quote } = previewReviewerQuoteInputSchema.parse(req.body);
+  res.json(await updatePetCarePreviewReviewerQuote(token, quote));
 });
 
 export const approvePublicPreview = asyncHandler(async (req: Request, res: Response) => {

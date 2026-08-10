@@ -130,6 +130,21 @@ export async function addPetCarePreviewComment(token: string, authorName: string
   return prisma.petCarePreviewComment.create({ data: { shareId: share.id, authorName, comment } });
 }
 
+export async function updatePetCarePreviewReviewerQuote(token: string, quote: string) {
+  const share = await resolveShare(token);
+  if (share.shareType !== PetCarePreviewShareType.REVIEWER) {
+    throw new HttpError(403, "This preview link does not include veterinarian review access");
+  }
+  if (!share.article.reviewerId || share.article.status !== PetCarePublishingStatus.IN_REVIEW) {
+    throw new HttpError(409, "Article must be in review with an assigned veterinarian");
+  }
+
+  return prisma.petCareArticle.update({
+    where: { id: share.article.id },
+    data: { vetQuote: quote }
+  });
+}
+
 export async function approvePetCarePreview(token: string) {
   const share = await resolveShare(token);
   if (share.shareType !== PetCarePreviewShareType.REVIEWER) {
