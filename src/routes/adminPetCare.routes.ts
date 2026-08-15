@@ -1,4 +1,4 @@
-import { StaffRole } from "@prisma/client";
+import { StaffPermissionKey } from "@prisma/client";
 import { Router } from "express";
 import {
   archiveAdminArticle,
@@ -15,22 +15,22 @@ import {
   updateAdminReviewer,
   uploadAdminHeroImage
 } from "../controllers/petCareArticleController";
-import { requireRole, requireStaffAuth } from "../middlewares/staffAuth";
+import { requirePermission, requireStaffAuth } from "../middlewares/staffAuth";
 import { petCareImageUpload } from "../middlewares/upload";
 
 export const adminPetCareRoutes = Router();
 
-adminPetCareRoutes.use(requireStaffAuth, requireRole(StaffRole.ADMIN));
-adminPetCareRoutes.get("/articles", listAdminArticles);
-adminPetCareRoutes.post("/articles", createAdminArticle);
-adminPetCareRoutes.post("/images", petCareImageUpload.single("image"), uploadAdminHeroImage);
-adminPetCareRoutes.get("/articles/:id", getAdminArticle);
-adminPetCareRoutes.patch("/articles/:id", updateAdminArticle);
-adminPetCareRoutes.post("/articles/:id/submit-review", submitAdminArticleForReview);
-adminPetCareRoutes.post("/articles/:id/preview-shares", createAdminPreviewShare);
-adminPetCareRoutes.post("/articles/:id/review-invitation", sendAdminReviewInvitation);
-adminPetCareRoutes.post("/articles/:id/publish", publishAdminArticle);
-adminPetCareRoutes.post("/articles/:id/archive", archiveAdminArticle);
-adminPetCareRoutes.get("/reviewers", listAdminReviewers);
-adminPetCareRoutes.post("/reviewers", createAdminReviewer);
-adminPetCareRoutes.patch("/reviewers/:id", updateAdminReviewer);
+adminPetCareRoutes.use(requireStaffAuth);
+adminPetCareRoutes.get("/articles", requirePermission(StaffPermissionKey.PET_CARE_VIEW), listAdminArticles);
+adminPetCareRoutes.post("/articles", requirePermission(StaffPermissionKey.PET_CARE_EDIT), createAdminArticle);
+adminPetCareRoutes.post("/images", requirePermission(StaffPermissionKey.PET_CARE_EDIT), petCareImageUpload.single("image"), uploadAdminHeroImage);
+adminPetCareRoutes.get("/articles/:id", requirePermission(StaffPermissionKey.PET_CARE_VIEW), getAdminArticle);
+adminPetCareRoutes.patch("/articles/:id", requirePermission(StaffPermissionKey.PET_CARE_EDIT), updateAdminArticle);
+adminPetCareRoutes.post("/articles/:id/submit-review", requirePermission(StaffPermissionKey.PET_CARE_EDIT), submitAdminArticleForReview);
+adminPetCareRoutes.post("/articles/:id/preview-shares", requirePermission(StaffPermissionKey.PET_CARE_EDIT), createAdminPreviewShare);
+adminPetCareRoutes.post("/articles/:id/review-invitation", requirePermission(StaffPermissionKey.PET_CARE_EDIT), sendAdminReviewInvitation);
+adminPetCareRoutes.post("/articles/:id/publish", requirePermission(StaffPermissionKey.PET_CARE_PUBLISH), publishAdminArticle);
+adminPetCareRoutes.post("/articles/:id/archive", requirePermission(StaffPermissionKey.PET_CARE_PUBLISH), archiveAdminArticle);
+adminPetCareRoutes.get("/reviewers", requirePermission(StaffPermissionKey.PET_CARE_REVIEWERS), listAdminReviewers);
+adminPetCareRoutes.post("/reviewers", requirePermission(StaffPermissionKey.PET_CARE_REVIEWERS), createAdminReviewer);
+adminPetCareRoutes.patch("/reviewers/:id", requirePermission(StaffPermissionKey.PET_CARE_REVIEWERS), updateAdminReviewer);

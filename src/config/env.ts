@@ -5,6 +5,10 @@ dotenv.config();
 
 export const DEFAULT_JWT_SECRET = "development-only-jwt-secret-change-before-production";
 export const DEFAULT_STAFF_SEED_PASSWORD = "ChangeMe123!";
+const defaultStaffDashboardUrl =
+  process.env.NODE_ENV === "production"
+    ? "https://lili-staff-dashboard.vercel.app"
+    : "http://localhost:5173";
 
 const booleanEnv = z.preprocess((value) => {
   if (typeof value === "boolean") {
@@ -86,6 +90,7 @@ const envSchema = z.object({
   CLINIC_NOTIFICATION_EMAIL: commaSeparatedEmailsSchema.default("frontdesk@lilivethospital.example"),
   MAIL_FROM: z.string().min(1).default("Lili Vet Hospital <no-reply@lilivethospital.example>"),
   PUBLIC_WEBSITE_URL: z.string().url().default("https://www.liliveterinaryhospital.com"),
+  STAFF_DASHBOARD_URL: z.string().url().default(defaultStaffDashboardUrl),
   SMTP_HOST: z.string().min(1).default("localhost"),
   SMTP_PORT: z.coerce.number().int().positive().default(587),
   SMTP_SECURE: booleanEnv.default(false),

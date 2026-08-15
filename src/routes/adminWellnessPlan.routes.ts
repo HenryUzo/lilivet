@@ -9,7 +9,7 @@ import { requireRole, requireStaffAuth } from "../middlewares/staffAuth";
 
 export const adminWellnessPlanRoutes = Router();
 
-adminWellnessPlanRoutes.use(requireStaffAuth, requireRole(StaffRole.ADMIN));
+adminWellnessPlanRoutes.use(requireStaffAuth, requireRole(StaffRole.SUPER_ADMIN));
 adminWellnessPlanRoutes.get("/", listAdminWellnessPlans);
 adminWellnessPlanRoutes.get("/key/:planKey", getAdminWellnessPlanByKey);
 adminWellnessPlanRoutes.get("/:id", getAdminWellnessPlan);

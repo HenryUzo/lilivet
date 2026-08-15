@@ -328,6 +328,15 @@ model StaffUser {
   passwordHash String
   role         StaffRole @default(STAFF)
   isActive     Boolean   @default(true)
+  invitationTokenHash      String?   @unique
+  invitationExpiresAt      DateTime?
+  invitationAcceptedAt     DateTime?
+  invitedByStaffUserId     String?
+  invitedBy                StaffUser? @relation("StaffInvitations", fields: [invitedByStaffUserId], references: [id], onDelete: SetNull)
+  invitedStaffUsers        StaffUser[] @relation("StaffInvitations")
+  permissions              StaffPermission[]
+  accessAuditActions       StaffAccessAuditLog[] @relation("StaffAccessAuditActor")
+  accessAuditTargets       StaffAccessAuditLog[] @relation("StaffAccessAuditTarget")
   confirmedAppointments AppointmentRequest[]
   createdRescheduleTokens AppointmentRescheduleToken[]
   createdAt    DateTime  @default(now())
@@ -335,6 +344,32 @@ model StaffUser {
 
   @@index([email])
   @@index([isActive])
+  @@index([invitationExpiresAt])
+}
+
+model StaffPermission {
+  id          String             @id @default(cuid())
+  staffUserId String
+  staffUser   StaffUser          @relation(fields: [staffUserId], references: [id], onDelete: Cascade)
+  key         StaffPermissionKey
+  createdAt   DateTime           @default(now())
+
+  @@unique([staffUserId, key])
+  @@index([key])
+}
+
+model StaffAccessAuditLog {
+  id           String    @id @default(cuid())
+  actorId      String?
+  actor        StaffUser? @relation("StaffAccessAuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+  targetUserId String?
+  targetUser   StaffUser? @relation("StaffAccessAuditTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
+  action       String
+  metadata     Json?
+  createdAt    DateTime  @default(now())
+
+  @@index([targetUserId, createdAt])
+  @@index([actorId, createdAt])
 }
 
 model PetCareReviewer {
@@ -503,8 +538,19 @@ enum FileAttachmentStatus {
 }
 
 enum StaffRole {
+  SUPER_ADMIN
   ADMIN
   STAFF
+}
+
+enum StaffPermissionKey {
+  APPOINTMENTS_VIEW
+  APPOINTMENTS_MANAGE
+  NEW_PATIENTS_VIEW
+  PET_CARE_VIEW
+  PET_CARE_EDIT
+  PET_CARE_PUBLISH
+  PET_CARE_REVIEWERS
 }
 
 enum CalendarSyncStatus {

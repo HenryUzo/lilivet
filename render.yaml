@@ -66,6 +66,8 @@ services:
         sync: false
       - key: PUBLIC_WEBSITE_URL
         sync: false
+      - key: STAFF_DASHBOARD_URL
+        sync: false
       - key: CORS_ORIGIN
         sync: false
       - key: CLINIC_NOTIFICATION_EMAIL

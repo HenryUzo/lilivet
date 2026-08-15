@@ -10,6 +10,8 @@ import {
   submitPublicReschedule
 } from "../controllers/appointmentRequestController";
 import { requireRole, requireStaffAuth } from "../middlewares/staffAuth";
+import { requirePermission } from "../middlewares/staffAuth";
+import { StaffPermissionKey, StaffRole } from "@prisma/client";
 
 export const appointmentRequestRoutes = Router();
 
@@ -17,9 +19,9 @@ appointmentRequestRoutes.get("/reschedule/:token", getPublicRescheduleContext);
 appointmentRequestRoutes.post("/reschedule/:token/submit", submitPublicReschedule);
 
 appointmentRequestRoutes.use(requireStaffAuth);
-appointmentRequestRoutes.post("/mark-overdue", requireRole("ADMIN"), runManualOverdueSweep);
-appointmentRequestRoutes.get("/", listRequests);
-appointmentRequestRoutes.get("/:id", getRequest);
-appointmentRequestRoutes.patch("/:id/status", patchRequestStatus);
-appointmentRequestRoutes.post("/:id/calendar-sync", retryRequestCalendarSync);
-appointmentRequestRoutes.post("/:id/reschedule-link", sendRequestRescheduleLink);
+appointmentRequestRoutes.post("/mark-overdue", requireRole(StaffRole.SUPER_ADMIN), runManualOverdueSweep);
+appointmentRequestRoutes.get("/", requirePermission(StaffPermissionKey.APPOINTMENTS_VIEW), listRequests);
+appointmentRequestRoutes.get("/:id", requirePermission(StaffPermissionKey.APPOINTMENTS_VIEW), getRequest);
+appointmentRequestRoutes.patch("/:id/status", requirePermission(StaffPermissionKey.APPOINTMENTS_MANAGE), patchRequestStatus);
+appointmentRequestRoutes.post("/:id/calendar-sync", requirePermission(StaffPermissionKey.APPOINTMENTS_MANAGE), retryRequestCalendarSync);
+appointmentRequestRoutes.post("/:id/reschedule-link", requirePermission(StaffPermissionKey.APPOINTMENTS_MANAGE), sendRequestRescheduleLink);

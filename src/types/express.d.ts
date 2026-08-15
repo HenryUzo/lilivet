@@ -5,6 +5,7 @@ declare namespace Express {
       id: string;
       email: string;
       role: import("@prisma/client").StaffRole;
+      permissions: import("@prisma/client").StaffPermissionKey[];
     };
   }
 }

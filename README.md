@@ -67,6 +67,7 @@ Copy `.env.example` to `.env` and set:
 - `DUPLICATE_WINDOW_HOURS` - short duplicate-detection window.
 - `CLINIC_NOTIFICATION_EMAIL` - one clinic notification recipient, or a comma-separated list.
 - `MAIL_FROM` and SMTP settings for Nodemailer.
+- `STAFF_DASHBOARD_URL` - staff dashboard origin used in secure staff invitation links, for example `https://your-staff-dashboard.example`.
 - `JWT_SECRET` - long random secret for signing staff JWTs. Use at least 32 characters.
 - `JWT_EXPIRES_IN` - staff token lifetime, for example `8h`.
 - `JWT_ISSUER` and `JWT_AUDIENCE` - JWT scope values used when signing and verifying staff tokens.
@@ -99,6 +100,7 @@ When `PET_CARE_NEWSLETTER_ENABLED=true`, startup validates all required Brevo co
 - Appointment list date filtering is performed against normalized `YYYY-MM-DD` preferred-date keys so pagination stays consistent across pages.
 - Duplicate detection flags likely duplicates using phone/email plus pet name within the configured short time window.
 - Owner phone normalization is backfilled and indexed in production-safe fashion. Existing duplicate owners are tolerated during rollout and should be cleaned up in a follow-up data pass before enforcing uniqueness.
+- Staff access uses a database-backed permission model. Current `ADMIN` users migrate to `SUPER_ADMIN`; existing `STAFF` users retain appointment and new-patient access. Super Admins manage invitations and permissions from the dashboard. Set `STAFF_DASHBOARD_URL` before sending invitations in production.
 
 ## Owner Duplicate Cleanup
 

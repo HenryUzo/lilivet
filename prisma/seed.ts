@@ -520,13 +520,13 @@ async function main() {
     where: { email: env.STAFF_SEED_EMAIL.toLowerCase() },
     update: {
       passwordHash,
-      role: StaffRole.ADMIN,
+      role: StaffRole.SUPER_ADMIN,
       isActive: true
     },
     create: {
       email: env.STAFF_SEED_EMAIL.toLowerCase(),
       passwordHash,
-      role: StaffRole.ADMIN,
+      role: StaffRole.SUPER_ADMIN,
       isActive: true
     }
   });

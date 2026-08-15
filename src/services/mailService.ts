@@ -450,3 +450,32 @@ export async function sendClientAppointmentRescheduleRequest(input: {
     attachments: getInlineBrandAttachments()
   });
 }
+
+export async function sendStaffInvitation(input: { email: string; invitationUrl: string }) {
+  await transporter.sendMail({
+    from: env.MAIL_FROM,
+    to: input.email,
+    subject: "You have been invited to the Lili Vet staff dashboard",
+    text: [
+      "You have been invited to access the Lili Veterinary Hospital staff dashboard.",
+      "",
+      "Use this one-time link to set your password:",
+      input.invitationUrl,
+      "",
+      "This invitation expires in seven days. If you were not expecting this invitation, you can ignore this email."
+    ].join("\n"),
+    html: renderEmailShell({
+      eyebrow: "Staff Dashboard Invitation",
+      title: "You are invited to Lili Vet staff access",
+      intro: "Set your password to activate your staff dashboard access.",
+      bodyHtml: `
+        <p style="margin: 0; color: #203227; font: 400 15px/1.7 Arial, sans-serif;">
+          This secure link can be used once and expires in seven days. If you were not expecting this invitation, you can safely ignore it.
+        </p>
+      `,
+      actionLabel: "Set your password",
+      actionUrl: input.invitationUrl
+    }),
+    attachments: getInlineBrandAttachments()
+  });
+}
