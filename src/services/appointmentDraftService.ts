@@ -22,6 +22,7 @@ import { sendClientAppointmentConfirmation, sendClinicAppointmentNotification } 
 import { normalizePhoneNumber } from "../utils/phone";
 import { extractPreferredSelectionDateKeys } from "../utils/preferredSelections";
 import { dispatchBackgroundEmail } from "./emailDispatchService";
+import { recordMarketingConsent } from "./clientCommunicationService";
 
 function draftExpiryDate() {
   return new Date(Date.now() + env.DRAFT_EXPIRY_HOURS * 60 * 60 * 1000);
@@ -231,6 +232,8 @@ export async function updateStep3(sessionToken: string, input: AppointmentStep3)
       email: data.email,
       phoneNumber: data.phoneNumber,
       preferredContactMethod: data.preferredContactMethod,
+      marketingEmailOptIn: data.marketingEmailOptIn,
+      marketingSmsOptIn: data.marketingSmsOptIn,
       lastCompletedStep: { set: 3 },
       expiresAt: draftExpiryDate()
     }
@@ -286,6 +289,8 @@ export async function submitAppointmentDraft(sessionToken: string) {
     email: draft.email,
     phoneNumber: draft.phoneNumber,
     preferredContactMethod: draft.preferredContactMethod,
+    marketingEmailOptIn: draft.marketingEmailOptIn,
+    marketingSmsOptIn: draft.marketingSmsOptIn,
     preferredSelections: draft.preferredSelections,
     timezone: draft.timezone,
     symptomsOrConcerns: draft.symptomsOrConcerns,
@@ -319,6 +324,14 @@ export async function submitAppointmentDraft(sessionToken: string) {
       weightLbs: fullDraft.weightLbs ?? undefined,
       currentMedications: fullDraft.currentMedications ?? undefined
     });
+
+    if (fullDraft.marketingEmailOptIn || fullDraft.marketingSmsOptIn) {
+      await recordMarketingConsent(tx, owner.id, {
+        emailOptIn: fullDraft.marketingEmailOptIn,
+        smsOptIn: fullDraft.marketingSmsOptIn,
+        source: "appointment-form"
+      });
+    }
 
     const request = await tx.appointmentRequest.create({
       data: {

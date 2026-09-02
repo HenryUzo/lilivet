@@ -24,7 +24,9 @@ export const createNewPatientRequestSchema = z.object({
     preferredDateTime: dateStringSchema.optional(),
     timezone: timezoneSchema.optional(),
     previousVetClinic: z.string().trim().max(200).optional(),
-    consentToElectronicComms: z.coerce.boolean().default(false)
+    consentToElectronicComms: z.coerce.boolean().default(false),
+    marketingEmailOptIn: z.coerce.boolean().default(false),
+    marketingSmsOptIn: z.coerce.boolean().default(false)
   }),
   pet: z.object({
     petName: z.string().trim().min(1).max(100),
@@ -77,6 +79,6 @@ export const newPatientListQuerySchema = z.object({
 
 export const newPatientReferralIdParamSchema = idParamSchema;
 
-export type CreateNewPatientRequestInput = z.infer<typeof createNewPatientRequestSchema>;
+export type CreateNewPatientRequestInput = z.input<typeof createNewPatientRequestSchema>;
 export type CaptureNewPatientReferralSourceInput = z.infer<typeof captureNewPatientReferralSourceSchema>;
 export type NewPatientListQueryInput = z.infer<typeof newPatientListQuerySchema>;

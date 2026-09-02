@@ -8,6 +8,8 @@ export const MANAGED_PERMISSION_KEYS = [
   StaffPermissionKey.PET_CARE_EDIT,
   StaffPermissionKey.PET_CARE_PUBLISH,
   StaffPermissionKey.PET_CARE_REVIEWERS
+  ,StaffPermissionKey.CLIENTS_VIEW
+  ,StaffPermissionKey.CLIENTS_MANAGE
 ] as const;
 
 const impliedPermissions: Partial<Record<StaffPermissionKey, StaffPermissionKey[]>> = {
@@ -15,6 +17,7 @@ const impliedPermissions: Partial<Record<StaffPermissionKey, StaffPermissionKey[
   [StaffPermissionKey.PET_CARE_EDIT]: [StaffPermissionKey.PET_CARE_VIEW],
   [StaffPermissionKey.PET_CARE_PUBLISH]: [StaffPermissionKey.PET_CARE_VIEW, StaffPermissionKey.PET_CARE_EDIT],
   [StaffPermissionKey.PET_CARE_REVIEWERS]: [StaffPermissionKey.PET_CARE_VIEW]
+  ,[StaffPermissionKey.CLIENTS_MANAGE]: [StaffPermissionKey.CLIENTS_VIEW]
 };
 
 export function getEffectivePermissions(role: StaffRole, permissions: StaffPermissionKey[]) {

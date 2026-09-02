@@ -22,6 +22,9 @@ const {
   attachFilesToNewPatientRequestMock: vi.fn(),
   sendClinicNewPatientNotificationMock: vi.fn(),
   txMock: {
+    owner: { findFirst: vi.fn(), create: vi.fn(), update: vi.fn() },
+    pet: { findFirst: vi.fn(), create: vi.fn() },
+    clientLifecycleRecord: { upsert: vi.fn() },
     newPatientRequest: {
       create: vi.fn()
     }
@@ -101,10 +104,21 @@ describe("newPatientService", () => {
     attachFilesToNewPatientRequestMock.mockReset();
     sendClinicNewPatientNotificationMock.mockReset();
     txMock.newPatientRequest.create.mockReset();
+    txMock.owner.findFirst.mockReset();
+    txMock.owner.create.mockReset();
+    txMock.owner.update.mockReset();
+    txMock.pet.findFirst.mockReset();
+    txMock.pet.create.mockReset();
+    txMock.clientLifecycleRecord.upsert.mockReset();
     consoleErrorSpy.mockClear();
 
     findDuplicateNewPatientCandidateMock.mockResolvedValue(null);
     txMock.newPatientRequest.create.mockResolvedValue({ id: "new-request-1" });
+    txMock.owner.findFirst.mockResolvedValue(null);
+    txMock.owner.create.mockResolvedValue({ id: "owner-1" });
+    txMock.pet.findFirst.mockResolvedValue(null);
+    txMock.pet.create.mockResolvedValue({ id: "pet-1" });
+    txMock.clientLifecycleRecord.upsert.mockResolvedValue({ id: "lifecycle-1" });
     findUniqueOrThrowMock.mockResolvedValue({
       id: "new-request-1",
       files: []

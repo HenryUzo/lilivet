@@ -11,6 +11,8 @@ import { findDuplicateNewPatientCandidate } from "./duplicateService";
 import { assertUnattachedFilesAvailable, attachFilesToNewPatientRequest } from "./fileService";
 import { sendClinicNewPatientNotification } from "./mailService";
 import { dispatchBackgroundEmail } from "./emailDispatchService";
+import { normalizePhoneNumber } from "../utils/phone";
+import { recordMarketingConsent } from "./clientCommunicationService";
 
 const REFERRAL_SOURCE_CAPTURE_TOKEN_TTL_MS = 2 * 60 * 60 * 1000;
 
@@ -44,7 +46,35 @@ export async function createNewPatientRequest(
   const captureTokenExpiresAt = new Date(Date.now() + REFERRAL_SOURCE_CAPTURE_TOKEN_TTL_MS);
 
   const requestId = await prisma.$transaction(async (tx) => {
-    await assertUnattachedFilesAvailable(input.uploadedFileIds, tx);
+    await assertUnattachedFilesAvailable(input.uploadedFileIds ?? [], tx);
+
+    const [firstName, ...lastNameParts] = input.owner.fullName.trim().split(/\s+/);
+    const normalizedPhone = normalizePhoneNumber(input.owner.phoneNumber);
+    const owner = normalizedPhone
+      ? await tx.owner.findFirst({ where: { normalizedPhone }, orderBy: { createdAt: "asc" } })
+      : null;
+    const resolvedOwner = owner ?? await tx.owner.create({
+      data: { firstName, lastName: lastNameParts.join(" ") || "Client", email: input.owner.email || undefined, phoneNumber: input.owner.phoneNumber, normalizedPhone: normalizedPhone || undefined }
+    });
+    if (owner && !owner.email && input.owner.email) {
+      await tx.owner.update({ where: { id: owner.id }, data: { email: input.owner.email } });
+    }
+    const existingPet = await tx.pet.findFirst({ where: { ownerId: resolvedOwner.id, species: input.pet.species, name: { equals: input.pet.petName, mode: "insensitive" } } });
+    const resolvedPet = existingPet ?? await tx.pet.create({
+      data: { ownerId: resolvedOwner.id, name: input.pet.petName, species: input.pet.species, breed: input.pet.breed || undefined, age: input.pet.age || undefined, sex: input.pet.sex, weightLbs: input.pet.weightLbs ? new Prisma.Decimal(input.pet.weightLbs) : undefined, spayedNeutered: input.pet.spayedNeutered, currentMedications: input.pet.currentMedications || undefined, existingConditions: input.pet.existingConditions || undefined }
+    });
+    await tx.clientLifecycleRecord.upsert({
+      where: { ownerId_petId: { ownerId: resolvedOwner.id, petId: resolvedPet.id } },
+      create: { ownerId: resolvedOwner.id, petId: resolvedPet.id, leadSource: "Pending", regularVeterinarian: input.visit.previousVetClinic || undefined, firstVisitType: input.visit.reasonForVisit, followUpNeeded: input.visit.isUrgent, lastVisitAt: input.visit.preferredDateTime ? new Date(input.visit.preferredDateTime) : undefined },
+      update: { regularVeterinarian: input.visit.previousVetClinic || undefined, firstVisitType: input.visit.reasonForVisit, followUpNeeded: input.visit.isUrgent }
+    });
+    if (input.visit.marketingEmailOptIn || input.visit.marketingSmsOptIn) {
+      await recordMarketingConsent(tx, resolvedOwner.id, {
+        emailOptIn: Boolean(input.visit.marketingEmailOptIn),
+        smsOptIn: Boolean(input.visit.marketingSmsOptIn),
+        source: "new-patient-form"
+      });
+    }
 
     const request = await tx.newPatientRequest.create({
       data: {
@@ -59,6 +89,10 @@ export async function createNewPatientRequest(
         timezone: input.visit.timezone,
         previousVetClinic: input.visit.previousVetClinic,
         consentToElectronicComms: input.visit.consentToElectronicComms,
+        marketingEmailOptIn: Boolean(input.visit.marketingEmailOptIn),
+        marketingSmsOptIn: Boolean(input.visit.marketingSmsOptIn),
+        ownerId: resolvedOwner.id,
+        petId: resolvedPet.id,
         referralSourceCaptureTokenHash: captureTokenHash,
         referralSourceCaptureTokenExpiresAt: captureTokenExpiresAt,
         petName: input.pet.petName,
@@ -75,7 +109,7 @@ export async function createNewPatientRequest(
       }
     });
 
-    await attachFilesToNewPatientRequest(tx, input.uploadedFileIds, request.id);
+    await attachFilesToNewPatientRequest(tx, input.uploadedFileIds ?? [], request.id);
     return request.id;
   });
 
@@ -128,7 +162,7 @@ export async function captureNewPatientReferralSource(
     throw new HttpError(404, "Referral source token is invalid");
   }
 
-  return prisma.newPatientRequest.update({
+  const updated = await prisma.newPatientRequest.update({
     where: { id },
     data: {
       referralSource: input.source,
@@ -139,6 +173,13 @@ export async function captureNewPatientReferralSource(
     },
     include: { files: true }
   });
+  if (updated.ownerId && updated.petId) {
+    await prisma.clientLifecycleRecord.updateMany({
+      where: { ownerId: updated.ownerId, petId: updated.petId },
+      data: { leadSource: input.source === "OTHER" ? input.otherText ?? "Other" : input.source, referredBy: input.source === "OTHER" ? input.otherText ?? undefined : undefined }
+    });
+  }
+  return updated;
 }
 
 export async function listNewPatientRequests(input: NewPatientListQueryInput) {

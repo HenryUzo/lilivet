@@ -72,7 +72,9 @@ export const appointmentStep3Schema = z.object({
   lastName: z.string().trim().min(1).max(100),
   email: optionalEmailSchema,
   phoneNumber: phoneSchema,
-  preferredContactMethod: preferredContactMethodSchema
+  preferredContactMethod: preferredContactMethodSchema,
+  marketingEmailOptIn: z.coerce.boolean().default(false),
+  marketingSmsOptIn: z.coerce.boolean().default(false)
 });
 
 function addPastSelectionIssue(
@@ -119,6 +121,8 @@ export const fullAppointmentDraftSchema = z
     email: optionalEmailSchema.nullish(),
     phoneNumber: phoneSchema,
     preferredContactMethod: preferredContactMethodSchema,
+    marketingEmailOptIn: z.coerce.boolean().default(false),
+    marketingSmsOptIn: z.coerce.boolean().default(false),
     preferredSelections: preferredSelectionsSchema,
     timezone: timezoneSchema,
     symptomsOrConcerns: z.string().trim().max(5000).nullish(),

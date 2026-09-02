@@ -15,10 +15,19 @@ model Owner {
   email                  String?
   phoneNumber            String
   normalizedPhone        String?
+  addressLine1           String?
+  addressLine2           String?
+  city                   String?
+  state                  String?
+  postalCode             String?
   preferredContactMethod PreferredContactMethod?
   pets                   Pet[]
   appointmentRequests    AppointmentRequest[]
   newPatientRequests     NewPatientRequest[]
+  clientProfile          ClientProfile?
+  clientLifecycleRecords ClientLifecycleRecord[]
+  contactMethods         OwnerContactMethod[]
+  externalClientRecords  ExternalClientRecord[]
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
 
@@ -28,23 +37,25 @@ model Owner {
 }
 
 model Pet {
-  id                  String               @id @default(cuid())
-  ownerId             String
-  owner               Owner                @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  name                String
-  species             PetSpecies
-  breed               String?
-  approximateAgeYears Int?
-  age                 String?
-  sex                 PetSex
-  weightLbs           Decimal?             @db.Decimal(6, 2)
-  spayedNeutered      Boolean?
-  currentMedications  String?
-  existingConditions  String?
-  appointmentRequests AppointmentRequest[]
-  newPatientRequests  NewPatientRequest[]
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
+  id                     String                  @id @default(cuid())
+  ownerId                String
+  owner                  Owner                   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  name                   String
+  species                PetSpecies
+  breed                  String?
+  approximateAgeYears    Int?
+  age                    String?
+  sex                    PetSex
+  weightLbs              Decimal?                @db.Decimal(6, 2)
+  spayedNeutered         Boolean?
+  currentMedications     String?
+  existingConditions     String?
+  appointmentRequests    AppointmentRequest[]
+  newPatientRequests     NewPatientRequest[]
+  clientLifecycleRecords ClientLifecycleRecord[]
+  externalClientRecords  ExternalClientRecord[]
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
 
   @@index([ownerId])
   @@index([name])
@@ -70,6 +81,8 @@ model AppointmentDraft {
   email                  String?
   phoneNumber            String?
   preferredContactMethod PreferredContactMethod?
+  marketingEmailOptIn    Boolean                 @default(false)
+  marketingSmsOptIn      Boolean                 @default(false)
 
   preferredSelections Json?
   timezone            String?
@@ -83,8 +96,8 @@ model AppointmentDraft {
   expiresAt         DateTime
   submittedAt       DateTime?
 
-  appointmentRequestId String?             @unique
-  appointmentRequest   AppointmentRequest? @relation(fields: [appointmentRequestId], references: [id], onDelete: SetNull)
+  appointmentRequestId String?                     @unique
+  appointmentRequest   AppointmentRequest?         @relation(fields: [appointmentRequestId], references: [id], onDelete: SetNull)
   rescheduleToken      AppointmentRescheduleToken?
 
   files UploadedFile[]
@@ -114,32 +127,32 @@ model AppointmentRequest {
   visitType VisitType
   status    AppointmentRequestStatus @default(PENDING_REVIEW)
 
-  confirmedStartAt    DateTime?
-  confirmedEndAt      DateTime?
-  confirmedTimezone   String?
-  confirmedByStaffUserId String?
-  confirmedByStaffUser StaffUser? @relation(fields: [confirmedByStaffUserId], references: [id], onDelete: SetNull)
-  rescheduleRequestedAt      DateTime?
-  rescheduleResponseDeadline DateTime?
-  rescheduleEmailSentAt      DateTime?
-  rescheduleTokenIssuedAt    DateTime?
+  confirmedStartAt                    DateTime?
+  confirmedEndAt                      DateTime?
+  confirmedTimezone                   String?
+  confirmedByStaffUserId              String?
+  confirmedByStaffUser                StaffUser?           @relation(fields: [confirmedByStaffUserId], references: [id], onDelete: SetNull)
+  rescheduleRequestedAt               DateTime?
+  rescheduleResponseDeadline          DateTime?
+  rescheduleEmailSentAt               DateTime?
+  rescheduleTokenIssuedAt             DateTime?
   rescheduledFromAppointmentRequestId String?
   rescheduledFromAppointmentRequest   AppointmentRequest?  @relation("AppointmentRequestReschedulesFrom", fields: [rescheduledFromAppointmentRequestId], references: [id], onDelete: SetNull)
   rescheduleReplacementRequests       AppointmentRequest[] @relation("AppointmentRequestReschedulesFrom")
-  replacementAppointmentRequestId     String?             @unique
-  replacementAppointmentRequest       AppointmentRequest? @relation("AppointmentRequestReplacement", fields: [replacementAppointmentRequestId], references: [id], onDelete: SetNull)
-  replacedOverdueAppointmentRequest   AppointmentRequest? @relation("AppointmentRequestReplacement")
+  replacementAppointmentRequestId     String?              @unique
+  replacementAppointmentRequest       AppointmentRequest?  @relation("AppointmentRequestReplacement", fields: [replacementAppointmentRequestId], references: [id], onDelete: SetNull)
+  replacedOverdueAppointmentRequest   AppointmentRequest?  @relation("AppointmentRequestReplacement")
 
   preferredSelections     Json
   timezone                String
   preferredDateSelections AppointmentPreferredDate[]
   rescheduleTokens        AppointmentRescheduleToken[]
 
-  calendarEventId     String?
-  calendarEventUrl    String?
-  calendarSyncStatus  CalendarSyncStatus @default(NOT_SYNCED)
-  calendarSyncedAt    DateTime?
-  calendarSyncError   String?
+  calendarEventId    String?
+  calendarEventUrl   String?
+  calendarSyncStatus CalendarSyncStatus @default(NOT_SYNCED)
+  calendarSyncedAt   DateTime?
+  calendarSyncError  String?
 
   symptomsOrConcerns   String?
   currentMedications   String?
@@ -194,16 +207,18 @@ model NewPatientRequest {
   currentMedications String?
   existingConditions String?
 
-  reasonForVisit           String
-  isUrgent                 Boolean   @default(false)
-  preferredDateTime        DateTime?
-  timezone                 String?
-  previousVetClinic        String?
-  consentToElectronicComms Boolean   @default(false)
-  referralSource                NewPatientReferralSource?
-  referralSourceOther           String?
-  referralSourceCapturedAt      DateTime?
-  referralSourceCaptureTokenHash String?
+  reasonForVisit                      String
+  isUrgent                            Boolean                   @default(false)
+  preferredDateTime                   DateTime?
+  timezone                            String?
+  previousVetClinic                   String?
+  consentToElectronicComms            Boolean                   @default(false)
+  marketingEmailOptIn                 Boolean                   @default(false)
+  marketingSmsOptIn                   Boolean                   @default(false)
+  referralSource                      NewPatientReferralSource?
+  referralSourceOther                 String?
+  referralSourceCapturedAt            DateTime?
+  referralSourceCaptureTokenHash      String?
   referralSourceCaptureTokenExpiresAt DateTime?
 
   ownerId String?
@@ -323,28 +338,64 @@ model WellnessPlanMilestoneTemplate {
 }
 
 model StaffUser {
-  id           String    @id @default(cuid())
-  email        String    @unique
-  passwordHash String
-  role         StaffRole @default(STAFF)
-  isActive     Boolean   @default(true)
-  invitationTokenHash      String?   @unique
-  invitationExpiresAt      DateTime?
-  invitationAcceptedAt     DateTime?
-  invitedByStaffUserId     String?
-  invitedBy                StaffUser? @relation("StaffInvitations", fields: [invitedByStaffUserId], references: [id], onDelete: SetNull)
-  invitedStaffUsers        StaffUser[] @relation("StaffInvitations")
-  permissions              StaffPermission[]
-  accessAuditActions       StaffAccessAuditLog[] @relation("StaffAccessAuditActor")
-  accessAuditTargets       StaffAccessAuditLog[] @relation("StaffAccessAuditTarget")
-  confirmedAppointments AppointmentRequest[]
+  id                      String                       @id @default(cuid())
+  email                   String                       @unique
+  passwordHash            String
+  role                    StaffRole                    @default(STAFF)
+  isActive                Boolean                      @default(true)
+  invitationTokenHash     String?                      @unique
+  invitationExpiresAt     DateTime?
+  invitationAcceptedAt    DateTime?
+  invitedByStaffUserId    String?
+  invitedBy               StaffUser?                   @relation("StaffInvitations", fields: [invitedByStaffUserId], references: [id], onDelete: SetNull)
+  invitedStaffUsers       StaffUser[]                  @relation("StaffInvitations")
+  permissions             StaffPermission[]
+  accessAuditActions      StaffAccessAuditLog[]        @relation("StaffAccessAuditActor")
+  accessAuditTargets      StaffAccessAuditLog[]        @relation("StaffAccessAuditTarget")
+  clientImportRuns        ClientImportRun[]            @relation("ClientImportInitiator")
+  confirmedAppointments   AppointmentRequest[]
   createdRescheduleTokens AppointmentRescheduleToken[]
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  createdAt               DateTime                     @default(now())
+  updatedAt               DateTime                     @updatedAt
 
   @@index([email])
   @@index([isActive])
   @@index([invitationExpiresAt])
+}
+
+model OwnerContactMethod {
+  id        String              @id @default(cuid())
+  ownerId   String
+  owner     Owner               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  channel   OwnerContactChannel
+  label     String?
+  value     String
+  isPrimary Boolean             @default(false)
+  source    ClientDataSource?
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  @@unique([ownerId, channel, value])
+  @@index([ownerId, channel])
+}
+
+model ExternalClientRecord {
+  id                String           @id @default(cuid())
+  ownerId           String
+  owner             Owner            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  petId             String
+  pet               Pet              @relation(fields: [petId], references: [id], onDelete: Cascade)
+  source            ClientDataSource
+  externalContactId String?
+  externalPetId     String?
+  contactStatus     String?
+  lastSyncedAt      DateTime         @default(now())
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@unique([source, externalContactId, externalPetId])
+  @@index([ownerId])
+  @@index([petId])
 }
 
 model StaffPermission {
@@ -359,17 +410,99 @@ model StaffPermission {
 }
 
 model StaffAccessAuditLog {
-  id           String    @id @default(cuid())
+  id           String     @id @default(cuid())
   actorId      String?
   actor        StaffUser? @relation("StaffAccessAuditActor", fields: [actorId], references: [id], onDelete: SetNull)
   targetUserId String?
   targetUser   StaffUser? @relation("StaffAccessAuditTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
   action       String
   metadata     Json?
-  createdAt    DateTime  @default(now())
+  createdAt    DateTime   @default(now())
 
   @@index([targetUserId, createdAt])
   @@index([actorId, createdAt])
+}
+
+model ClientProfile {
+  id                   String                       @id @default(cuid())
+  ownerId              String                       @unique
+  owner                Owner                        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  emailMarketingStatus MarketingConsentStatus       @default(NOT_SUBSCRIBED)
+  smsMarketingStatus   MarketingConsentStatus       @default(NOT_SUBSCRIBED)
+  emailConsentAt       DateTime?
+  smsConsentAt         DateTime?
+  emailConsentSource   String?
+  smsConsentSource     String?
+  consents             ClientCommunicationConsent[]
+  createdAt            DateTime                     @default(now())
+  updatedAt            DateTime                     @updatedAt
+
+  @@index([emailMarketingStatus])
+  @@index([smsMarketingStatus])
+}
+
+model ClientCommunicationConsent {
+  id              String                 @id @default(cuid())
+  clientProfileId String
+  clientProfile   ClientProfile          @relation(fields: [clientProfileId], references: [id], onDelete: Cascade)
+  channel         MarketingChannel
+  action          MarketingConsentAction
+  source          String
+  policyVersion   String?
+  recordedAt      DateTime               @default(now())
+
+  @@index([clientProfileId, channel, recordedAt])
+}
+
+model ClientImportRun {
+  id                     String     @id @default(cuid())
+  initiatedByStaffUserId String?
+  initiatedBy            StaffUser? @relation("ClientImportInitiator", fields: [initiatedByStaffUserId], references: [id], onDelete: SetNull)
+  originalFileName       String
+  sourceLabel            String     @default("New Client Tracker")
+  totalRows              Int
+  importedCount          Int
+  updatedCount           Int
+  skippedCount           Int
+  skippedRows            Json?
+  createdAt              DateTime   @default(now())
+
+  @@index([createdAt])
+  @@index([initiatedByStaffUserId, createdAt])
+}
+
+model ClientLifecycleRecord {
+  id                        String       @id @default(cuid())
+  ownerId                   String
+  owner                     Owner        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  petId                     String
+  pet                       Pet          @relation(fields: [petId], references: [id], onDelete: Cascade)
+  newClientDate             DateTime     @default(now())
+  leadSource                String?
+  referredBy                String?
+  regularVeterinarian       String?
+  firstVisitType            String?
+  doctorSeen                String?
+  recheckRecommended        Boolean      @default(false)
+  recheckScheduled          Boolean      @default(false)
+  recheckDate               DateTime?
+  recheckCompleted          Boolean      @default(false)
+  followUpNeeded            Boolean      @default(false)
+  firstVisitRevenue         Decimal?     @db.Decimal(10, 2)
+  additionalServicesRevenue Decimal?     @db.Decimal(10, 2)
+  wellnessPlan              String?
+  clientStatus              ClientStatus @default(ACTIVE)
+  lastVisitAt               DateTime?
+  nextAppointmentAt         DateTime?
+  notes                     String?
+  createdAt                 DateTime     @default(now())
+  updatedAt                 DateTime     @updatedAt
+
+  @@unique([ownerId, petId])
+  @@index([leadSource])
+  @@index([clientStatus])
+  @@index([recheckScheduled, recheckCompleted])
+  @@index([newClientDate])
 }
 
 model PetCareReviewer {
@@ -414,7 +547,7 @@ model PetCareArticle {
   status                 PetCarePublishingStatus @default(DRAFT)
   reviewStatus           PetCareReviewStatus     @default(NOT_REVIEWED)
   reviewedAt             DateTime?
-  reviewDueAt             DateTime?
+  reviewDueAt            DateTime?
   publishedAt            DateTime?
   readingTimeMinutes     Int
   relatedService         Json
@@ -455,7 +588,7 @@ model PetCarePreviewShare {
   expiresAt            DateTime
   revokedAt            DateTime?
   createdByStaffUserId String
-  invitationRecipient String?
+  invitationRecipient  String?
   invitationSentAt     DateTime?
   comments             PetCarePreviewComment[]
   createdAt            DateTime                @default(now())
@@ -477,17 +610,17 @@ model PetCarePreviewComment {
 }
 
 model AppointmentRescheduleToken {
-  id                String             @id @default(cuid())
+  id                   String             @id @default(cuid())
   appointmentRequestId String
-  appointmentRequest AppointmentRequest @relation(fields: [appointmentRequestId], references: [id], onDelete: Cascade)
-  appointmentDraftId String            @unique
-  appointmentDraft   AppointmentDraft  @relation(fields: [appointmentDraftId], references: [id], onDelete: Cascade)
-  tokenHash         String             @unique
-  expiresAt         DateTime
-  usedAt            DateTime?
+  appointmentRequest   AppointmentRequest @relation(fields: [appointmentRequestId], references: [id], onDelete: Cascade)
+  appointmentDraftId   String             @unique
+  appointmentDraft     AppointmentDraft   @relation(fields: [appointmentDraftId], references: [id], onDelete: Cascade)
+  tokenHash            String             @unique
+  expiresAt            DateTime
+  usedAt               DateTime?
   createdByStaffUserId String
-  createdByStaffUser StaffUser         @relation(fields: [createdByStaffUserId], references: [id], onDelete: Restrict)
-  createdAt         DateTime           @default(now())
+  createdByStaffUser   StaffUser          @relation(fields: [createdByStaffUserId], references: [id], onDelete: Restrict)
+  createdAt            DateTime           @default(now())
 
   @@index([appointmentRequestId])
   @@index([expiresAt])
@@ -518,11 +651,13 @@ enum VisitType {
 enum PetSpecies {
   DOG
   CAT
+  UNKNOWN
 }
 
 enum PetSex {
   MALE
   FEMALE
+  UNKNOWN
 }
 
 enum PreferredContactMethod {
@@ -543,6 +678,17 @@ enum StaffRole {
   STAFF
 }
 
+enum OwnerContactChannel {
+  PHONE
+  EMAIL
+}
+
+enum ClientDataSource {
+  WEAVE
+  LILI_WEB
+  MANUAL
+}
+
 enum StaffPermissionKey {
   APPOINTMENTS_VIEW
   APPOINTMENTS_MANAGE
@@ -551,6 +697,32 @@ enum StaffPermissionKey {
   PET_CARE_EDIT
   PET_CARE_PUBLISH
   PET_CARE_REVIEWERS
+  CLIENTS_VIEW
+  CLIENTS_MANAGE
+}
+
+enum MarketingConsentStatus {
+  NOT_SUBSCRIBED
+  SUBSCRIBED
+  UNSUBSCRIBED
+  SUPPRESSED
+}
+
+enum MarketingChannel {
+  EMAIL
+  SMS
+}
+
+enum MarketingConsentAction {
+  OPTED_IN
+  OPTED_OUT
+  SUPPRESSED
+}
+
+enum ClientStatus {
+  ACTIVE
+  INACTIVE
+  DECEASED
 }
 
 enum CalendarSyncStatus {
