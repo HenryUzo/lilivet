@@ -343,6 +343,7 @@ model StaffUser {
   passwordHash            String
   role                    StaffRole                    @default(STAFF)
   isActive                Boolean                      @default(true)
+  sessionVersion          Int                          @default(0)
   mfaSecretEncrypted      String?
   mfaPendingSecretEncrypted String?
   mfaEnabledAt            DateTime?

@@ -91,6 +91,7 @@ const envSchema = z.object({
   MAIL_FROM: z.string().min(1).default("Lili Vet Hospital <no-reply@lilivethospital.example>"),
   PUBLIC_WEBSITE_URL: z.string().url().default("https://www.liliveterinaryhospital.com"),
   STAFF_DASHBOARD_URL: z.string().url().default(defaultStaffDashboardUrl),
+  STAFF_ALLOWED_ORIGINS: z.string().default("http://localhost:5173,http://localhost:5174,https://admin.liliveterinaryhospital.com,https://lili-staff-dashboard.vercel.app"),
   SMTP_HOST: z.string().min(1).default("localhost"),
   SMTP_PORT: z.coerce.number().int().positive().default(587),
   SMTP_SECURE: booleanEnv.default(false),
@@ -111,6 +112,7 @@ const envSchema = z.object({
   JWT_EXPIRES_IN: z.string().min(1).default("8h"),
   JWT_ISSUER: z.string().min(1).default("lili-vet-backend"),
   JWT_AUDIENCE: z.string().min(1).default("lili-vet-staff"),
+  STAFF_SESSION_MAX_AGE_HOURS: z.coerce.number().int().min(1).max(24).default(4),
   MFA_ENCRYPTION_KEY: z.string().min(32).default("development-only-mfa-encryption-key-change-before-production"),
   MFA_REQUIRED_FOR_STAFF: booleanEnv.default(false),
   RESCHEDULE_TOKEN_EXPIRY_HOURS: z.coerce.number().positive().default(72),
@@ -169,6 +171,10 @@ export function assertSecureProductionEnv() {
 
   if (env.MFA_ENCRYPTION_KEY === "development-only-mfa-encryption-key-change-before-production") {
     insecureVariables.push("MFA_ENCRYPTION_KEY");
+  }
+
+  if (env.CORS_ORIGIN.split(",").map((origin) => origin.trim()).includes("*")) {
+    insecureVariables.push("CORS_ORIGIN");
   }
 
   if (env.STAFF_SEED_PASSWORD === DEFAULT_STAFF_SEED_PASSWORD) {

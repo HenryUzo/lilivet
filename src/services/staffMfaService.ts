@@ -20,6 +20,7 @@ type MfaUser = {
   email: string;
   role: StaffRole;
   isActive: boolean;
+  sessionVersion: number;
   mfaSecretEncrypted: string | null;
   mfaPendingSecretEncrypted: string | null;
   permissions: Array<{ key: StaffPermissionKey }>;
@@ -161,6 +162,6 @@ export async function completeMfaChallenge(challengeToken: string, code: string)
 
 export function createStaffSession(user: MfaUser) {
   const permissions = getEffectivePermissions(user.role, user.permissions.map((permission) => permission.key));
-  const payload: StaffJwtPayload = { sub: user.id, email: user.email, role: user.role, permissions, purpose: "staff_session" };
+  const payload: StaffJwtPayload = { sub: user.id, email: user.email, role: user.role, permissions, sessionVersion: user.sessionVersion, purpose: "staff_session" };
   return { token: jwt.sign(payload, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRES_IN as SignOptions["expiresIn"], issuer: env.JWT_ISSUER, audience: env.JWT_AUDIENCE }), user: { id: user.id, email: user.email, role: user.role, permissions } };
 }

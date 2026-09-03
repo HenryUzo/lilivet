@@ -48,6 +48,8 @@ services:
         sync: false
       - key: JWT_AUDIENCE
         sync: false
+      - key: STAFF_SESSION_MAX_AGE_HOURS
+        value: "4"
       - key: MFA_ENCRYPTION_KEY
         generateValue: true
       - key: MFA_REQUIRED_FOR_STAFF
@@ -72,6 +74,8 @@ services:
         sync: false
       - key: STAFF_DASHBOARD_URL
         sync: false
+      - key: STAFF_ALLOWED_ORIGINS
+        value: "https://admin.liliveterinaryhospital.com,https://lili-staff-dashboard.vercel.app"
       - key: CORS_ORIGIN
         sync: false
       - key: CLINIC_NOTIFICATION_EMAIL

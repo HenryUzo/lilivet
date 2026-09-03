@@ -104,7 +104,8 @@ export async function updateStaffUser(actorId: string, id: string, input: { isAc
     where: { id },
     data: {
       ...(input.isActive === undefined ? {} : { isActive: input.isActive }),
-      ...(input.permissions ? { permissions: { deleteMany: {}, create: input.permissions.map((key) => ({ key })) } } : {})
+      ...(input.permissions ? { permissions: { deleteMany: {}, create: input.permissions.map((key) => ({ key })) } } : {}),
+      ...(input.isActive === undefined && !input.permissions ? {} : { sessionVersion: { increment: 1 } })
     },
     include: { permissions: { select: { key: true } } }
   });

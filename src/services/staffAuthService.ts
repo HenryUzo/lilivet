@@ -11,6 +11,7 @@ export type StaffJwtPayload = {
   email: string;
   role: StaffRole;
   permissions: StaffPermissionKey[];
+  sessionVersion?: number;
   purpose?: "staff_session" | "mfa_setup" | "mfa_challenge";
 };
 

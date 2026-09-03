@@ -70,6 +70,10 @@ describe("app readiness and auth", () => {
         .post("/api/staff/auth/login")
         .send({ email: "admin@example.com", password: "secret" });
       expect(response.status).toBe(200);
+      expect(response.body.token).toBeUndefined();
+      expect(response.headers["set-cookie"]?.[0]).toContain("lilivet_staff_session=signed-token");
+      expect(response.headers["set-cookie"]?.[0]).toContain("HttpOnly");
+      expect(response.headers["set-cookie"]?.[0]).toContain("SameSite=Lax");
     }
 
     const blockedResponse = await request(app)

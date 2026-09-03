@@ -31,6 +31,7 @@ const allowAllCorsOrigins = allowedCorsOrigins.includes("*");
 app.use(helmet());
 app.use(
   cors({
+    credentials: true,
     origin(origin, callback) {
       if (!origin || allowAllCorsOrigins) {
         callback(null, true);

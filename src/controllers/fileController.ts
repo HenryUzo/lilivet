@@ -17,7 +17,7 @@ function buildContentDisposition(type: "attachment" | "inline", fileName: string
 
 export const getFileContent = asyncHandler(async (req: Request, res: Response) => {
   const { id } = idParamSchema.parse(req.params);
-  const { file, target } = await getStaffFileAccess(id);
+  const { file, target } = await getStaffFileAccess(id, req.staffUser!.permissions);
   const shouldDownload = req.query.download === "1" || req.query.download === "true";
 
   res.type(file.mimeType);

@@ -7,17 +7,28 @@ import { getEffectivePermissions } from "../services/staffPermissions";
 import { HttpError } from "../utils/httpError";
 import type { StaffJwtPayload } from "../services/staffAuthService";
 
-function parseBearerToken(header: string | undefined) {
+const STAFF_SESSION_COOKIE = "lilivet_staff_session";
+const unsafeMethods = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+const trustedStaffOrigins = new Set([
+  ...env.STAFF_ALLOWED_ORIGINS.split(",").map((origin) => origin.trim()).filter(Boolean),
+  new URL(env.STAFF_DASHBOARD_URL).origin
+]);
+
+function parseSessionCookie(header: string | undefined) {
   if (!header) return null;
-  const [scheme, token] = header.split(" ");
-  if (scheme !== "Bearer" || !token) return null;
-  return token;
+  const cookie = header.split(";").map((part) => part.trim()).find((part) => part.startsWith(`${STAFF_SESSION_COOKIE}=`));
+  return cookie ? decodeURIComponent(cookie.slice(`${STAFF_SESSION_COOKIE}=`.length)) : null;
+}
+
+function hasTrustedOrigin(req: Request) {
+  const origin = req.header("origin");
+  return Boolean(origin && trustedStaffOrigins.has(origin));
 }
 
 export async function requireStaffAuth(req: Request, _res: Response, next: NextFunction) {
-  const token = parseBearerToken(req.header("authorization"));
+  const token = parseSessionCookie(req.header("cookie"));
   if (!token) {
-    next(new HttpError(401, "Missing staff authorization token"));
+    next(new HttpError(401, "Missing staff session"));
     return;
   }
 
@@ -26,7 +37,7 @@ export async function requireStaffAuth(req: Request, _res: Response, next: NextF
       issuer: env.JWT_ISSUER,
       audience: env.JWT_AUDIENCE
     }) as StaffJwtPayload;
-    if (decoded.purpose !== "staff_session") {
+    if (decoded.purpose !== "staff_session" || !Number.isInteger(decoded.sessionVersion)) {
       next(new HttpError(401, "Complete multi-factor authentication to access the dashboard"));
       return;
     }
@@ -34,8 +45,12 @@ export async function requireStaffAuth(req: Request, _res: Response, next: NextF
       where: { id: decoded.sub },
       include: { permissions: { select: { key: true } } }
     });
-    if (!user || !user.isActive) {
+    if (!user || !user.isActive || user.sessionVersion !== decoded.sessionVersion) {
       next(new HttpError(401, "Invalid or inactive staff authorization token"));
+      return;
+    }
+    if (unsafeMethods.has(req.method) && !hasTrustedOrigin(req)) {
+      next(new HttpError(403, "Staff request origin is not allowed"));
       return;
     }
     req.staffUser = {

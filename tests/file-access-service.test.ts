@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { StaffPermissionKey } from "@prisma/client";
 
 const { uploadedFileFindUniqueMock, getStorageProviderMock, providerOpenMock } = vi.hoisted(() => ({
   uploadedFileFindUniqueMock: vi.fn(),
@@ -53,7 +54,7 @@ describe("getStaffFileAccess", () => {
     uploadedFileFindUniqueMock.mockResolvedValue(fileRecord);
     providerOpenMock.mockResolvedValue(storageTarget);
 
-    const result = await getStaffFileAccess("file-1");
+    const result = await getStaffFileAccess("file-1", [StaffPermissionKey.APPOINTMENTS_VIEW]);
 
     expect(result.file.id).toBe("file-1");
     expect(getStorageProviderMock).toHaveBeenCalledWith("local");
@@ -73,7 +74,7 @@ describe("getStaffFileAccess", () => {
       newPatientRequestId: null
     });
 
-    await expect(getStaffFileAccess("file-1")).rejects.toMatchObject({
+    await expect(getStaffFileAccess("file-1", [StaffPermissionKey.APPOINTMENTS_VIEW])).rejects.toMatchObject({
       statusCode: 404
     });
   });
@@ -94,8 +95,19 @@ describe("getStaffFileAccess", () => {
       message: "File is no longer available on the server"
     });
 
-    await expect(getStaffFileAccess("file-1")).rejects.toMatchObject({
+    await expect(getStaffFileAccess("file-1", [StaffPermissionKey.NEW_PATIENTS_VIEW])).rejects.toMatchObject({
       statusCode: 410
     });
+  });
+
+  it("rejects a staff user without the workflow permission", async () => {
+    uploadedFileFindUniqueMock.mockResolvedValue({
+      id: "file-1", originalName: "record.pdf", sizeBytes: 512, mimeType: "application/pdf", storageProvider: "local", storageKey: "/tmp/record.pdf", appointmentRequestId: "appointment-1", newPatientRequestId: null
+    });
+
+    await expect(getStaffFileAccess("file-1", [StaffPermissionKey.NEW_PATIENTS_VIEW])).rejects.toMatchObject({
+      statusCode: 403
+    });
+    expect(providerOpenMock).not.toHaveBeenCalled();
   });
 });
