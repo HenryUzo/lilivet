@@ -6,3 +6,7 @@ export const staffLoginSchema = z.object({
 });
 
 export type StaffLoginInput = z.infer<typeof staffLoginSchema>;
+
+export const staffMfaCodeSchema = z.object({
+  code: z.string().trim().min(6).max(16)
+});

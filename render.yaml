@@ -48,6 +48,10 @@ services:
         sync: false
       - key: JWT_AUDIENCE
         sync: false
+      - key: MFA_ENCRYPTION_KEY
+        generateValue: true
+      - key: MFA_REQUIRED_FOR_STAFF
+        value: "false"
       - key: GOOGLE_CALENDAR_CLIENT_ID
         sync: false
       - key: GOOGLE_CALENDAR_CLIENT_SECRET

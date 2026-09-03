@@ -26,6 +26,10 @@ export async function requireStaffAuth(req: Request, _res: Response, next: NextF
       issuer: env.JWT_ISSUER,
       audience: env.JWT_AUDIENCE
     }) as StaffJwtPayload;
+    if (decoded.purpose !== "staff_session") {
+      next(new HttpError(401, "Complete multi-factor authentication to access the dashboard"));
+      return;
+    }
     const user = await prisma.staffUser.findUnique({
       where: { id: decoded.sub },
       include: { permissions: { select: { key: true } } }

@@ -343,6 +343,9 @@ model StaffUser {
   passwordHash            String
   role                    StaffRole                    @default(STAFF)
   isActive                Boolean                      @default(true)
+  mfaSecretEncrypted      String?
+  mfaPendingSecretEncrypted String?
+  mfaEnabledAt            DateTime?
   invitationTokenHash     String?                      @unique
   invitationExpiresAt     DateTime?
   invitationAcceptedAt    DateTime?
@@ -352,6 +355,7 @@ model StaffUser {
   permissions             StaffPermission[]
   accessAuditActions      StaffAccessAuditLog[]        @relation("StaffAccessAuditActor")
   accessAuditTargets      StaffAccessAuditLog[]        @relation("StaffAccessAuditTarget")
+  mfaRecoveryCodes        StaffMfaRecoveryCode[]
   clientImportRuns        ClientImportRun[]            @relation("ClientImportInitiator")
   confirmedAppointments   AppointmentRequest[]
   createdRescheduleTokens AppointmentRescheduleToken[]
@@ -361,6 +365,17 @@ model StaffUser {
   @@index([email])
   @@index([isActive])
   @@index([invitationExpiresAt])
+}
+
+model StaffMfaRecoveryCode {
+  id          String    @id @default(cuid())
+  staffUserId String
+  staffUser   StaffUser @relation(fields: [staffUserId], references: [id], onDelete: Cascade)
+  codeHash    String
+  usedAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([staffUserId, usedAt])
 }
 
 model OwnerContactMethod {

@@ -111,6 +111,8 @@ const envSchema = z.object({
   JWT_EXPIRES_IN: z.string().min(1).default("8h"),
   JWT_ISSUER: z.string().min(1).default("lili-vet-backend"),
   JWT_AUDIENCE: z.string().min(1).default("lili-vet-staff"),
+  MFA_ENCRYPTION_KEY: z.string().min(32).default("development-only-mfa-encryption-key-change-before-production"),
+  MFA_REQUIRED_FOR_STAFF: booleanEnv.default(false),
   RESCHEDULE_TOKEN_EXPIRY_HOURS: z.coerce.number().positive().default(72),
   STAFF_SEED_EMAIL: z.string().email().default("admin@lilivethospital.example"),
   STAFF_SEED_PASSWORD: z.string().min(8).default(DEFAULT_STAFF_SEED_PASSWORD)
@@ -163,6 +165,10 @@ export function assertSecureProductionEnv() {
 
   if (env.JWT_SECRET === DEFAULT_JWT_SECRET) {
     insecureVariables.push("JWT_SECRET");
+  }
+
+  if (env.MFA_ENCRYPTION_KEY === "development-only-mfa-encryption-key-change-before-production") {
+    insecureVariables.push("MFA_ENCRYPTION_KEY");
   }
 
   if (env.STAFF_SEED_PASSWORD === DEFAULT_STAFF_SEED_PASSWORD) {
