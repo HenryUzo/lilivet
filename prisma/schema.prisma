@@ -432,11 +432,15 @@ model StaffAccessAuditLog {
   targetUserId String?
   targetUser   StaffUser? @relation("StaffAccessAuditTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
   action       String
+  resourceType String?
+  resourceId   String?
   metadata     Json?
   createdAt    DateTime   @default(now())
 
   @@index([targetUserId, createdAt])
   @@index([actorId, createdAt])
+  @@index([resourceType, resourceId, createdAt])
+  @@index([action, createdAt])
 }
 
 model ClientProfile {

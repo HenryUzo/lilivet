@@ -6,6 +6,7 @@ import { prisma } from "../prisma/client";
 import { asyncHandler } from "../utils/asyncHandler";
 import { HttpError } from "../utils/httpError";
 import { staffLoginSchema, staffMfaCodeSchema } from "../validators/staffAuthSchemas";
+import { writeStaffAuditLog } from "../services/staffAuditService";
 
 function bearerToken(req: Request) {
   const [scheme, token] = (req.header("authorization") ?? "").split(" ");
@@ -59,7 +60,7 @@ export const getStaffSession = asyncHandler(async (req: Request, res: Response) 
 export const logoutStaff = asyncHandler(async (req: Request, res: Response) => {
   const staffUser = req.staffUser!;
   await prisma.staffUser.update({ where: { id: staffUser.id }, data: { sessionVersion: { increment: 1 } } });
-  await prisma.staffAccessAuditLog.create({ data: { actorId: staffUser.id, targetUserId: staffUser.id, action: "STAFF_LOGGED_OUT" } });
+  await writeStaffAuditLog({ action: "STAFF_LOGGED_OUT", actorId: staffUser.id, targetUserId: staffUser.id, resourceType: "STAFF_USER", resourceId: staffUser.id });
   res.clearCookie("lilivet_staff_session", clearSessionCookieOptions());
   res.status(204).send();
 });

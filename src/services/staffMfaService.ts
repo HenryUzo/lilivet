@@ -9,6 +9,7 @@ import { prisma } from "../prisma/client";
 import { HttpError } from "../utils/httpError";
 import { getEffectivePermissions } from "./staffPermissions";
 import type { StaffJwtPayload } from "./staffAuthService";
+import { writeStaffAuditLog } from "./staffAuditService";
 
 const BASE32_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 const MFA_TOKEN_EXPIRY = "10m";
@@ -132,7 +133,10 @@ export async function confirmMfaEnrollment(setupToken: string, code: string) {
   const user = await getMfaUser(payload.sub);
   if (!user.mfaPendingSecretEncrypted) throw new HttpError(409, "Start MFA setup before confirming it");
   const secret = decryptSecret(user.mfaPendingSecretEncrypted);
-  if (!verifyTotp(secret, code)) throw new HttpError(401, "Enter the current six-digit code from your authenticator app");
+  if (!verifyTotp(secret, code)) {
+    await writeStaffAuditLog({ action: "STAFF_MFA_ENROLLMENT_FAILED", actorId: user.id, targetUserId: user.id, resourceType: "STAFF_USER", resourceId: user.id });
+    throw new HttpError(401, "Enter the current six-digit code from your authenticator app");
+  }
   const recoveryCodes = createRecoveryCodes();
   const hashes = await Promise.all(recoveryCodes.map((recoveryCode) => bcrypt.hash(recoveryCode, 12)));
   await prisma.$transaction([
@@ -140,7 +144,7 @@ export async function confirmMfaEnrollment(setupToken: string, code: string) {
     prisma.staffUser.update({ where: { id: user.id }, data: { mfaSecretEncrypted: user.mfaPendingSecretEncrypted, mfaPendingSecretEncrypted: null, mfaEnabledAt: new Date() } }),
     prisma.staffMfaRecoveryCode.createMany({ data: hashes.map((codeHash) => ({ staffUserId: user.id, codeHash })) })
   ]);
-  await prisma.staffAccessAuditLog.create({ data: { actorId: user.id, targetUserId: user.id, action: "STAFF_MFA_ENABLED" } });
+  await writeStaffAuditLog({ action: "STAFF_MFA_ENABLED", actorId: user.id, targetUserId: user.id, resourceType: "STAFF_USER", resourceId: user.id });
   return { session: createStaffSession(user), recoveryCodes };
 }
 
@@ -153,10 +157,14 @@ export async function completeMfaChallenge(challengeToken: string, code: string)
     const normalizedRecoveryCode = code.trim().toUpperCase();
     const recoveryCodes = await prisma.staffMfaRecoveryCode.findMany({ where: { staffUserId: user.id, usedAt: null } });
     const matchingCode = (await Promise.all(recoveryCodes.map(async (recoveryCode) => ({ recoveryCode, matches: await bcrypt.compare(normalizedRecoveryCode, recoveryCode.codeHash) })))).find((entry) => entry.matches)?.recoveryCode;
-    if (!matchingCode) throw new HttpError(401, "Enter a valid authenticator or recovery code");
+    if (!matchingCode) {
+      await writeStaffAuditLog({ action: "STAFF_LOGIN_FAILED", actorId: user.id, targetUserId: user.id, resourceType: "STAFF_USER", resourceId: user.id, metadata: { reason: "invalid_mfa" } });
+      throw new HttpError(401, "Enter a valid authenticator or recovery code");
+    }
     await prisma.staffMfaRecoveryCode.update({ where: { id: matchingCode.id }, data: { usedAt: new Date() } });
-    await prisma.staffAccessAuditLog.create({ data: { actorId: user.id, targetUserId: user.id, action: "STAFF_MFA_RECOVERY_CODE_USED" } });
+    await writeStaffAuditLog({ action: "STAFF_MFA_RECOVERY_CODE_USED", actorId: user.id, targetUserId: user.id, resourceType: "STAFF_USER", resourceId: user.id });
   }
+  await writeStaffAuditLog({ action: "STAFF_LOGIN_SUCCEEDED", actorId: user.id, targetUserId: user.id, resourceType: "STAFF_USER", resourceId: user.id, metadata: { mfa: true } });
   return createStaffSession(user);
 }
 

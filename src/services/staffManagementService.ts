@@ -1,11 +1,12 @@
 import crypto from "node:crypto";
 import bcrypt from "bcryptjs";
-import { Prisma, StaffPermissionKey, StaffRole } from "@prisma/client";
+import { StaffPermissionKey, StaffRole } from "@prisma/client";
 import { env } from "../config/env";
 import { prisma } from "../prisma/client";
 import { HttpError } from "../utils/httpError";
 import { sendStaffInvitation } from "./mailService";
 import { getEffectivePermissions } from "./staffPermissions";
+import { writeStaffAuditLog } from "./staffAuditService";
 import type { CreateStaffInvitationInput } from "../validators/staffManagementSchemas";
 
 const INVITATION_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000;
@@ -43,7 +44,7 @@ function serializeUser(user: {
 }
 
 async function audit(actorId: string | null, targetUserId: string, action: string, metadata?: Record<string, unknown>) {
-  await prisma.staffAccessAuditLog.create({ data: { actorId, targetUserId, action, metadata: metadata as Prisma.InputJsonValue | undefined } });
+  await writeStaffAuditLog({ action, actorId, targetUserId, resourceType: "STAFF_USER", resourceId: targetUserId, metadata: metadata as Record<string, boolean | number | string | string[] | null | undefined> });
 }
 
 async function assertCanChangeSuperAdmin(targetUserId: string, nextIsActive?: boolean) {

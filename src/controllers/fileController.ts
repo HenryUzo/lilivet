@@ -4,6 +4,7 @@ import { asyncHandler } from "../utils/asyncHandler";
 import { getStaffFileAccess } from "../services/fileAccessService";
 import { createUploadedFiles } from "../services/fileService";
 import { idParamSchema } from "../validators/common";
+import { writeStaffAuditLog } from "../services/staffAuditService";
 
 export const uploadFiles = asyncHandler(async (req: Request, res: Response) => {
   const files = await createUploadedFiles((req.files as Express.Multer.File[]) ?? []);
@@ -19,6 +20,7 @@ export const getFileContent = asyncHandler(async (req: Request, res: Response) =
   const { id } = idParamSchema.parse(req.params);
   const { file, target } = await getStaffFileAccess(id, req.staffUser!.permissions);
   const shouldDownload = req.query.download === "1" || req.query.download === "true";
+  await writeStaffAuditLog({ action: shouldDownload ? "SENSITIVE_FILE_DOWNLOADED" : "SENSITIVE_FILE_VIEWED", actorId: req.staffUser!.id, resourceType: "UPLOADED_FILE", resourceId: file.id, metadata: { appointmentRequestId: file.appointmentRequestId, newPatientRequestId: file.newPatientRequestId } });
 
   res.type(file.mimeType);
   res.setHeader(
