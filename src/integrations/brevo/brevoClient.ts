@@ -161,8 +161,16 @@ export async function createBrevoMarketingList(name: string) {
   return brevoRequest("/contacts/lists", "POST", { name, folderId: 1 });
 }
 
-export async function addBrevoContactsToList(listId: number, emails: string[]) {
-  return brevoRequest(`/contacts/lists/${listId}/contacts/add`, "POST", { emails });
+export async function upsertBrevoContactsToList(listId: number, emails: string[]) {
+  const results = await Promise.all(emails.map((email) => brevoRequest("/contacts", "POST", {
+    email,
+    listIds: [listId],
+    updateEnabled: true
+  })));
+
+  const failed = results.find((result) => !result.ok);
+  if (failed) return failed;
+  return { ok: true as const, status: 201, bodyText: "" };
 }
 
 export async function createBrevoMarketingCampaign(input: BrevoMarketingCampaignInput) {

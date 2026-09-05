@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { MarketingAudienceMode, MarketingConsentAction, MarketingConsentStatus, MarketingDeliveryStatus, MarketingCampaignStatus, Prisma } from "@prisma/client";
 import { env } from "../config/env";
-import { addBrevoContactsToList, createBrevoMarketingCampaign, createBrevoMarketingList, hashEmail, sendBrevoMarketingCampaign, sendBrevoTransactionalEmail } from "../integrations/brevo/brevoClient";
+import { createBrevoMarketingCampaign, createBrevoMarketingList, hashEmail, sendBrevoMarketingCampaign, sendBrevoTransactionalEmail, upsertBrevoContactsToList } from "../integrations/brevo/brevoClient";
 import { prisma } from "../prisma/client";
 import { HttpError } from "../utils/httpError";
 
@@ -176,7 +176,7 @@ export async function dispatchMarketingCampaign(id: string, staffUserId: string)
   if (!list.ok) throw new HttpError(503, "Brevo could not prepare the campaign audience");
   const listId = Number(list.data?.id);
   if (!Number.isInteger(listId)) throw new HttpError(503, "Brevo could not prepare the campaign audience");
-  const contacts = await addBrevoContactsToList(listId, emails);
+  const contacts = await upsertBrevoContactsToList(listId, emails);
   if (!contacts.ok) throw new HttpError(503, "Brevo could not prepare the campaign audience");
   const remote = await createBrevoMarketingCampaign({ name: campaign.name, subject: campaign.subject, previewText: campaign.previewText, htmlContent: campaign.htmlContent, textContent: campaign.textContent, sender: sender(), listId });
   if (!remote.ok) throw new HttpError(503, "Brevo could not create the campaign");
