@@ -80,6 +80,9 @@ Copy `.env.example` to `.env` and set:
 - `BREVO_DOI_REDIRECT_URL` - HTTPS page Brevo should send users to after confirmation.
 - `BREVO_PET_PREFERENCE_ATTRIBUTE` - Brevo contact attribute used for `DOG`, `CAT`, or `BOTH`. Defaults to `PET_PREFERENCE`.
 - `BREVO_API_BASE_URL` - Brevo API base URL. Defaults to `https://api.brevo.com/v3`.
+- `BREVO_MARKETING_ENABLED` - keeps promotional campaign delivery disabled until the Brevo sender, address, and webhook secret are configured. Leave this `false` during setup.
+- `BREVO_MARKETING_SENDER_NAME`, `BREVO_MARKETING_SENDER_EMAIL`, and `BREVO_MARKETING_SENDER_ADDRESS` - verified Brevo sender identity and the clinic's physical mailing address included in each promotional email.
+- `BREVO_MARKETING_WEBHOOK_SECRET` - a long random value. Configure Brevo's transactional event webhook to call `POST /api/marketing/brevo/webhook?secret=<value>` so unsubscribe, bounce, and complaint events suppress future promotional sends.
 - `STAFF_SEED_EMAIL` and `STAFF_SEED_PASSWORD` - admin staff credentials used by the seed script.
 
 In production, the server refuses to start if `JWT_SECRET` or `STAFF_SEED_PASSWORD` is still using the default bootstrap value.
@@ -249,6 +252,19 @@ curl -X POST "https://lilivet.onrender.com/api/pet-care/newsletter-subscriptions
 ```
 
 Successful requests return `202 Accepted` with `status: "confirmation_required"`. The response intentionally does not reveal whether an address already exists. Brevo failures return a generic `503`; logs include a safe correlation id and masked/hash email only.
+
+## Client Email Campaign Setup
+
+The staff dashboard's Email Campaigns section is Super Admin-only. A campaign can use the consented-client audience or a Super Admin-selected list of email addresses. In both cases, the delivery service permanently excludes addresses that have unsubscribed, bounced, or generated a complaint; that suppression cannot be overridden from the dashboard.
+
+Before setting `BREVO_MARKETING_ENABLED=true` in Render:
+
+1. Verify the Lili sender domain in Brevo and publish its SPF, DKIM, and DMARC records.
+2. Set a real `BREVO_MARKETING_SENDER_EMAIL` and clinic postal address.
+3. Generate and store a long random `BREVO_MARKETING_WEBHOOK_SECRET` in Render, then set the Brevo event webhook URL to `https://lilivet.onrender.com/api/marketing/brevo/webhook?secret=<that-secret>`.
+4. Create a draft, send an internal test, confirm its unsubscribe link, and only then use the explicit campaign send confirmation.
+
+Brevo manages the unsubscribe link embedded in each campaign. Unsubscribes, hard bounces, and spam complaints update the local client profile to prevent future promotional mail.
 
 ## Pet Care Publishing Workflow
 

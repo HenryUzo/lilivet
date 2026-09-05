@@ -32,15 +32,23 @@ export async function requireStaffAuth(req: Request, _res: Response, next: NextF
     return;
   }
 
+  let decoded: StaffJwtPayload;
   try {
-    const decoded = jwt.verify(token, env.JWT_SECRET, {
+    decoded = jwt.verify(token, env.JWT_SECRET, {
       issuer: env.JWT_ISSUER,
       audience: env.JWT_AUDIENCE
     }) as StaffJwtPayload;
-    if (decoded.purpose !== "staff_session" || !Number.isInteger(decoded.sessionVersion)) {
-      next(new HttpError(401, "Complete multi-factor authentication to access the dashboard"));
-      return;
-    }
+  } catch {
+    next(new HttpError(401, "Invalid or expired staff authorization token"));
+    return;
+  }
+
+  if (decoded.purpose !== "staff_session" || !Number.isInteger(decoded.sessionVersion)) {
+    next(new HttpError(401, "Complete multi-factor authentication to access the dashboard"));
+    return;
+  }
+
+  try {
     const user = await prisma.staffUser.findUnique({
       where: { id: decoded.sub },
       include: { permissions: { select: { key: true } } }
@@ -60,8 +68,8 @@ export async function requireStaffAuth(req: Request, _res: Response, next: NextF
       permissions: getEffectivePermissions(user.role, user.permissions.map((permission) => permission.key))
     };
     next();
-  } catch {
-    next(new HttpError(401, "Invalid or expired staff authorization token"));
+  } catch (error) {
+    next(error);
   }
 }
 

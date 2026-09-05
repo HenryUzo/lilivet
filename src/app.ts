@@ -17,6 +17,7 @@ import { petCareNewsletterRoutes } from "./routes/petCareNewsletter.routes";
 import { staffAuthRoutes } from "./routes/staffAuth.routes";
 import { staffManagementRoutes } from "./routes/staffManagement.routes";
 import { clientRoutes } from "./routes/client.routes";
+import { marketingCampaignRoutes } from "./routes/marketingCampaign.routes";
 import { HttpError } from "./utils/httpError";
 
 export const app = express();
@@ -71,6 +72,7 @@ app.use("/api/appointment-drafts", appointmentDraftRoutes);
 app.use("/api/staff/auth", staffAuthRoutes);
 app.use("/api/staff", staffManagementRoutes);
 app.use("/api/clients", clientRoutes);
+app.use("/api/marketing", marketingCampaignRoutes);
 app.use("/api/appointment-requests", appointmentRequestRoutes);
 app.use("/api/new-patient-requests", newPatientRoutes);
 app.use("/api/pet-care", petCareNewsletterRoutes);

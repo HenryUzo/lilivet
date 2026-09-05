@@ -1,22 +1,25 @@
 import { StaffPermissionKey } from "@prisma/client";
 import { z } from "zod";
 
-const permissionSchema = z.nativeEnum(StaffPermissionKey);
+const assignablePermissionSchema = z.nativeEnum(StaffPermissionKey).refine(
+  (key) => key !== StaffPermissionKey.CAMPAIGNS_VIEW && key !== StaffPermissionKey.CAMPAIGNS_MANAGE,
+  "Campaign permissions are reserved for Super Admins"
+);
 
 export const staffUserIdParamsSchema = z.object({ id: z.string().cuid() });
 
 export const createStaffInvitationSchema = z.object({
   email: z.string().trim().email().transform((value) => value.toLowerCase()),
-  permissions: z.array(permissionSchema).max(20).default([])
+  permissions: z.array(assignablePermissionSchema).max(20).default([])
 });
 
 export const updateStaffPermissionsSchema = z.object({
-  permissions: z.array(permissionSchema).max(20)
+  permissions: z.array(assignablePermissionSchema).max(20)
 });
 
 export const updateStaffAccountSchema = z.object({
   isActive: z.boolean().optional(),
-  permissions: z.array(permissionSchema).max(20).optional()
+  permissions: z.array(assignablePermissionSchema).max(20).optional()
 }).refine((input) => input.isActive !== undefined || input.permissions !== undefined, {
   message: "Provide an account status or permissions to update"
 });

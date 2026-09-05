@@ -140,3 +140,45 @@ describe("env Pet Care newsletter configuration", () => {
     await expect(loadEnvModule()).rejects.toThrow("BREVO_API_KEY is required");
   });
 });
+
+describe("env marketing campaign configuration", () => {
+  afterEach(() => {
+    process.env = { ...originalEnv };
+  });
+
+  it("keeps campaigns disabled without Brevo marketing settings", async () => {
+    process.env = {
+      ...originalEnv,
+      NODE_ENV: "test",
+      DATABASE_URL: originalEnv.DATABASE_URL ?? "postgresql://test:test@localhost:5432/lilivet_test?sslmode=disable",
+      JWT_SECRET: originalEnv.JWT_SECRET ?? "test-secret-value-that-is-long-enough",
+      JWT_ISSUER: originalEnv.JWT_ISSUER ?? "lili-vet-backend",
+      JWT_AUDIENCE: originalEnv.JWT_AUDIENCE ?? "lili-vet-staff",
+      BREVO_MARKETING_ENABLED: "false",
+      BREVO_MARKETING_SENDER_EMAIL: "",
+      BREVO_MARKETING_SENDER_ADDRESS: "",
+      BREVO_MARKETING_WEBHOOK_SECRET: ""
+    };
+
+    const { env } = await loadEnvModule();
+    expect(env.BREVO_MARKETING_ENABLED).toBe(false);
+  });
+
+  it("fails closed when enabled without the Brevo marketing sender", async () => {
+    process.env = {
+      ...originalEnv,
+      NODE_ENV: "test",
+      DATABASE_URL: originalEnv.DATABASE_URL ?? "postgresql://test:test@localhost:5432/lilivet_test?sslmode=disable",
+      JWT_SECRET: originalEnv.JWT_SECRET ?? "test-secret-value-that-is-long-enough",
+      JWT_ISSUER: originalEnv.JWT_ISSUER ?? "lili-vet-backend",
+      JWT_AUDIENCE: originalEnv.JWT_AUDIENCE ?? "lili-vet-staff",
+      BREVO_MARKETING_ENABLED: "true",
+      BREVO_API_KEY: "",
+      BREVO_MARKETING_SENDER_EMAIL: "",
+      BREVO_MARKETING_SENDER_ADDRESS: "",
+      BREVO_MARKETING_WEBHOOK_SECRET: ""
+    };
+
+    await expect(loadEnvModule()).rejects.toThrow("BREVO_API_KEY is required when BREVO_MARKETING_ENABLED=true");
+  });
+});

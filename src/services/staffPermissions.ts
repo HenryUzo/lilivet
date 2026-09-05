@@ -18,11 +18,12 @@ const impliedPermissions: Partial<Record<StaffPermissionKey, StaffPermissionKey[
   [StaffPermissionKey.PET_CARE_PUBLISH]: [StaffPermissionKey.PET_CARE_VIEW, StaffPermissionKey.PET_CARE_EDIT],
   [StaffPermissionKey.PET_CARE_REVIEWERS]: [StaffPermissionKey.PET_CARE_VIEW]
   ,[StaffPermissionKey.CLIENTS_MANAGE]: [StaffPermissionKey.CLIENTS_VIEW]
+  ,[StaffPermissionKey.CAMPAIGNS_MANAGE]: [StaffPermissionKey.CAMPAIGNS_VIEW]
 };
 
 export function getEffectivePermissions(role: StaffRole, permissions: StaffPermissionKey[]) {
   if (role === StaffRole.SUPER_ADMIN) {
-    return [...MANAGED_PERMISSION_KEYS];
+    return Object.values(StaffPermissionKey);
   }
 
   const effective = new Set(permissions);
