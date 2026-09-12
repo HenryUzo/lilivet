@@ -28,6 +28,7 @@ model Owner {
   clientLifecycleRecords ClientLifecycleRecord[]
   contactMethods         OwnerContactMethod[]
   externalClientRecords  ExternalClientRecord[]
+  wellnessGiveawayEntries WellnessGiveawayEntry[]
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
 
@@ -54,6 +55,7 @@ model Pet {
   newPatientRequests     NewPatientRequest[]
   clientLifecycleRecords ClientLifecycleRecord[]
   externalClientRecords  ExternalClientRecord[]
+  wellnessGiveawayPets   WellnessGiveawayPet[]
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
 
@@ -542,6 +544,70 @@ model MarketingEmailSuppression {
   suppressedAt DateTime @default(now())
 
   @@index([suppressedAt])
+}
+
+model WellnessGiveawayCampaign {
+  id              String   @id @default(cuid())
+  slug            String   @unique @default("wellness-giveaway")
+  name            String   @default("Paw-some Wellness Giveaway")
+  isPublished     Boolean  @default(false)
+  raffleEnabled   Boolean  @default(true)
+  prizeDescription String  @default("A free Wellness Plan Membership")
+  discountPercent Int      @default(50)
+  expiresAt       DateTime?
+  termsSummary    String   @default("One entry per email. See full terms for eligibility and restrictions.")
+  termsContent    String   @default("Promotion terms will be published before this campaign goes live.")
+  termsVersion    String   @default("wellness-giveaway-v1")
+  winnerEntryId   String?  @unique
+  winnerEntry     WellnessGiveawayEntry? @relation("WellnessGiveawayWinner", fields: [winnerEntryId], references: [id], onDelete: SetNull)
+  entries         WellnessGiveawayEntry[] @relation("WellnessGiveawayEntries")
+  publishedAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([isPublished])
+}
+
+model WellnessGiveawayEntry {
+  id                String   @id @default(cuid())
+  campaignId        String
+  campaign          WellnessGiveawayCampaign @relation("WellnessGiveawayEntries", fields: [campaignId], references: [id], onDelete: Cascade)
+  ownerId           String
+  owner             Owner    @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  emailHash         String
+  currentPatient    Boolean
+  marketingOptIn    Boolean  @default(false)
+  marketingConfirmed Boolean @default(false)
+  marketingConfirmationSentAt DateTime?
+  rewardCode        String   @unique
+  rewardEmailSentAt DateTime?
+  rewardEmailFailedAt DateTime?
+  redeemedAt        DateTime?
+  termsVersion      String
+  termsAcceptedAt   DateTime @default(now())
+  pets              WellnessGiveawayPet[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  wonCampaign       WellnessGiveawayCampaign? @relation("WellnessGiveawayWinner")
+
+  @@unique([campaignId, emailHash])
+  @@index([campaignId, createdAt])
+  @@index([ownerId])
+}
+
+model WellnessGiveawayPet {
+  id       String @id @default(cuid())
+  entryId  String
+  entry    WellnessGiveawayEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  petId    String
+  pet      Pet @relation(fields: [petId], references: [id], onDelete: Restrict)
+  name     String
+  species  PetSpecies
+  age      String?
+  breed    String?
+
+  @@index([entryId])
+  @@index([petId])
 }
 
 model ClientCommunicationConsent {
