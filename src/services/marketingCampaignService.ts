@@ -126,7 +126,7 @@ async function unsuppressedAudience(recipients: AudienceRecipient[]) {
     select: { emailMarketingStatus: true, owner: { select: { email: true } } }
   });
   const optedOutEmails = new Set(profiles
-    .filter((profile) => profile.owner.email && [MarketingConsentStatus.UNSUBSCRIBED, MarketingConsentStatus.SUPPRESSED].includes(profile.emailMarketingStatus))
+    .filter((profile) => profile.owner.email && (profile.emailMarketingStatus === MarketingConsentStatus.UNSUBSCRIBED || profile.emailMarketingStatus === MarketingConsentStatus.SUPPRESSED))
     .map((profile) => profile.owner.email!.toLowerCase()));
 
   return recipients.filter((recipient) => !suppressedHashes.has(hashEmail(recipient.email)) && !optedOutEmails.has(recipient.email.toLowerCase()));
