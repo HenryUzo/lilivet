@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { MarketingAudienceMode, MarketingConsentAction, MarketingConsentStatus, MarketingDeliveryStatus, MarketingCampaignStatus, Prisma } from "@prisma/client";
 import { env } from "../config/env";
-import { createBrevoMarketingCampaign, createBrevoMarketingList, createBrevoMarketingTestCampaign, deleteBrevoMarketingCampaign, hashEmail, sendBrevoMarketingCampaign, sendBrevoMarketingCampaignTest, upsertBrevoContactsToList } from "../integrations/brevo/brevoClient";
+import { createBrevoMarketingCampaign, createBrevoMarketingList, createBrevoMarketingTestCampaign, hashEmail, sendBrevoMarketingCampaign, sendBrevoMarketingCampaignTest, upsertBrevoContactsToList } from "../integrations/brevo/brevoClient";
 import { prisma } from "../prisma/client";
 import { HttpError } from "../utils/httpError";
 
@@ -207,14 +207,9 @@ export async function sendMarketingCampaignTest(id: string, email: string) {
   const brevoCampaignId = Number(remote.data?.id);
   if (!Number.isInteger(brevoCampaignId)) throw new HttpError(503, "Brevo could not prepare the test email");
 
-  try {
-    const result = await sendBrevoMarketingCampaignTest(brevoCampaignId, email);
-    if (!result.ok) throw new HttpError(503, "The test email could not be sent");
-    return campaign;
-  } finally {
-    // Cleanup should not turn a successfully queued test into a reported failure.
-    await deleteBrevoMarketingCampaign(brevoCampaignId).catch(() => undefined);
-  }
+  const result = await sendBrevoMarketingCampaignTest(brevoCampaignId, email);
+  if (!result.ok) throw new HttpError(503, "The test email could not be sent");
+  return campaign;
 }
 
 export async function dispatchMarketingCampaign(id: string, staffUserId: string) {

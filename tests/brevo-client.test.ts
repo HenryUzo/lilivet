@@ -40,16 +40,14 @@ describe("Brevo campaign image delivery", () => {
     expect(body.htmlContent).toContain("banner.png");
   });
 
-  it("uses Brevo campaign tests and removes the temporary draft", async () => {
+  it("uses a persistent Brevo campaign draft for asynchronous test rendering", async () => {
     configureBrevoEnv();
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(new Response(JSON.stringify({ id: 84 }), { status: 201 }))
-      .mockResolvedValueOnce(new Response(null, { status: 204 }))
       .mockResolvedValueOnce(new Response(null, { status: 204 }));
     vi.stubGlobal("fetch", fetchMock);
     const {
       createBrevoMarketingTestCampaign,
-      deleteBrevoMarketingCampaign,
       sendBrevoMarketingCampaignTest
     } = await import("../src/integrations/brevo/brevoClient.js");
 
@@ -62,13 +60,12 @@ describe("Brevo campaign image delivery", () => {
     });
     expect(created.ok).toBe(true);
     await sendBrevoMarketingCampaignTest(84, "reviewer@example.com");
-    await deleteBrevoMarketingCampaign(84);
 
     const createBody = JSON.parse(String(fetchMock.mock.calls[0][1].body));
     const sendBody = JSON.parse(String(fetchMock.mock.calls[1][1].body));
     expect(createBody.inlineImageActivation).toBe(true);
     expect(sendBody).toEqual({ emailTo: ["reviewer@example.com"] });
     expect(fetchMock.mock.calls[1][0]).toContain("/emailCampaigns/84/sendTest");
-    expect(fetchMock.mock.calls[2][1].method).toBe("DELETE");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });

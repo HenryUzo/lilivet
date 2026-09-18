@@ -33,7 +33,7 @@ type BrevoMarketingCampaignInput = {
   listId: number;
 };
 
-async function brevoRequest(path: string, method: "POST" | "DELETE", body?: unknown): Promise<BrevoRequestResult> {
+async function brevoRequest(path: string, method: "POST", body?: unknown): Promise<BrevoRequestResult> {
   if (!env.BREVO_API_KEY) return { ok: false, status: 0, bodyText: "", errorMessage: "BREVO_API_KEY is not configured" };
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), BREVO_TIMEOUT_MS);
@@ -204,10 +204,6 @@ export async function createBrevoMarketingTestCampaign(input: Omit<BrevoMarketin
 
 export async function sendBrevoMarketingCampaignTest(campaignId: number, email: string) {
   return brevoRequest(`/emailCampaigns/${campaignId}/sendTest`, "POST", { emailTo: [email] });
-}
-
-export async function deleteBrevoMarketingCampaign(campaignId: number) {
-  return brevoRequest(`/emailCampaigns/${campaignId}`, "DELETE");
 }
 
 export async function sendBrevoMarketingCampaign(campaignId: number) {
