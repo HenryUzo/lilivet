@@ -76,23 +76,32 @@ function enabled() {
 }
 
 async function eligibleAudience() {
-  return prisma.clientProfile.findMany({
-    where: { emailMarketingStatus: { in: [MarketingConsentStatus.SUBSCRIBED, MarketingConsentStatus.NOT_SUBSCRIBED] }, owner: { email: { not: null } } },
-    select: { id: true, owner: { select: { email: true } } }
+  return prisma.owner.findMany({
+    where: {
+      email: { not: null },
+      OR: [
+        { clientProfile: { is: null } },
+        { clientProfile: { is: { emailMarketingStatus: { notIn: [MarketingConsentStatus.UNSUBSCRIBED, MarketingConsentStatus.SUPPRESSED] } } } }
+      ]
+    },
+    select: { id: true, email: true, clientProfile: { select: { id: true } } }
   });
 }
 
 export async function searchMarketingRecipients(search?: string) {
-  const profiles = await prisma.clientProfile.findMany({
+  const owners = await prisma.owner.findMany({
     where: {
-      emailMarketingStatus: { in: [MarketingConsentStatus.SUBSCRIBED, MarketingConsentStatus.NOT_SUBSCRIBED] },
-      owner: { email: { not: null }, ...(search ? { OR: [{ firstName: { contains: search, mode: "insensitive" } }, { lastName: { contains: search, mode: "insensitive" } }, { email: { contains: search, mode: "insensitive" } }] } : {}) }
+      email: { not: null },
+      AND: [
+        { OR: [{ clientProfile: { is: null } }, { clientProfile: { is: { emailMarketingStatus: { notIn: [MarketingConsentStatus.UNSUBSCRIBED, MarketingConsentStatus.SUPPRESSED] } } } }] },
+        ...(search ? [{ OR: [{ firstName: { contains: search, mode: "insensitive" } }, { lastName: { contains: search, mode: "insensitive" } }, { email: { contains: search, mode: "insensitive" } }] }] : [])
+      ]
     },
     take: 30,
     orderBy: { updatedAt: "desc" },
-    select: { id: true, owner: { select: { firstName: true, lastName: true, email: true } } }
+    select: { id: true, firstName: true, lastName: true, email: true }
   });
-  return profiles.map((profile) => ({ id: profile.id, name: `${profile.owner.firstName} ${profile.owner.lastName}`.trim(), email: profile.owner.email! }));
+  return owners.map((owner) => ({ id: owner.id, name: `${owner.firstName} ${owner.lastName}`.trim(), email: owner.email! }));
 }
 
 export async function validateMarketingRecipients(emails: string[]) {
@@ -134,8 +143,8 @@ async function unsuppressedAudience(recipients: AudienceRecipient[]) {
 
 async function audienceForCampaign(campaign: { audienceMode: MarketingAudienceMode; customAudience: unknown }) {
   if (campaign.audienceMode === MarketingAudienceMode.CONSENTED_CLIENTS) {
-    const profiles = await eligibleAudience();
-    return unsuppressedAudience(profiles.map((profile) => ({ email: profile.owner.email!, clientProfileId: profile.id })));
+    const owners = await eligibleAudience();
+    return unsuppressedAudience(owners.map((owner) => ({ email: owner.email!, clientProfileId: owner.clientProfile?.id ?? null })));
   }
   const emails = Array.isArray(campaign.customAudience) ? campaign.customAudience.filter((email): email is string => typeof email === "string") : [];
   const profiles = await prisma.clientProfile.findMany({ where: { owner: { email: { in: emails } } }, select: { id: true, owner: { select: { email: true } } } });
