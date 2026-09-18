@@ -75,6 +75,11 @@ function enabled() {
   if (!env.BREVO_MARKETING_ENABLED) throw new HttpError(503, "Email campaigns are not configured yet. Complete the Brevo sender setup first.");
 }
 
+function isInlineImageLimitFailure(result: { ok: boolean; status: number; bodyText?: string }) {
+  if (result.ok || result.status !== 400) return false;
+  return /(?:inline|image|embed|4\s*mb|size)/i.test(result.bodyText ?? "");
+}
+
 async function eligibleAudience() {
   return prisma.owner.findMany({
     where: {
@@ -195,7 +200,7 @@ export async function sendMarketingCampaignTest(id: string, email: string) {
   const campaign = await getMarketingCampaign(id);
   if (!campaign) return null;
   enabled();
-  const remote = await createBrevoMarketingTestCampaign({
+  let remote = await createBrevoMarketingTestCampaign({
     name: campaign.name,
     subject: campaign.subject,
     previewText: campaign.previewText,
@@ -203,6 +208,17 @@ export async function sendMarketingCampaignTest(id: string, email: string) {
     textContent: campaign.textContent,
     sender: sender()
   });
+  if (isInlineImageLimitFailure(remote)) {
+    remote = await createBrevoMarketingTestCampaign({
+      name: campaign.name,
+      subject: campaign.subject,
+      previewText: campaign.previewText,
+      htmlContent: campaign.htmlContent,
+      textContent: campaign.textContent,
+      sender: sender(),
+      inlineImageActivation: false
+    });
+  }
   if (!remote.ok) throw new HttpError(503, "Brevo could not prepare the test email");
   const brevoCampaignId = Number(remote.data?.id);
   if (!Number.isInteger(brevoCampaignId)) throw new HttpError(503, "Brevo could not prepare the test email");
@@ -227,7 +243,10 @@ export async function dispatchMarketingCampaign(id: string, staffUserId: string)
   if (!Number.isInteger(listId)) throw new HttpError(503, "Brevo could not prepare the campaign audience");
   const contacts = await upsertBrevoContactsToList(listId, emails);
   if (!contacts.ok) throw new HttpError(503, "Brevo could not prepare the campaign audience");
-  const remote = await createBrevoMarketingCampaign({ name: campaign.name, subject: campaign.subject, previewText: campaign.previewText, htmlContent: campaign.htmlContent, textContent: campaign.textContent, sender: sender(), listId });
+  let remote = await createBrevoMarketingCampaign({ name: campaign.name, subject: campaign.subject, previewText: campaign.previewText, htmlContent: campaign.htmlContent, textContent: campaign.textContent, sender: sender(), listId });
+  if (isInlineImageLimitFailure(remote)) {
+    remote = await createBrevoMarketingCampaign({ name: campaign.name, subject: campaign.subject, previewText: campaign.previewText, htmlContent: campaign.htmlContent, textContent: campaign.textContent, sender: sender(), listId, inlineImageActivation: false });
+  }
   if (!remote.ok) throw new HttpError(503, "Brevo could not create the campaign");
   const brevoCampaignId = Number(remote.data?.id);
   if (!Number.isInteger(brevoCampaignId)) throw new HttpError(503, "Brevo could not create the campaign");

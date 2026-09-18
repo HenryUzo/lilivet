@@ -68,4 +68,24 @@ describe("Brevo campaign image delivery", () => {
     expect(fetchMock.mock.calls[1][0]).toContain("/emailCampaigns/84/sendTest");
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
+
+  it("can leave images remote when an email exceeds Brevo's inline image limit", async () => {
+    configureBrevoEnv();
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ id: 85 }), { status: 201 }));
+    vi.stubGlobal("fetch", fetchMock);
+    const { createBrevoMarketingTestCampaign } = await import("../src/integrations/brevo/brevoClient.js");
+
+    await createBrevoMarketingTestCampaign({
+      name: "Large image campaign",
+      subject: "Clinic update",
+      htmlContent: '<img src="https://example.com/large-banner.png" alt="Banner">',
+      textContent: "Clinic update",
+      sender: { name: "Lili Veterinary Hospital", email: "hello@example.com" },
+      inlineImageActivation: false
+    });
+
+    const body = JSON.parse(String(fetchMock.mock.calls[0][1].body));
+    expect(body.inlineImageActivation).toBe(false);
+    expect(body.htmlContent).toContain("large-banner.png");
+  });
 });

@@ -31,6 +31,7 @@ type BrevoMarketingCampaignInput = {
   textContent: string;
   sender: { name: string; email: string };
   listId: number;
+  inlineImageActivation?: boolean;
 };
 
 async function brevoRequest(path: string, method: "POST", body?: unknown): Promise<BrevoRequestResult> {
@@ -183,7 +184,7 @@ export async function createBrevoMarketingCampaign(input: BrevoMarketingCampaign
     htmlContent: input.htmlContent,
     textContent: input.textContent,
     recipients: { listIds: [input.listId] },
-    inlineImageActivation: true,
+    inlineImageActivation: input.inlineImageActivation ?? true,
     mirrorActive: false
   });
 }
@@ -197,7 +198,7 @@ export async function createBrevoMarketingTestCampaign(input: Omit<BrevoMarketin
     type: "classic",
     htmlContent: input.htmlContent,
     textContent: input.textContent,
-    inlineImageActivation: true,
+    inlineImageActivation: input.inlineImageActivation ?? true,
     mirrorActive: false
   });
 }
