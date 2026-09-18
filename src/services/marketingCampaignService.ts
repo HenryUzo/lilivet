@@ -77,7 +77,7 @@ function enabled() {
 
 async function eligibleAudience() {
   return prisma.clientProfile.findMany({
-    where: { emailMarketingStatus: MarketingConsentStatus.SUBSCRIBED, owner: { email: { not: null } } },
+    where: { emailMarketingStatus: { in: [MarketingConsentStatus.SUBSCRIBED, MarketingConsentStatus.NOT_SUBSCRIBED] }, owner: { email: { not: null } } },
     select: { id: true, owner: { select: { email: true } } }
   });
 }
@@ -85,7 +85,7 @@ async function eligibleAudience() {
 export async function searchMarketingRecipients(search?: string) {
   const profiles = await prisma.clientProfile.findMany({
     where: {
-      emailMarketingStatus: MarketingConsentStatus.SUBSCRIBED,
+      emailMarketingStatus: { in: [MarketingConsentStatus.SUBSCRIBED, MarketingConsentStatus.NOT_SUBSCRIBED] },
       owner: { email: { not: null }, ...(search ? { OR: [{ firstName: { contains: search, mode: "insensitive" } }, { lastName: { contains: search, mode: "insensitive" } }, { email: { contains: search, mode: "insensitive" } }] } : {}) }
     },
     take: 30,
@@ -120,7 +120,16 @@ async function unsuppressedAudience(recipients: AudienceRecipient[]) {
   const hashes = recipients.map((recipient) => hashEmail(recipient.email));
   const suppressed = await prisma.marketingEmailSuppression.findMany({ where: { emailHash: { in: hashes } }, select: { emailHash: true } });
   const suppressedHashes = new Set(suppressed.map((entry) => entry.emailHash));
-  return recipients.filter((recipient) => !suppressedHashes.has(hashEmail(recipient.email)));
+  const emails = recipients.map((recipient) => recipient.email);
+  const profiles = await prisma.clientProfile.findMany({
+    where: { owner: { email: { in: emails } } },
+    select: { emailMarketingStatus: true, owner: { select: { email: true } } }
+  });
+  const optedOutEmails = new Set(profiles
+    .filter((profile) => profile.owner.email && [MarketingConsentStatus.UNSUBSCRIBED, MarketingConsentStatus.SUPPRESSED].includes(profile.emailMarketingStatus))
+    .map((profile) => profile.owner.email!.toLowerCase()));
+
+  return recipients.filter((recipient) => !suppressedHashes.has(hashEmail(recipient.email)) && !optedOutEmails.has(recipient.email.toLowerCase()));
 }
 
 async function audienceForCampaign(campaign: { audienceMode: MarketingAudienceMode; customAudience: unknown }) {
