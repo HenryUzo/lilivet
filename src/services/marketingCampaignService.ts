@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { MarketingAudienceMode, MarketingConsentAction, MarketingConsentStatus, MarketingDeliveryStatus, MarketingCampaignStatus, Prisma } from "@prisma/client";
 import { env } from "../config/env";
-import { createBrevoMarketingCampaign, createBrevoMarketingList, hashEmail, sendBrevoMarketingCampaign, sendBrevoTransactionalEmail, upsertBrevoContactsToList } from "../integrations/brevo/brevoClient";
+import { createBrevoMarketingCampaign, createBrevoMarketingList, createBrevoMarketingTestCampaign, deleteBrevoMarketingCampaign, hashEmail, sendBrevoMarketingCampaign, sendBrevoMarketingCampaignTest, upsertBrevoContactsToList } from "../integrations/brevo/brevoClient";
 import { prisma } from "../prisma/client";
 import { HttpError } from "../utils/httpError";
 
@@ -194,9 +194,27 @@ export async function updateMarketingCampaign(id: string, input: Partial<Campaig
 export async function sendMarketingCampaignTest(id: string, email: string) {
   const campaign = await getMarketingCampaign(id);
   if (!campaign) return null;
-  const result = await sendBrevoTransactionalEmail({ to: { email, name: "Lili Vet campaign reviewer" }, subject: `[TEST] ${campaign.subject}`, htmlContent: campaign.htmlContent, textContent: campaign.textContent });
-  if (!result.ok) throw new HttpError(503, "The test email could not be sent");
-  return campaign;
+  enabled();
+  const remote = await createBrevoMarketingTestCampaign({
+    name: campaign.name,
+    subject: campaign.subject,
+    previewText: campaign.previewText,
+    htmlContent: campaign.htmlContent,
+    textContent: campaign.textContent,
+    sender: sender()
+  });
+  if (!remote.ok) throw new HttpError(503, "Brevo could not prepare the test email");
+  const brevoCampaignId = Number(remote.data?.id);
+  if (!Number.isInteger(brevoCampaignId)) throw new HttpError(503, "Brevo could not prepare the test email");
+
+  try {
+    const result = await sendBrevoMarketingCampaignTest(brevoCampaignId, email);
+    if (!result.ok) throw new HttpError(503, "The test email could not be sent");
+    return campaign;
+  } finally {
+    // Cleanup should not turn a successfully queued test into a reported failure.
+    await deleteBrevoMarketingCampaign(brevoCampaignId).catch(() => undefined);
+  }
 }
 
 export async function dispatchMarketingCampaign(id: string, staffUserId: string) {

@@ -33,7 +33,7 @@ type BrevoMarketingCampaignInput = {
   listId: number;
 };
 
-async function brevoRequest(path: string, method: "POST", body: unknown): Promise<BrevoRequestResult> {
+async function brevoRequest(path: string, method: "POST" | "DELETE", body?: unknown): Promise<BrevoRequestResult> {
   if (!env.BREVO_API_KEY) return { ok: false, status: 0, bodyText: "", errorMessage: "BREVO_API_KEY is not configured" };
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), BREVO_TIMEOUT_MS);
@@ -42,7 +42,7 @@ async function brevoRequest(path: string, method: "POST", body: unknown): Promis
       method,
       headers: { accept: "application/json", "api-key": env.BREVO_API_KEY, "content-type": "application/json" },
       signal: controller.signal,
-      body: JSON.stringify(body)
+      body: body === undefined ? undefined : JSON.stringify(body)
     });
     const bodyText = (await response.text()).slice(0, 1000);
     if (!response.ok) return { ok: false, status: response.status, bodyText };
@@ -183,9 +183,31 @@ export async function createBrevoMarketingCampaign(input: BrevoMarketingCampaign
     htmlContent: input.htmlContent,
     textContent: input.textContent,
     recipients: { listIds: [input.listId] },
-    inlineImageActivation: false,
+    inlineImageActivation: true,
     mirrorActive: false
   });
+}
+
+export async function createBrevoMarketingTestCampaign(input: Omit<BrevoMarketingCampaignInput, "listId">) {
+  return brevoRequest("/emailCampaigns", "POST", {
+    name: `[TEST] ${input.name}`,
+    subject: `[TEST] ${input.subject}`,
+    previewText: input.previewText || undefined,
+    sender: input.sender,
+    type: "classic",
+    htmlContent: input.htmlContent,
+    textContent: input.textContent,
+    inlineImageActivation: true,
+    mirrorActive: false
+  });
+}
+
+export async function sendBrevoMarketingCampaignTest(campaignId: number, email: string) {
+  return brevoRequest(`/emailCampaigns/${campaignId}/sendTest`, "POST", { emailTo: [email] });
+}
+
+export async function deleteBrevoMarketingCampaign(campaignId: number) {
+  return brevoRequest(`/emailCampaigns/${campaignId}`, "DELETE");
 }
 
 export async function sendBrevoMarketingCampaign(campaignId: number) {
