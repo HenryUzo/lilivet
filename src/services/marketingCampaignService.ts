@@ -89,13 +89,23 @@ async function eligibleAudience() {
 }
 
 export async function searchMarketingRecipients(search?: string) {
+  const eligibilityFilter: Prisma.OwnerWhereInput = {
+    OR: [
+      { clientProfile: { is: null } },
+      { clientProfile: { is: { emailMarketingStatus: { notIn: [MarketingConsentStatus.UNSUBSCRIBED, MarketingConsentStatus.SUPPRESSED] } } } }
+    ]
+  };
+  const searchFilter: Prisma.OwnerWhereInput | null = search ? {
+    OR: [
+      { firstName: { contains: search, mode: Prisma.QueryMode.insensitive } },
+      { lastName: { contains: search, mode: Prisma.QueryMode.insensitive } },
+      { email: { contains: search, mode: Prisma.QueryMode.insensitive } }
+    ]
+  } : null;
   const owners = await prisma.owner.findMany({
     where: {
       email: { not: null },
-      AND: [
-        { OR: [{ clientProfile: { is: null } }, { clientProfile: { is: { emailMarketingStatus: { notIn: [MarketingConsentStatus.UNSUBSCRIBED, MarketingConsentStatus.SUPPRESSED] } } } }] },
-        ...(search ? [{ OR: [{ firstName: { contains: search, mode: "insensitive" } }, { lastName: { contains: search, mode: "insensitive" } }, { email: { contains: search, mode: "insensitive" } }] }] : [])
-      ]
+      AND: [eligibilityFilter, ...(searchFilter ? [searchFilter] : [])]
     },
     take: 30,
     orderBy: { updatedAt: "desc" },
