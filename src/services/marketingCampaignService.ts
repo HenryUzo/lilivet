@@ -31,6 +31,14 @@ function escapeHtml(value: string) {
   return value.replace(/[&<>'\"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character] ?? character);
 }
 
+function renderInlineFormatting(value: string) {
+  return escapeHtml(value)
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/__(.+?)__/g, "<u>$1</u>")
+    .replace(/\*([^*]+)\*/g, "<em>$1</em>")
+    .replace(/\n/g, "<br>");
+}
+
 function safeUrl(value: string | undefined) {
   if (!value) return null;
   try {
@@ -42,7 +50,7 @@ function safeUrl(value: string | undefined) {
 function renderBlocks(blocks: ContentBlock[]) {
   const html = blocks.map((block) => {
     const align = block.align ?? "left";
-    const text = escapeHtml(block.text ?? "").replace(/\n/g, "<br>");
+    const text = renderInlineFormatting(block.text ?? "");
     const url = safeUrl(block.url);
     if (block.type === "TITLE") return `<h1 style="margin:0 0 20px;color:#102E24;font:700 28px Arial,sans-serif;text-align:${align}">${text}</h1>`;
     if (block.type === "TEXT") return `<p style="margin:0 0 18px;color:#33463d;font:16px/1.55 Arial,sans-serif;text-align:${align}">${text}</p>`;
