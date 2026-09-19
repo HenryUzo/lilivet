@@ -75,9 +75,8 @@ function enabled() {
   if (!env.BREVO_MARKETING_ENABLED) throw new HttpError(503, "Email campaigns are not configured yet. Complete the Brevo sender setup first.");
 }
 
-function isInlineImageLimitFailure(result: { ok: boolean; status: number; bodyText?: string }) {
-  if (result.ok || result.status !== 400) return false;
-  return /(?:inline|image|embed|4\s*mb|size)/i.test(result.bodyText ?? "");
+function shouldRetryWithoutInlineImages(result: { ok: boolean; status: number }) {
+  return !result.ok && result.status === 400;
 }
 
 async function eligibleAudience() {
@@ -208,7 +207,7 @@ export async function sendMarketingCampaignTest(id: string, email: string) {
     textContent: campaign.textContent,
     sender: sender()
   });
-  if (isInlineImageLimitFailure(remote)) {
+  if (shouldRetryWithoutInlineImages(remote)) {
     remote = await createBrevoMarketingTestCampaign({
       name: campaign.name,
       subject: campaign.subject,
@@ -244,7 +243,7 @@ export async function dispatchMarketingCampaign(id: string, staffUserId: string)
   const contacts = await upsertBrevoContactsToList(listId, emails);
   if (!contacts.ok) throw new HttpError(503, "Brevo could not prepare the campaign audience");
   let remote = await createBrevoMarketingCampaign({ name: campaign.name, subject: campaign.subject, previewText: campaign.previewText, htmlContent: campaign.htmlContent, textContent: campaign.textContent, sender: sender(), listId });
-  if (isInlineImageLimitFailure(remote)) {
+  if (shouldRetryWithoutInlineImages(remote)) {
     remote = await createBrevoMarketingCampaign({ name: campaign.name, subject: campaign.subject, previewText: campaign.previewText, htmlContent: campaign.htmlContent, textContent: campaign.textContent, sender: sender(), listId, inlineImageActivation: false });
   }
   if (!remote.ok) throw new HttpError(503, "Brevo could not create the campaign");
