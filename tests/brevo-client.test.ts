@@ -88,4 +88,21 @@ describe("Brevo campaign image delivery", () => {
     expect(body.inlineImageActivation).toBe(false);
     expect(body.htmlContent).toContain("large-banner.png");
   });
+
+  it("syncs campaign contacts in rate-limited batches", async () => {
+    vi.useFakeTimers();
+    configureBrevoEnv();
+    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
+    vi.stubGlobal("fetch", fetchMock);
+    const { upsertBrevoContactsToList } = await import("../src/integrations/brevo/brevoClient.js");
+
+    const resultPromise = upsertBrevoContactsToList(7, Array.from({ length: 6 }, (_, index) => `client${index}@example.com`));
+    await vi.runAllTimersAsync();
+    const result = await resultPromise;
+
+    expect(result.ok).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(6);
+    expect(fetchMock.mock.calls.slice(0, 5).every((call) => String(call[0]).endsWith("/contacts"))).toBe(true);
+    vi.useRealTimers();
+  });
 });

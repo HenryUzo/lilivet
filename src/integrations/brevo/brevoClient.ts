@@ -22,6 +22,9 @@ type BrevoRequestResult =
   | { ok: false; status: number; bodyText: string; errorMessage?: string };
 
 const BREVO_TIMEOUT_MS = 8000;
+const BREVO_CONTACT_BATCH_SIZE = 5;
+const BREVO_CONTACT_BATCH_DELAY_MS = 650;
+const BREVO_RATE_LIMIT_RETRIES = 3;
 
 type BrevoMarketingCampaignInput = {
   name: string;
@@ -163,15 +166,27 @@ export async function createBrevoMarketingList(name: string) {
 }
 
 export async function upsertBrevoContactsToList(listId: number, emails: string[]) {
-  const results = await Promise.all(emails.map((email) => brevoRequest("/contacts", "POST", {
-    email,
-    listIds: [listId],
-    updateEnabled: true
-  })));
+  const upsertContact = async (email: string) => {
+    for (let attempt = 0; attempt <= BREVO_RATE_LIMIT_RETRIES; attempt += 1) {
+      const result = await brevoRequest("/contacts", "POST", { email, listIds: [listId], updateEnabled: true });
+      if (result.ok || result.status !== 429 || attempt === BREVO_RATE_LIMIT_RETRIES) return result;
+      await delay(1000 * (attempt + 1));
+    }
+    throw new Error("Unreachable Brevo contact retry state");
+  };
 
-  const failed = results.find((result) => !result.ok);
-  if (failed) return failed;
+  for (let offset = 0; offset < emails.length; offset += BREVO_CONTACT_BATCH_SIZE) {
+    const batch = emails.slice(offset, offset + BREVO_CONTACT_BATCH_SIZE);
+    const results = await Promise.all(batch.map(upsertContact));
+    const failed = results.find((result) => !result.ok);
+    if (failed) return failed;
+    if (offset + BREVO_CONTACT_BATCH_SIZE < emails.length) await delay(BREVO_CONTACT_BATCH_DELAY_MS);
+  }
   return { ok: true as const, status: 201, bodyText: "" };
+}
+
+function delay(milliseconds: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, milliseconds));
 }
 
 export async function createBrevoMarketingCampaign(input: BrevoMarketingCampaignInput) {
