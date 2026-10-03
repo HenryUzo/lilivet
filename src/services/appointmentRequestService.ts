@@ -18,11 +18,13 @@ import {
   sendClientConfirmedAppointmentDetails,
   sendClinicConfirmedAppointmentNotification
 } from "./mailService";
+import { queueAppointmentSms } from "./appointmentSmsService";
 
 const appointmentRequestInclude = {
   owner: true,
   pet: true,
   files: true,
+  smsDeliveries: { orderBy: { createdAt: "desc" as const } },
   draft: true,
   replacementAppointmentRequest: {
     select: {
@@ -84,7 +86,7 @@ export async function listAppointmentRequests(input: {
     skip: input.cursor ? 1 : 0,
     cursor: input.cursor ? { id: input.cursor } : undefined,
     orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-    include: { owner: true, pet: true, files: true }
+    include: { owner: true, pet: true, files: true, smsDeliveries: { orderBy: { createdAt: "desc" } } }
   });
 
   const hasMore = rows.length > input.limit;
@@ -155,6 +157,10 @@ export async function updateAppointmentRequestStatus(input: UpdateAppointmentReq
   const willSendClinicConfirmationEmail =
     input.status === "CONFIRMED" &&
     existing.status !== "CONFIRMED";
+  const willSendConfirmationSms =
+    input.status === "CONFIRMED" &&
+    existing.status !== "CONFIRMED" &&
+    existing.bookingSource === "SIMPLIFIED";
 
   const updateData: Prisma.AppointmentRequestUpdateInput = {
     status: input.status
@@ -280,6 +286,17 @@ export async function updateAppointmentRequestStatus(input: UpdateAppointmentReq
           confirmedTimezone
         })
     });
+  }
+
+  if (willSendConfirmationSms && updated.confirmedStartAt && updated.confirmedTimezone) {
+    void queueAppointmentSms({
+      appointmentRequestId: updated.id,
+      phoneNumber: updated.owner.phoneNumber,
+      petName: updated.pet.name,
+      startsAt: updated.confirmedStartAt,
+      timezone: updated.confirmedTimezone,
+      kind: "APPOINTMENT_CONFIRMED"
+    }).catch((error) => console.error("Appointment confirmation SMS failed", { requestId: updated.id, error }));
   }
 
   return updated;

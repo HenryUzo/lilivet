@@ -105,4 +105,30 @@ describe("Brevo campaign image delivery", () => {
     expect(fetchMock.mock.calls.slice(0, 5).every((call) => String(call[0]).endsWith("/contacts"))).toBe(true);
     vi.useRealTimers();
   });
+
+  it("sends transactional appointment SMS with the required Brevo payload", async () => {
+    configureBrevoEnv();
+    process.env.BREVO_SMS_SENDER = "LiliVet";
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ messageId: 123 }), { status: 201 }));
+    vi.stubGlobal("fetch", fetchMock);
+    const { sendBrevoTransactionalSms } = await import("../src/integrations/brevo/brevoClient.js");
+
+    const result = await sendBrevoTransactionalSms({
+      recipient: "+12105550123",
+      content: "Your appointment request was received.",
+      tag: "appointment-requested"
+    });
+
+    expect(result.ok).toBe(true);
+    expect(String(fetchMock.mock.calls[0][0])).toContain("/transactionalSMS/send");
+    expect(JSON.parse(String(fetchMock.mock.calls[0][1].body))).toEqual({
+      recipient: "+12105550123",
+      sender: "LiliVet",
+      organisationPrefix: "Lili Veterinary Hospital",
+      content: "Your appointment request was received.",
+      type: "transactional",
+      tag: "appointment-requested",
+      unicodeEnabled: false
+    });
+  });
 });

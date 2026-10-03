@@ -113,6 +113,9 @@ const envSchema = z.object({
   BREVO_DOI_REDIRECT_URL: z.string().url().default("https://liliveterinaryhospital.com/pet-care?subscription=confirmed"),
   BREVO_PET_PREFERENCE_ATTRIBUTE: z.string().trim().min(1).max(64).default("PET_PREFERENCE"),
   BREVO_API_BASE_URL: z.string().url().default("https://api.brevo.com/v3"),
+  BREVO_SMS_ENABLED: booleanEnv.default(false),
+  BREVO_SMS_SENDER: z.string().trim().min(1).max(11).default("LiliVet"),
+  BREVO_SMS_WEBHOOK_SECRET: z.string().min(24).optional().or(z.literal("")).default(""),
   JWT_SECRET: z.string().min(32).default(DEFAULT_JWT_SECRET),
   JWT_EXPIRES_IN: z.string().min(1).default("8h"),
   JWT_ISSUER: z.string().min(1).default("lili-vet-backend"),
@@ -147,6 +150,11 @@ const envSchema = z.object({
       BREVO_MARKETING_WEBHOOK_SECRET: value.BREVO_MARKETING_WEBHOOK_SECRET
     })) {
       if (!configured) context.addIssue({ code: z.ZodIssueCode.custom, message: `${key} is required when BREVO_MARKETING_ENABLED=true`, path: [key] });
+    }
+  }
+  if (value.BREVO_SMS_ENABLED) {
+    if (!value.BREVO_API_KEY) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: "BREVO_API_KEY is required when BREVO_SMS_ENABLED=true", path: ["BREVO_API_KEY"] });
     }
   }
 });

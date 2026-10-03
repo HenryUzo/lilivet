@@ -116,6 +116,18 @@ export async function sendBrevoTransactionalEmail(input: TransactionalEmailInput
   }
 }
 
+export async function sendBrevoTransactionalSms(input: { recipient: string; content: string; tag: string }) {
+  return brevoRequest("/transactionalSMS/send", "POST", {
+    recipient: input.recipient,
+    sender: env.BREVO_SMS_SENDER,
+    organisationPrefix: "Lili Veterinary Hospital",
+    content: input.content,
+    type: "transactional",
+    tag: input.tag,
+    unicodeEnabled: false
+  });
+}
+
 export async function sendPetCareDoubleOptIn(input: DoubleOptInInput): Promise<BrevoResult> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), BREVO_TIMEOUT_MS);
