@@ -13,6 +13,15 @@ export const simplifiedAppointmentSchema = z.object({
   reasonForVisit: z.string().trim().min(3).max(2000),
   preferredDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   preferredTime: z.string().regex(/^\d{2}:\d{2}$/),
+  preferredSelections: z.array(z.object({
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    time: z.string().regex(/^\d{2}:\d{2}$/)
+  })).min(1).max(3).superRefine((selections, ctx) => {
+    const uniqueSelections = new Set(selections.map((selection) => `${selection.date}T${selection.time}`));
+    if (uniqueSelections.size !== selections.length) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Choose three different appointment times." });
+    }
+  }).optional(),
   website: z.string().max(0).optional().default("")
 });
 

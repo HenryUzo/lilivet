@@ -11,6 +11,11 @@ describe("simplified appointment validation", () => {
     reasonForVisit: "Annual wellness exam",
     preferredDate: "2026-10-12",
     preferredTime: "10:30",
+    preferredSelections: [
+      { date: "2026-10-12", time: "10:30" },
+      { date: "2026-10-13", time: "14:00" },
+      { date: "2026-10-14", time: "16:30" }
+    ],
     website: ""
   };
 
@@ -21,6 +26,18 @@ describe("simplified appointment validation", () => {
   it("rejects honeypot submissions and malformed slots", () => {
     expect(simplifiedAppointmentSchema.safeParse({ ...valid, website: "spam" }).success).toBe(false);
     expect(simplifiedAppointmentSchema.safeParse({ ...valid, preferredTime: "10:15:00" }).success).toBe(false);
+  });
+
+  it("allows up to three unique preferred times", () => {
+    expect(simplifiedAppointmentSchema.safeParse(valid).success).toBe(true);
+    expect(simplifiedAppointmentSchema.safeParse({
+      ...valid,
+      preferredSelections: [...valid.preferredSelections, { date: "2026-10-15", time: "09:00" }]
+    }).success).toBe(false);
+    expect(simplifiedAppointmentSchema.safeParse({
+      ...valid,
+      preferredSelections: [valid.preferredSelections[0], valid.preferredSelections[0]]
+    }).success).toBe(false);
   });
 
   it("limits admin mode changes to supported modes", () => {

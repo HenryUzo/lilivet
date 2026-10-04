@@ -70,7 +70,20 @@ export async function submitSimplifiedAppointment(input: SimplifiedAppointmentIn
   if (setting.mode !== "SIMPLIFIED") throw new HttpError(409, "Simplified booking is not currently active.");
   const normalizedPhone = normalizePhoneNumber(input.phoneNumber);
   if (!/^1\d{10}$/.test(normalizedPhone)) throw new HttpError(400, "Enter a valid U.S. phone number.");
-  const startsAt = validateRequestedSlot(input.preferredDate, input.preferredTime);
+  const selections = input.preferredSelections?.length
+    ? input.preferredSelections
+    : [{ date: input.preferredDate, time: input.preferredTime }];
+  const validatedSelections = selections.map((selection) => ({
+    ...selection,
+    startsAt: validateRequestedSlot(selection.date, selection.time)
+  }));
+  const firstSelection = validatedSelections[0];
+  const selectionsByDate = Array.from(
+    selections.reduce((grouped, selection) => {
+      grouped.set(selection.date, [...(grouped.get(selection.date) ?? []), selection.time]);
+      return grouped;
+    }, new Map<string, string[]>())
+  ).map(([date, timeSlots]) => ({ date, timeSlots }));
   const duplicate = await findDuplicateAppointmentCandidate({ phoneNumber: normalizedPhone, email: input.email || undefined, petName: input.petName });
   const name = splitFullName(input.clientFullName);
 
@@ -91,12 +104,12 @@ export async function submitSimplifiedAppointment(input: SimplifiedAppointmentIn
         petId: pet.id,
         visitType: "OTHER",
         bookingSource: "SIMPLIFIED",
-        preferredSelections: [{ date: input.preferredDate, timeSlots: [input.preferredTime] }] as Prisma.InputJsonValue,
+        preferredSelections: selectionsByDate as Prisma.InputJsonValue,
         timezone: APPOINTMENT_TIMEZONE,
         symptomsOrConcerns: input.reasonForVisit,
         possibleDuplicate: Boolean(duplicate),
         duplicateOfId: duplicate?.id,
-        preferredDateSelections: { create: { dateKey: input.preferredDate } }
+        preferredDateSelections: { create: selectionsByDate.map((selection) => ({ dateKey: selection.date })) }
       },
       include: { owner: true, pet: true, smsDeliveries: true }
     });
@@ -106,10 +119,17 @@ export async function submitSimplifiedAppointment(input: SimplifiedAppointmentIn
     appointmentRequestId: request.id,
     phoneNumber: request.owner.phoneNumber,
     petName: request.pet.name,
-    startsAt,
+    startsAt: firstSelection.startsAt,
     timezone: APPOINTMENT_TIMEZONE,
     kind: "REQUEST_RECEIVED"
   }).catch((error) => console.error("Appointment request SMS failed", { requestId: request.id, error }));
 
-  return { id: request.id, status: request.status, requestedDate: input.preferredDate, requestedTime: input.preferredTime, timezone: APPOINTMENT_TIMEZONE };
+  return {
+    id: request.id,
+    status: request.status,
+    requestedDate: firstSelection.date,
+    requestedTime: firstSelection.time,
+    requestedSelections: selections,
+    timezone: APPOINTMENT_TIMEZONE
+  };
 }
