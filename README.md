@@ -72,6 +72,7 @@ Copy `.env.example` to `.env` and set:
 - `JWT_EXPIRES_IN` - staff token lifetime, for example `8h`.
 - `JWT_ISSUER` and `JWT_AUDIENCE` - JWT scope values used when signing and verifying staff tokens.
 - `GOOGLE_CALENDAR_CLIENT_ID`, `GOOGLE_CALENDAR_CLIENT_SECRET`, `GOOGLE_CALENDAR_REFRESH_TOKEN`, and `GOOGLE_CALENDAR_ID` - Google Calendar OAuth credentials and the shared clinic calendar ID used when staff confirms appointments.
+- `GOOGLE_ADS_OFFLINE_CONVERSIONS_ENABLED` and the `GOOGLE_ADS_*` credentials/action IDs - optional Google Ads API integration. When enabled, a request with a saved GCLID/GBRAID/WBRAID uploads a Booked conversion when staff confirms it and an Attended conversion when staff marks it Completed. Create both conversion actions as Upload clicks actions before enabling.
 - `PET_CARE_NEWSLETTER_ENABLED` - feature flag for the Pet Care newsletter Brevo double-opt-in endpoint. Defaults to `false`.
 - `BREVO_API_KEY` - server-only Brevo API key. Add this directly in Render; do not expose it to frontend code.
 - Pet Care veterinary review invitations use the same Brevo API key and `MAIL_FROM` sender. The assigned reviewer must have an email address in the staff dashboard before an invitation can be sent.
@@ -197,6 +198,15 @@ GOOGLE_CALENDAR_CLIENT_ID=
 GOOGLE_CALENDAR_CLIENT_SECRET=
 GOOGLE_CALENDAR_REFRESH_TOKEN=
 GOOGLE_CALENDAR_ID=
+GOOGLE_ADS_OFFLINE_CONVERSIONS_ENABLED=false
+GOOGLE_ADS_API_VERSION=v25
+GOOGLE_ADS_CUSTOMER_ID=
+GOOGLE_ADS_MANAGER_CUSTOMER_ID=
+GOOGLE_ADS_CLIENT_ID=
+GOOGLE_ADS_CLIENT_SECRET=
+GOOGLE_ADS_REFRESH_TOKEN=
+GOOGLE_ADS_BOOKED_CONVERSION_ACTION_ID=
+GOOGLE_ADS_ATTENDED_CONVERSION_ACTION_ID=
 ```
 
 5. Staff can then confirm appointments from the dashboard by entering:

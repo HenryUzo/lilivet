@@ -86,6 +86,18 @@ model AppointmentDraft {
   marketingEmailOptIn    Boolean                 @default(false)
   marketingSmsOptIn      Boolean                 @default(false)
 
+  gclid       String?
+  gbraid      String?
+  wbraid      String?
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  utmTerm     String?
+  utmContent  String?
+  landingPage String?
+  referrer    String?
+  attributionCapturedAt DateTime?
+
   preferredSelections Json?
   timezone            String?
 
@@ -129,6 +141,21 @@ model AppointmentRequest {
   visitType VisitType
   status    AppointmentRequestStatus @default(PENDING_REVIEW)
   bookingSource AppointmentBookingSource @default(STANDARD)
+
+  gclid       String?
+  gbraid      String?
+  wbraid      String?
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  utmTerm     String?
+  utmContent  String?
+  landingPage String?
+  referrer    String?
+  attributionCapturedAt DateTime?
+  googleAdsBookedUploadedAt DateTime?
+  googleAdsAttendedUploadedAt DateTime?
+  googleAdsUploadError String?
 
   confirmedStartAt                    DateTime?
   confirmedEndAt                      DateTime?
@@ -175,6 +202,7 @@ model AppointmentRequest {
 
   @@index([status])
   @@index([createdAt])
+  @@index([gclid])
   @@index([ownerId])
   @@index([petId])
   @@index([duplicateOfId])

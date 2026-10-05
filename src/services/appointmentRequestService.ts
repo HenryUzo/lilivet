@@ -19,6 +19,7 @@ import {
   sendClinicConfirmedAppointmentNotification
 } from "./mailService";
 import { queueAppointmentSms } from "./appointmentSmsService";
+import { reportAppointmentConversion } from "./googleAdsConversionService";
 
 const appointmentRequestInclude = {
   owner: true,
@@ -297,6 +298,13 @@ export async function updateAppointmentRequestStatus(input: UpdateAppointmentReq
       timezone: updated.confirmedTimezone,
       kind: "APPOINTMENT_CONFIRMED"
     }).catch((error) => console.error("Appointment confirmation SMS failed", { requestId: updated.id, error }));
+  }
+
+  if (input.status === "CONFIRMED" || input.status === "COMPLETED") {
+    const goal = input.status === "CONFIRMED" ? "BOOKED" : "ATTENDED";
+    void reportAppointmentConversion(updated.id, goal).catch((error) =>
+      console.error("Google Ads offline conversion upload failed", { appointmentRequestId: updated.id, goal, error })
+    );
   }
 
   return updated;

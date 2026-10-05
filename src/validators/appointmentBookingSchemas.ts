@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { attributionSchema } from "./attributionSchemas";
 
 export const appointmentBookingModeSchema = z.object({
   mode: z.enum(["STANDARD", "SIMPLIFIED"])
@@ -22,7 +23,8 @@ export const simplifiedAppointmentSchema = z.object({
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Choose three different appointment times." });
     }
   }).optional(),
-  website: z.string().max(0).optional().default("")
+  website: z.string().max(0).optional().default(""),
+  attribution: attributionSchema.optional()
 });
 
 export type SimplifiedAppointmentInput = z.infer<typeof simplifiedAppointmentSchema>;

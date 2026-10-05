@@ -19,14 +19,16 @@ import {
   updateStep5
 } from "../services/appointmentDraftService";
 import { attachFilesToDraft, createUploadedFiles } from "../services/fileService";
+import { attributionSchema } from "../validators/attributionSchemas";
 
 function sessionToken(req: Request) {
   return sessionTokenParamSchema.parse(req.params).sessionToken;
 }
 
-export const createDraft = asyncHandler(async (_req: Request, res: Response) => {
+export const createDraft = asyncHandler(async (req: Request, res: Response) => {
   const startedAt = Date.now();
-  const draft = await createAppointmentDraft();
+  const attribution = attributionSchema.optional().parse(req.body?.attribution);
+  const draft = await createAppointmentDraft(attribution);
   console.log(JSON.stringify({
     event: "appointment_draft_create_request",
     draftId: draft.id,

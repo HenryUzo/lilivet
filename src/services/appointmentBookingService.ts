@@ -5,6 +5,7 @@ import { normalizePhoneNumber } from "../utils/phone";
 import type { SimplifiedAppointmentInput } from "../validators/appointmentBookingSchemas";
 import { findDuplicateAppointmentCandidate } from "./duplicateService";
 import { queueAppointmentSms } from "./appointmentSmsService";
+import { attributionData } from "../validators/attributionSchemas";
 
 export const APPOINTMENT_TIMEZONE = "America/Chicago";
 export const APPOINTMENT_MAX_DAYS_AHEAD = 60;
@@ -109,6 +110,7 @@ export async function submitSimplifiedAppointment(input: SimplifiedAppointmentIn
         symptomsOrConcerns: input.reasonForVisit,
         possibleDuplicate: Boolean(duplicate),
         duplicateOfId: duplicate?.id,
+        ...attributionData(input.attribution),
         preferredDateSelections: { create: selectionsByDate.map((selection) => ({ dateKey: selection.date })) }
       },
       include: { owner: true, pet: true, smsDeliveries: true }

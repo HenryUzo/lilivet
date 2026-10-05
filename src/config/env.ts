@@ -101,6 +101,15 @@ const envSchema = z.object({
   GOOGLE_CALENDAR_CLIENT_SECRET: z.string().optional().default(""),
   GOOGLE_CALENDAR_REFRESH_TOKEN: z.string().optional().default(""),
   GOOGLE_CALENDAR_ID: z.string().optional().default(""),
+  GOOGLE_ADS_OFFLINE_CONVERSIONS_ENABLED: booleanEnv.default(false),
+  GOOGLE_ADS_API_VERSION: z.string().trim().default("v25"),
+  GOOGLE_ADS_CUSTOMER_ID: z.string().trim().optional().default(""),
+  GOOGLE_ADS_MANAGER_CUSTOMER_ID: z.string().trim().optional().default(""),
+  GOOGLE_ADS_CLIENT_ID: z.string().trim().optional().default(""),
+  GOOGLE_ADS_CLIENT_SECRET: z.string().trim().optional().default(""),
+  GOOGLE_ADS_REFRESH_TOKEN: z.string().trim().optional().default(""),
+  GOOGLE_ADS_BOOKED_CONVERSION_ACTION_ID: z.string().trim().optional().default(""),
+  GOOGLE_ADS_ATTENDED_CONVERSION_ACTION_ID: z.string().trim().optional().default(""),
   PET_CARE_NEWSLETTER_ENABLED: booleanEnv.default(false),
   BREVO_API_KEY: z.string().optional().default(""),
   BREVO_MARKETING_ENABLED: booleanEnv.default(false),
@@ -155,6 +164,18 @@ const envSchema = z.object({
   if (value.BREVO_SMS_ENABLED) {
     if (!value.BREVO_API_KEY) {
       context.addIssue({ code: z.ZodIssueCode.custom, message: "BREVO_API_KEY is required when BREVO_SMS_ENABLED=true", path: ["BREVO_API_KEY"] });
+    }
+  }
+  if (value.GOOGLE_ADS_OFFLINE_CONVERSIONS_ENABLED) {
+    for (const [key, configured] of Object.entries({
+      GOOGLE_ADS_CUSTOMER_ID: value.GOOGLE_ADS_CUSTOMER_ID,
+      GOOGLE_ADS_CLIENT_ID: value.GOOGLE_ADS_CLIENT_ID,
+      GOOGLE_ADS_CLIENT_SECRET: value.GOOGLE_ADS_CLIENT_SECRET,
+      GOOGLE_ADS_REFRESH_TOKEN: value.GOOGLE_ADS_REFRESH_TOKEN,
+      GOOGLE_ADS_BOOKED_CONVERSION_ACTION_ID: value.GOOGLE_ADS_BOOKED_CONVERSION_ACTION_ID,
+      GOOGLE_ADS_ATTENDED_CONVERSION_ACTION_ID: value.GOOGLE_ADS_ATTENDED_CONVERSION_ACTION_ID
+    })) {
+      if (!configured) context.addIssue({ code: z.ZodIssueCode.custom, message: `${key} is required when GOOGLE_ADS_OFFLINE_CONVERSIONS_ENABLED=true`, path: [key] });
     }
   }
 });

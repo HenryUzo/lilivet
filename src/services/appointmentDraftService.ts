@@ -23,6 +23,7 @@ import { normalizePhoneNumber } from "../utils/phone";
 import { extractPreferredSelectionDateKeys } from "../utils/preferredSelections";
 import { dispatchBackgroundEmail } from "./emailDispatchService";
 import { recordMarketingConsent } from "./clientCommunicationService";
+import { attributionData, type AttributionInput } from "../validators/attributionSchemas";
 
 function draftExpiryDate() {
   return new Date(Date.now() + env.DRAFT_EXPIRY_HOURS * 60 * 60 * 1000);
@@ -158,7 +159,7 @@ async function resolvePet(
   });
 }
 
-export async function createAppointmentDraft() {
+export async function createAppointmentDraft(attribution?: AttributionInput) {
   const tokenStartedAt = Date.now();
   const sessionToken = crypto.randomBytes(32).toString("hex");
   const tokenDurationMs = Date.now() - tokenStartedAt;
@@ -167,7 +168,8 @@ export async function createAppointmentDraft() {
   const draft = await prisma.appointmentDraft.create({
     data: {
       sessionToken,
-      expiresAt: draftExpiryDate()
+      expiresAt: draftExpiryDate(),
+      ...attributionData(attribution)
     }
   });
   const queryDurationMs = Date.now() - queryStartedAt;
@@ -346,6 +348,19 @@ export async function submitAppointmentDraft(sessionToken: string) {
         symptomDuration: fullDraft.symptomDuration ?? undefined,
         possibleDuplicate: Boolean(duplicate),
         duplicateOfId: duplicate?.id,
+        ...attributionData({
+          gclid: draft.gclid,
+          gbraid: draft.gbraid,
+          wbraid: draft.wbraid,
+          utmSource: draft.utmSource,
+          utmMedium: draft.utmMedium,
+          utmCampaign: draft.utmCampaign,
+          utmTerm: draft.utmTerm,
+          utmContent: draft.utmContent,
+          landingPage: draft.landingPage,
+          referrer: draft.referrer,
+          capturedAt: draft.attributionCapturedAt?.toISOString()
+        }),
         preferredDateSelections: {
           create: preferredDateKeys.map((dateKey) => ({
             dateKey
