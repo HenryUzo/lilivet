@@ -7,7 +7,7 @@ import { hasValidSmsWebhookSecret, recordAppointmentSmsWebhook } from "../servic
 import { writeStaffAuditLog } from "../services/staffAuditService";
 
 function publicSettings(mode: string) {
-  return { mode, timezone: APPOINTMENT_TIMEZONE, maxDaysAhead: APPOINTMENT_MAX_DAYS_AHEAD, hours: { weekdays: { open: "08:00", close: "19:00" }, saturday: { open: "08:00", close: "16:00" }, sunday: null } };
+  return { mode, timezone: APPOINTMENT_TIMEZONE, maxDaysAhead: APPOINTMENT_MAX_DAYS_AHEAD, hours: { weekdays: { open: "08:00", close: "19:00" }, saturday: { open: "08:00", close: "17:00" }, sunday: null } };
 }
 
 export const getPublicAppointmentBookingSettings = asyncHandler(async (_req: Request, res: Response) => {

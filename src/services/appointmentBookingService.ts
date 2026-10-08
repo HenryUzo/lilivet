@@ -38,7 +38,7 @@ function zonedDateTimeToUtc(dateKey: string, time: string) {
   return new Date(guess.getTime() - (represented - guess.getTime()));
 }
 
-function validateRequestedSlot(dateKey: string, time: string) {
+export function validateRequestedSlot(dateKey: string, time: string, now = new Date()) {
   const [year, month, day] = dateKey.split("-").map(Number);
   const calendarDate = new Date(Date.UTC(year, month - 1, day));
   if (calendarDate.getUTCFullYear() !== year || calendarDate.getUTCMonth() !== month - 1 || calendarDate.getUTCDate() !== day) {
@@ -49,12 +49,11 @@ function validateRequestedSlot(dateKey: string, time: string) {
   const [hour, minute] = time.split(":").map(Number);
   if (![0, 30].includes(minute)) throw new HttpError(400, "Appointment times must use 30-minute increments.");
   const totalMinutes = hour * 60 + minute;
-  const closingMinutes = weekday === 6 ? 16 * 60 : 19 * 60;
+  const closingMinutes = weekday === 6 ? 17 * 60 : 19 * 60;
   if (totalMinutes < 8 * 60 || totalMinutes + 30 > closingMinutes) {
     throw new HttpError(400, "Choose a time during clinic hours.");
   }
   const startsAt = zonedDateTimeToUtc(dateKey, time);
-  const now = new Date();
   const latest = new Date(now.getTime() + APPOINTMENT_MAX_DAYS_AHEAD * 24 * 60 * 60 * 1000);
   if (startsAt <= now) throw new HttpError(400, "Choose a future appointment time.");
   if (startsAt > latest) throw new HttpError(400, "Appointments may only be requested up to 60 days ahead.");
