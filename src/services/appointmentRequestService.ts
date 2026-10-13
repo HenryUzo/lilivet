@@ -50,6 +50,7 @@ export async function listAppointmentRequests(input: {
   search?: string;
   dateFrom?: string;
   dateTo?: string;
+  sort?: "latest" | "oldest";
   limit: number;
   cursor?: string;
 }) {
@@ -81,12 +82,13 @@ export async function listAppointmentRequests(input: {
     };
   }
 
+  const direction = input.sort === "oldest" ? "asc" : "desc";
   const rows = await prisma.appointmentRequest.findMany({
     where,
     take: input.limit + 1,
     skip: input.cursor ? 1 : 0,
     cursor: input.cursor ? { id: input.cursor } : undefined,
-    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    orderBy: [{ createdAt: direction }, { id: direction }],
     include: { owner: true, pet: true, files: true, smsDeliveries: { orderBy: { createdAt: "desc" } } }
   });
 

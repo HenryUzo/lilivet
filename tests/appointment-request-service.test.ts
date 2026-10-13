@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { updateAppointmentStatusSchema } from "../src/validators/appointmentRequestSchemas";
+import { appointmentRequestListQuerySchema, updateAppointmentStatusSchema } from "../src/validators/appointmentRequestSchemas";
 
 const {
   findManyMock,
@@ -205,6 +205,25 @@ describe("listAppointmentRequests", () => {
       ],
       nextCursor: "req-2"
     });
+  });
+
+  it("sorts oldest first at the database, including subsequent cursor pages", async () => {
+    findManyMock.mockResolvedValue([
+      { id: "req-1", owner: {}, pet: {}, files: [] },
+      { id: "req-2", owner: {}, pet: {}, files: [] },
+      { id: "req-3", owner: {}, pet: {}, files: [] }
+    ]);
+
+    const query = appointmentRequestListQuerySchema.parse({ sort: "oldest", limit: "2", cursor: "prior-id" });
+    const result = await listAppointmentRequests(query);
+
+    expect(findManyMock).toHaveBeenCalledWith(expect.objectContaining({
+      take: 3,
+      skip: 1,
+      cursor: { id: "prior-id" },
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }]
+    }));
+    expect(result.nextCursor).toBe("req-2");
   });
 
   it("marks confirmed appointments overdue after their end time passes", async () => {
