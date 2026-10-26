@@ -1,7 +1,8 @@
 import type { Request, Response } from "express";
 import { asyncHandler } from "../utils/asyncHandler";
 import { getClientDetail, importClientTrackerCsv, listClientImportHistory, listClients, updateClientLifecycleRecord } from "../services/clientCommunicationService";
-import { clientImportFileSchema, clientListQuerySchema, updateClientLifecycleSchema } from "../validators/clientSchemas";
+import { clientImportFileSchema, clientListQuerySchema, potentialClientListQuerySchema, updateClientLifecycleSchema } from "../validators/clientSchemas";
+import { confirmPotentialClientById, listPotentialClients } from "../services/potentialClientService";
 import { HttpError } from "../utils/httpError";
 import { writeStaffAuditLog } from "../services/staffAuditService";
 
@@ -10,6 +11,22 @@ export const listClientDirectory = asyncHandler(async (req: Request, res: Respon
   const result = await listClients(query);
   await writeStaffAuditLog({ action: "CLIENT_DIRECTORY_VIEWED", actorId: req.staffUser!.id, resourceType: "CLIENT_DIRECTORY", metadata: { hasSearch: Boolean(query.search), consent: query.consent ?? null, returnedCount: result.data.length } });
   res.json(result);
+});
+
+export const listPotentialClientDirectory = asyncHandler(async (req: Request, res: Response) => {
+  const query = potentialClientListQuerySchema.parse(req.query);
+  const result = await listPotentialClients(query);
+  await writeStaffAuditLog({ action: "POTENTIAL_CLIENT_DIRECTORY_VIEWED", actorId: req.staffUser!.id, resourceType: "POTENTIAL_CLIENT_DIRECTORY", metadata: { hasSearch: Boolean(query.search), returnedCount: result.data.length } });
+  res.json(result);
+});
+
+export const confirmPotentialClientEmailConsent = asyncHandler(async (req: Request, res: Response) => {
+  const id = req.params.id;
+  if (typeof id !== "string") throw new HttpError(400, "Invalid potential client identifier");
+  const lead = await confirmPotentialClientById(id);
+  if (!lead) throw new HttpError(409, "This potential client has no recorded email opt-in to confirm");
+  await writeStaffAuditLog({ action: "POTENTIAL_CLIENT_EMAIL_CONSENT_CONFIRMED", actorId: req.staffUser!.id, resourceType: "POTENTIAL_CLIENT", resourceId: id, metadata: { source: lead.source } });
+  res.json({ id: lead.id, emailMarketingConfirmed: lead.emailMarketingConfirmed, emailConsentAt: lead.emailConsentAt });
 });
 
 export const listImports = asyncHandler(async (req: Request, res: Response) => {

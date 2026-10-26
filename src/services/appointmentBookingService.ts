@@ -6,6 +6,7 @@ import type { SimplifiedAppointmentInput } from "../validators/appointmentBookin
 import { findDuplicateAppointmentCandidate } from "./duplicateService";
 import { queueAppointmentSms } from "./appointmentSmsService";
 import { attributionData } from "../validators/attributionSchemas";
+import { convertPotentialClients } from "./potentialClientService";
 
 export const APPOINTMENT_TIMEZONE = "America/Chicago";
 export const APPOINTMENT_MAX_DAYS_AHEAD = 60;
@@ -90,10 +91,13 @@ export async function submitSimplifiedAppointment(input: SimplifiedAppointmentIn
   const request = await prisma.$transaction(async (tx) => {
     let owner = await tx.owner.findFirst({ where: { normalizedPhone }, orderBy: { createdAt: "asc" } });
     if (!owner) {
-      owner = await tx.owner.create({ data: { ...name, email: input.email || undefined, phoneNumber: input.phoneNumber, normalizedPhone, preferredContactMethod: "TEXT" } });
+      owner = await tx.owner.create({ data: { ...name, email: input.email || undefined, phoneNumber: input.phoneNumber, normalizedPhone, preferredContactMethod: "TEXT", directoryType: "CLIENT" } });
     } else if (!owner.email && input.email) {
-      owner = await tx.owner.update({ where: { id: owner.id }, data: { email: input.email } });
+      owner = await tx.owner.update({ where: { id: owner.id }, data: { email: input.email, directoryType: "CLIENT" } });
+    } else if (owner.directoryType !== "CLIENT") {
+      owner = await tx.owner.update({ where: { id: owner.id }, data: { directoryType: "CLIENT" } });
     }
+    await convertPotentialClients(tx, { ownerId: owner.id, email: input.email, phoneNumber: input.phoneNumber });
     let pet = await tx.pet.findFirst({ where: { ownerId: owner.id, species: input.petType, name: { equals: input.petName, mode: "insensitive" } } });
     if (!pet) {
       pet = await tx.pet.create({ data: { ownerId: owner.id, name: input.petName, species: input.petType, sex: "UNKNOWN" } });

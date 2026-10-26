@@ -1,5 +1,5 @@
 ﻿import crypto from "crypto";
-import { Prisma } from "@prisma/client";
+import { PotentialClientSource, Prisma } from "@prisma/client";
 import { env } from "../config/env";
 import { prisma } from "../prisma/client";
 import { HttpError } from "../utils/httpError";
@@ -24,6 +24,7 @@ import { extractPreferredSelectionDateKeys } from "../utils/preferredSelections"
 import { dispatchBackgroundEmail } from "./emailDispatchService";
 import { recordMarketingConsent } from "./clientCommunicationService";
 import { attributionData, type AttributionInput } from "../validators/attributionSchemas";
+import { convertPotentialClients, upsertPotentialClient } from "./potentialClientService";
 
 function draftExpiryDate() {
   return new Date(Date.now() + env.DRAFT_EXPIRY_HOURS * 60 * 60 * 1000);
@@ -70,12 +71,14 @@ async function resolveOwner(
         email: input.email ?? undefined,
         phoneNumber: input.phoneNumber,
         ...(normalizedPhone ? { normalizedPhone } : {}),
-        preferredContactMethod: input.preferredContactMethod
+        preferredContactMethod: input.preferredContactMethod,
+        directoryType: "CLIENT"
       }
     });
   }
 
   const update: Prisma.OwnerUpdateInput = {};
+  update.directoryType = "CLIENT";
 
   if (!existingOwner.email && input.email) {
     update.email = input.email;
@@ -226,19 +229,34 @@ export async function updateStep2(sessionToken: string, input: AppointmentStep2)
 export async function updateStep3(sessionToken: string, input: AppointmentStep3) {
   await getActiveDraft(sessionToken);
   const data = appointmentStep3Schema.parse(input);
-  return prisma.appointmentDraft.update({
-    where: { sessionToken },
-    data: {
-      firstName: data.firstName,
-      lastName: data.lastName,
+  const [firstName, ...lastNameParts] = data.firstName.trim().split(/\s+/);
+  return prisma.$transaction(async (tx) => {
+    const draft = await tx.appointmentDraft.update({
+      where: { sessionToken },
+      data: {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phoneNumber: data.phoneNumber,
+        preferredContactMethod: data.preferredContactMethod,
+        marketingEmailOptIn: data.marketingEmailOptIn,
+        marketingSmsOptIn: data.marketingSmsOptIn,
+        lastCompletedStep: { set: 3 },
+        expiresAt: draftExpiryDate()
+      }
+    });
+    await upsertPotentialClient(tx, {
+      source: PotentialClientSource.APPOINTMENT_DRAFT,
+      sourceRecordId: draft.id,
+      sourceLabel: "Website appointment form (incomplete request)",
+      firstName,
+      lastName: lastNameParts.join(" ") || "Client",
       email: data.email,
       phoneNumber: data.phoneNumber,
-      preferredContactMethod: data.preferredContactMethod,
-      marketingEmailOptIn: data.marketingEmailOptIn,
-      marketingSmsOptIn: data.marketingSmsOptIn,
-      lastCompletedStep: { set: 3 },
-      expiresAt: draftExpiryDate()
-    }
+      emailMarketingOptIn: data.marketingEmailOptIn,
+      emailMarketingConfirmed: data.marketingEmailOptIn
+    });
+    return draft;
   });
 }
 
@@ -316,6 +334,7 @@ export async function submitAppointmentDraft(sessionToken: string) {
       phoneNumber: fullDraft.phoneNumber,
       preferredContactMethod: fullDraft.preferredContactMethod
     });
+    await convertPotentialClients(tx, { ownerId: owner.id, email: fullDraft.email, phoneNumber: fullDraft.phoneNumber });
 
     const pet = await resolvePet(tx, owner.id, {
       petName: fullDraft.petName,

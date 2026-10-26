@@ -83,10 +83,7 @@ async function eligibleAudience() {
   return prisma.owner.findMany({
     where: {
       email: { not: null },
-      OR: [
-        { clientProfile: { is: null } },
-        { clientProfile: { is: { emailMarketingStatus: { notIn: [MarketingConsentStatus.UNSUBSCRIBED, MarketingConsentStatus.SUPPRESSED] } } } }
-      ]
+      clientProfile: { is: { emailMarketingStatus: MarketingConsentStatus.SUBSCRIBED } }
     },
     select: { id: true, email: true, clientProfile: { select: { id: true } } }
   });
@@ -94,10 +91,7 @@ async function eligibleAudience() {
 
 export async function searchMarketingRecipients(search?: string) {
   const eligibilityFilter: Prisma.OwnerWhereInput = {
-    OR: [
-      { clientProfile: { is: null } },
-      { clientProfile: { is: { emailMarketingStatus: { notIn: [MarketingConsentStatus.UNSUBSCRIBED, MarketingConsentStatus.SUPPRESSED] } } } }
-    ]
+    clientProfile: { is: { emailMarketingStatus: MarketingConsentStatus.SUBSCRIBED } }
   };
   const searchFilter: Prisma.OwnerWhereInput | null = search ? {
     OR: [
@@ -145,14 +139,21 @@ async function unsuppressedAudience(recipients: AudienceRecipient[]) {
   const suppressedHashes = new Set(suppressed.map((entry) => entry.emailHash));
   const emails = recipients.map((recipient) => recipient.email);
   const profiles = await prisma.clientProfile.findMany({
-    where: { owner: { email: { in: emails } } },
+    where: { owner: { email: { in: emails, mode: "insensitive" } } },
     select: { emailMarketingStatus: true, owner: { select: { email: true } } }
   });
   const optedOutEmails = new Set(profiles
     .filter((profile) => profile.owner.email && (profile.emailMarketingStatus === MarketingConsentStatus.UNSUBSCRIBED || profile.emailMarketingStatus === MarketingConsentStatus.SUPPRESSED))
     .map((profile) => profile.owner.email!.toLowerCase()));
-
-  return recipients.filter((recipient) => !suppressedHashes.has(hashEmail(recipient.email)) && !optedOutEmails.has(recipient.email.toLowerCase()));
+  const subscribedEmails = new Set(profiles
+    .filter((profile) => profile.owner.email && profile.emailMarketingStatus === MarketingConsentStatus.SUBSCRIBED)
+    .map((profile) => profile.owner.email!.toLowerCase()));
+  const potentialClients = await prisma.potentialClient.findMany({
+    where: { normalizedEmail: { in: emails }, emailMarketingOptIn: true, emailMarketingConfirmed: true, convertedAt: null },
+    select: { normalizedEmail: true }
+  });
+  for (const lead of potentialClients) if (lead.normalizedEmail) subscribedEmails.add(lead.normalizedEmail.toLowerCase());
+  return recipients.filter((recipient) => subscribedEmails.has(recipient.email.toLowerCase()) && !suppressedHashes.has(hashEmail(recipient.email)) && !optedOutEmails.has(recipient.email.toLowerCase()));
 }
 
 async function audienceForCampaign(campaign: { audienceMode: MarketingAudienceMode; customAudience: unknown }) {
@@ -161,7 +162,7 @@ async function audienceForCampaign(campaign: { audienceMode: MarketingAudienceMo
     return unsuppressedAudience(owners.map((owner) => ({ email: owner.email!, clientProfileId: owner.clientProfile?.id ?? null })));
   }
   const emails = Array.isArray(campaign.customAudience) ? campaign.customAudience.filter((email): email is string => typeof email === "string") : [];
-  const profiles = await prisma.clientProfile.findMany({ where: { owner: { email: { in: emails } } }, select: { id: true, owner: { select: { email: true } } } });
+  const profiles = await prisma.clientProfile.findMany({ where: { owner: { email: { in: emails, mode: "insensitive" } } }, select: { id: true, owner: { select: { email: true } } } });
   const profileByEmail = new Map(profiles.filter((profile) => profile.owner.email).map((profile) => [profile.owner.email!.toLowerCase(), profile.id]));
   return unsuppressedAudience(normalizeRecipientEmails(emails).map((email) => ({ email, clientProfileId: profileByEmail.get(email) ?? null })));
 }

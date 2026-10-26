@@ -6,6 +6,9 @@ import {
   sendPetCareDoubleOptIn
 } from "../integrations/brevo/brevoClient";
 import { HttpError } from "../utils/httpError";
+import { PotentialClientSource } from "@prisma/client";
+import { prisma } from "../prisma/client";
+import { upsertPotentialClient } from "./potentialClientService";
 import type { PetCareNewsletterSubscriptionInput } from "../validators/petCareNewsletterSchemas";
 
 type NewsletterSubscriptionResult = {
@@ -73,10 +76,26 @@ export async function subscribeToPetCareNewsletter(
   });
 
   if (result.ok) {
+    await prisma.$transaction((tx) => upsertPotentialClient(tx, {
+      source: PotentialClientSource.PET_CARE_NEWSLETTER,
+      sourceRecordId: hashEmail(input.email),
+      sourceLabel: "Pet Care Library newsletter signup",
+      email: input.email,
+      emailMarketingOptIn: true,
+      emailMarketingConfirmed: false
+    }));
     return confirmationRequiredResponse;
   }
 
   if (isSafeExistingSubscriptionResponse(result.status, result.bodyText)) {
+    await prisma.$transaction((tx) => upsertPotentialClient(tx, {
+      source: PotentialClientSource.PET_CARE_NEWSLETTER,
+      sourceRecordId: hashEmail(input.email),
+      sourceLabel: "Pet Care Library newsletter signup",
+      email: input.email,
+      emailMarketingOptIn: true,
+      emailMarketingConfirmed: false
+    }));
     return confirmationRequiredResponse;
   }
 

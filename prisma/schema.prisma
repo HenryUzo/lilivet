@@ -10,6 +10,7 @@ datasource db {
 
 model Owner {
   id                     String                  @id @default(cuid())
+  directoryType          OwnerDirectoryType      @default(CLIENT)
   firstName              String
   lastName               String
   email                  String?
@@ -29,12 +30,41 @@ model Owner {
   contactMethods         OwnerContactMethod[]
   externalClientRecords  ExternalClientRecord[]
   wellnessGiveawayEntries WellnessGiveawayEntry[]
+  potentialClients       PotentialClient[]
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
 
   @@index([email])
   @@index([phoneNumber])
   @@index([normalizedPhone])
+}
+
+model PotentialClient {
+  id                    String               @id @default(cuid())
+  source                PotentialClientSource
+  sourceRecordId        String
+  sourceLabel           String
+  firstName             String?
+  lastName              String?
+  email                 String?
+  normalizedEmail       String?
+  phoneNumber           String?
+  normalizedPhone       String?
+  ownerId               String?
+  owner                 Owner?               @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  emailMarketingOptIn   Boolean              @default(false)
+  emailMarketingConfirmed Boolean            @default(false)
+  emailConsentAt        DateTime?
+  convertedAt           DateTime?
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+
+  @@unique([source, sourceRecordId])
+  @@index([normalizedEmail])
+  @@index([normalizedPhone])
+  @@index([emailMarketingOptIn, emailMarketingConfirmed, convertedAt])
+  @@index([source, createdAt])
+  @@index([ownerId])
 }
 
 model Pet {
@@ -961,6 +991,18 @@ enum MarketingCampaignStatus {
 enum MarketingAudienceMode {
   CONSENTED_CLIENTS
   SELECTED_EMAILS
+}
+
+enum OwnerDirectoryType {
+  CLIENT
+  PROSPECT
+}
+
+enum PotentialClientSource {
+  APPOINTMENT_DRAFT
+  NEW_PATIENT_FORM
+  WELLNESS_GIVEAWAY
+  PET_CARE_NEWSLETTER
 }
 
 enum MarketingDeliveryStatus {

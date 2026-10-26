@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { Prisma, type NewPatientReferralSource } from "@prisma/client";
+import { PotentialClientSource, Prisma, type NewPatientReferralSource } from "@prisma/client";
 import { prisma } from "../prisma/client";
 import { HttpError } from "../utils/httpError";
 import type {
@@ -13,6 +13,7 @@ import { sendClinicNewPatientNotification } from "./mailService";
 import { dispatchBackgroundEmail } from "./emailDispatchService";
 import { normalizePhoneNumber } from "../utils/phone";
 import { recordMarketingConsent } from "./clientCommunicationService";
+import { upsertPotentialClient } from "./potentialClientService";
 
 const REFERRAL_SOURCE_CAPTURE_TOKEN_TTL_MS = 2 * 60 * 60 * 1000;
 
@@ -54,7 +55,7 @@ export async function createNewPatientRequest(
       ? await tx.owner.findFirst({ where: { normalizedPhone }, orderBy: { createdAt: "asc" } })
       : null;
     const resolvedOwner = owner ?? await tx.owner.create({
-      data: { firstName, lastName: lastNameParts.join(" ") || "Client", email: input.owner.email || undefined, phoneNumber: input.owner.phoneNumber, normalizedPhone: normalizedPhone || undefined }
+      data: { firstName, lastName: lastNameParts.join(" ") || "Client", email: input.owner.email || undefined, phoneNumber: input.owner.phoneNumber, normalizedPhone: normalizedPhone || undefined, directoryType: "PROSPECT" }
     });
     if (owner && !owner.email && input.owner.email) {
       await tx.owner.update({ where: { id: owner.id }, data: { email: input.owner.email } });
@@ -107,6 +108,19 @@ export async function createNewPatientRequest(
         possibleDuplicate: Boolean(duplicate),
         duplicateOfId: duplicate?.id
       }
+    });
+
+    await upsertPotentialClient(tx, {
+      source: PotentialClientSource.NEW_PATIENT_FORM,
+      sourceRecordId: request.id,
+      sourceLabel: "Website new-patient request",
+      firstName,
+      lastName: lastNameParts.join(" ") || "Client",
+      email: input.owner.email,
+      phoneNumber: input.owner.phoneNumber,
+      ownerId: resolvedOwner.id,
+      emailMarketingOptIn: Boolean(input.visit.marketingEmailOptIn),
+      emailMarketingConfirmed: Boolean(input.visit.marketingEmailOptIn)
     });
 
     await attachFilesToNewPatientRequest(tx, input.uploadedFileIds ?? [], request.id);

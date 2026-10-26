@@ -1,10 +1,11 @@
 import crypto from "node:crypto";
-import { MarketingChannel, MarketingConsentAction, MarketingConsentStatus, PetSex, Prisma } from "@prisma/client";
+import { MarketingChannel, MarketingConsentAction, MarketingConsentStatus, OwnerDirectoryType, PetSex, PotentialClientSource, Prisma } from "@prisma/client";
 import { prisma } from "../prisma/client";
 import { hashEmail, sendBrevoTransactionalEmail, sendPetCareDoubleOptIn } from "../integrations/brevo/brevoClient";
 import { HttpError } from "../utils/httpError";
 import { normalizePhoneNumber } from "../utils/phone";
 import type { GiveawayCampaignUpdateInput, GiveawayEntryInput } from "../validators/wellnessGiveawaySchemas";
+import { upsertPotentialClient } from "./potentialClientService";
 
 const defaultCampaign = { slug: "wellness-giveaway" };
 const campaignSelect = { id: true, slug: true, name: true, isPublished: true, raffleEnabled: true, prizeDescription: true, discountPercent: true, expiresAt: true, termsSummary: true, termsContent: true, termsVersion: true, winnerEntryId: true, publishedAt: true, createdAt: true, updatedAt: true } satisfies Prisma.WellnessGiveawayCampaignSelect;
@@ -28,9 +29,21 @@ export async function submitGiveawayEntry(input: GiveawayEntryInput) {
   const [firstName, ...lastName] = input.fullName.split(/\s+/); const normalizedPhone = normalizePhoneNumber(input.phoneNumber);
   const entry = await prisma.$transaction(async (tx) => {
     const owner = await tx.owner.findFirst({ where: { OR: [{ email: input.email }, ...(normalizedPhone ? [{ normalizedPhone }] : [])] } });
-    const savedOwner = owner ? await tx.owner.update({ where: { id: owner.id }, data: { firstName, lastName: lastName.join(" ") || "Client", email: input.email, phoneNumber: input.phoneNumber, normalizedPhone: normalizedPhone || undefined } }) : await tx.owner.create({ data: { firstName, lastName: lastName.join(" ") || "Client", email: input.email, phoneNumber: input.phoneNumber, normalizedPhone: normalizedPhone || undefined } });
+    const savedOwner = owner ? await tx.owner.update({ where: { id: owner.id }, data: { firstName, lastName: lastName.join(" ") || "Client", email: input.email, phoneNumber: input.phoneNumber, normalizedPhone: normalizedPhone || undefined } }) : await tx.owner.create({ data: { firstName, lastName: lastName.join(" ") || "Client", email: input.email, phoneNumber: input.phoneNumber, normalizedPhone: normalizedPhone || undefined, directoryType: OwnerDirectoryType.PROSPECT } });
     const saved = existing ? await tx.wellnessGiveawayEntry.update({ where: { id: existing.id }, data: { ownerId: savedOwner.id, currentPatient: input.currentPatient, marketingOptIn: input.marketingOptIn || existing.marketingOptIn, termsVersion: campaign.termsVersion, termsAcceptedAt: new Date(), pets: { deleteMany: {} } }, include: { owner: true } }) : await tx.wellnessGiveawayEntry.create({ data: { campaignId: campaign.id, ownerId: savedOwner.id, emailHash, currentPatient: input.currentPatient, marketingOptIn: input.marketingOptIn, rewardCode: rewardCode(), termsVersion: campaign.termsVersion }, include: { owner: true } });
     for (const pet of input.pets) { const existingPet = await tx.pet.findFirst({ where: { ownerId: savedOwner.id, name: { equals: pet.name, mode: "insensitive" } } }); const savedPet = existingPet ? await tx.pet.update({ where: { id: existingPet.id }, data: { species: pet.species, breed: pet.breed || undefined, age: pet.age || undefined } }) : await tx.pet.create({ data: { ownerId: savedOwner.id, name: pet.name, species: pet.species, breed: pet.breed || undefined, age: pet.age || undefined, sex: PetSex.UNKNOWN } }); await tx.wellnessGiveawayPet.create({ data: { entryId: saved.id, petId: savedPet.id, name: pet.name, species: pet.species, age: pet.age || undefined, breed: pet.breed || undefined } }); }
+    await upsertPotentialClient(tx, {
+      source: PotentialClientSource.WELLNESS_GIVEAWAY,
+      sourceRecordId: saved.id,
+      sourceLabel: `Wellness giveaway: ${campaign.name}`,
+      firstName,
+      lastName: lastName.join(" ") || "Client",
+      email: input.email,
+      phoneNumber: input.phoneNumber,
+      ownerId: savedOwner.id,
+      emailMarketingOptIn: input.marketingOptIn,
+      emailMarketingConfirmed: Boolean(existing?.marketingConfirmed)
+    });
     return saved;
   });
   void sendReward(entry, campaign);

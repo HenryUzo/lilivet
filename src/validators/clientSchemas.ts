@@ -7,6 +7,12 @@ export const clientListQuerySchema = z.object({
   cursor: z.string().optional()
 });
 
+export const potentialClientListQuerySchema = z.object({
+  search: z.string().trim().min(1).max(200).optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+  cursor: z.string().optional()
+}).strict();
+
 const optionalText = (max: number) => z.preprocess(
   (value) => typeof value === "string" && !value.trim() ? null : value,
   z.string().trim().max(max).nullable().optional()

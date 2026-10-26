@@ -1,4 +1,4 @@
-import { ClientDataSource, ClientStatus, MarketingChannel, MarketingConsentAction, MarketingConsentStatus, OwnerContactChannel, PetSex, PetSpecies, Prisma } from "@prisma/client";
+import { ClientDataSource, ClientStatus, MarketingChannel, MarketingConsentAction, MarketingConsentStatus, OwnerContactChannel, OwnerDirectoryType, PetSex, PetSpecies, Prisma } from "@prisma/client";
 import ExcelJS from "exceljs";
 import { prisma } from "../prisma/client";
 import { normalizePhoneNumber } from "../utils/phone";
@@ -42,7 +42,7 @@ export async function recordMarketingConsent(
 }
 
 export async function listClients(input: { search?: string; consent?: "EMAIL" | "SMS" | "NONE"; limit: number; cursor?: string }) {
-  const filters: Prisma.OwnerWhereInput[] = [];
+  const filters: Prisma.OwnerWhereInput[] = [{ directoryType: OwnerDirectoryType.CLIENT }];
 
   if (input.search) {
     filters.push({ OR: [
@@ -160,7 +160,7 @@ export async function importClientTrackerCsv(file: Express.Multer.File, initiate
         if (normalizedPhone) ownerMatches.push({ normalizedPhone }); if (email) ownerMatches.push({ email });
         const owner = ownerMatches.length ? await tx.owner.findFirst({ where: { OR: ownerMatches } }) : null;
         const address = text(row.Address) || text(row["Address Line 1"]);
-        const savedOwner = owner ? await tx.owner.update({ where: { id: owner.id }, data: { email: owner.email || email || undefined, addressLine1: owner.addressLine1 || address || undefined, addressLine2: owner.addressLine2 || text(row["Address Line 2"]) || undefined, city: owner.city || text(row.City) || undefined, state: owner.state || text(row.State) || undefined, postalCode: owner.postalCode || text(row["Postal Code"]) || undefined } }) : await tx.owner.create({ data: { firstName, lastName: lastName.join(" ") || "Client", email: email || undefined, phoneNumber: phone, normalizedPhone: normalizedPhone || undefined, addressLine1: address || undefined, addressLine2: text(row["Address Line 2"]) || undefined, city: text(row.City) || undefined, state: text(row.State) || undefined, postalCode: text(row["Postal Code"]) || undefined } });
+        const savedOwner = owner ? await tx.owner.update({ where: { id: owner.id }, data: { directoryType: OwnerDirectoryType.CLIENT, email: owner.email || email || undefined, addressLine1: owner.addressLine1 || address || undefined, addressLine2: owner.addressLine2 || text(row["Address Line 2"]) || undefined, city: owner.city || text(row.City) || undefined, state: owner.state || text(row.State) || undefined, postalCode: owner.postalCode || text(row["Postal Code"]) || undefined } }) : await tx.owner.create({ data: { firstName, lastName: lastName.join(" ") || "Client", email: email || undefined, phoneNumber: phone, normalizedPhone: normalizedPhone || undefined, addressLine1: address || undefined, addressLine2: text(row["Address Line 2"]) || undefined, city: text(row.City) || undefined, state: text(row.State) || undefined, postalCode: text(row["Postal Code"]) || undefined, directoryType: OwnerDirectoryType.CLIENT } });
         const existingPet = await tx.pet.findFirst({ where: { ownerId: savedOwner.id, name: { equals: petName, mode: "insensitive" } } });
         const pet = existingPet ? await tx.pet.update({ where: { id: existingPet.id }, data: { species: existingPet.species === PetSpecies.UNKNOWN && species(row.Species) !== PetSpecies.UNKNOWN ? species(row.Species) : undefined, breed: existingPet.breed || text(row.Breed) || undefined, sex: existingPet.sex === PetSex.UNKNOWN && sex(row.Sex) !== PetSex.UNKNOWN ? sex(row.Sex) : undefined, age: existingPet.age || text(row.Age) || undefined, spayedNeutered: existingPet.spayedNeutered ?? (row["Spayed/Neutered"] ? /spayed|neutered/i.test(row["Spayed/Neutered"]) : undefined) } }) : await tx.pet.create({ data: { ownerId: savedOwner.id, name: petName, species: species(row.Species), breed: text(row.Breed) || undefined, sex: sex(row.Sex), age: text(row.Age) || undefined, spayedNeutered: row["Spayed/Neutered"] ? /spayed|neutered/i.test(row["Spayed/Neutered"]) : undefined } });
         if (isWeave) {
