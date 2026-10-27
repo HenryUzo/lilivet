@@ -2,6 +2,7 @@ import { z } from "zod";
 
 const campaignText = z.string().trim().max(12000);
 const recipientEmail = z.string().trim().email().max(320).transform((value) => value.toLowerCase());
+const starterTemplateId = z.enum(["starter:clinic-update", "starter:wellness-reminder", "starter:seasonal-offer"]);
 const blockSchema = z.object({
   id: z.string().trim().min(1).max(80),
   type: z.enum(["TITLE", "TEXT", "IMAGE", "BUTTON", "DIVIDER", "LOGO", "SOCIAL", "SPACER"]),
@@ -18,7 +19,8 @@ const campaignFields = {
   htmlContent: campaignText,
   textContent: campaignText,
   contentBlocks: z.array(blockSchema).max(60).default([]),
-  templateId: z.string().cuid().nullable().optional(),
+  // Built-in templates use stable `starter:*` IDs; saved templates use CUIDs.
+  templateId: z.union([z.string().cuid(), starterTemplateId]).nullable().optional(),
   recipientSelectionConfirmed: z.boolean().default(false),
   designConfigured: z.boolean().default(false),
   audienceMode: z.enum(["CONSENTED_CLIENTS", "SELECTED_EMAILS"]).default("CONSENTED_CLIENTS"),
