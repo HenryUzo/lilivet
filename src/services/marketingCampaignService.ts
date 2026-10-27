@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { MarketingAudienceMode, MarketingConsentAction, MarketingConsentStatus, MarketingDeliveryStatus, MarketingCampaignStatus, Prisma } from "@prisma/client";
+import { MarketingAudienceMode, MarketingConsentAction, MarketingConsentStatus, MarketingDeliveryStatus, MarketingCampaignStatus, OwnerDirectoryType, Prisma } from "@prisma/client";
 import { env } from "../config/env";
 import { createBrevoMarketingCampaign, createBrevoMarketingList, createBrevoMarketingTestCampaign, hashEmail, sendBrevoMarketingCampaign, sendBrevoMarketingCampaignTest, upsertBrevoContactsToList } from "../integrations/brevo/brevoClient";
 import { prisma } from "../prisma/client";
@@ -114,7 +114,7 @@ export async function searchMarketingRecipients(search?: string) {
 
 export async function validateMarketingRecipients(emails: string[]) {
   const normalized = normalizeRecipientEmails(emails);
-  const allowed = await unsuppressedAudience(normalized.map((email) => ({ email, clientProfileId: null })));
+  const allowed = await unsuppressedAudience(normalized.map((email) => ({ email, clientProfileId: null })), true);
   const allowedSet = new Set(allowed.map((recipient) => recipient.email));
   return { recipientEmails: allowed.map((recipient) => recipient.email), acceptedCount: allowed.length, suppressedCount: normalized.length - allowed.length, duplicateCount: emails.length - normalized.length };
 }
@@ -133,27 +133,39 @@ function normalizeRecipientEmails(emails: string[]) {
   return [...new Set(emails.map((email) => email.trim().toLowerCase()).filter(Boolean))];
 }
 
-async function unsuppressedAudience(recipients: AudienceRecipient[]) {
+async function unsuppressedAudience(recipients: AudienceRecipient[], allowKnownContactsWithoutOptIn = false) {
   const hashes = recipients.map((recipient) => hashEmail(recipient.email));
   const suppressed = await prisma.marketingEmailSuppression.findMany({ where: { emailHash: { in: hashes } }, select: { emailHash: true } });
   const suppressedHashes = new Set(suppressed.map((entry) => entry.emailHash));
   const emails = recipients.map((recipient) => recipient.email);
-  const profiles = await prisma.clientProfile.findMany({
-    where: { owner: { email: { in: emails, mode: "insensitive" } } },
-    select: { emailMarketingStatus: true, owner: { select: { email: true } } }
+  const owners = await prisma.owner.findMany({
+    where: { email: { in: emails, mode: "insensitive" } },
+    select: { email: true, directoryType: true, clientProfile: { select: { emailMarketingStatus: true } } }
   });
-  const optedOutEmails = new Set(profiles
-    .filter((profile) => profile.owner.email && (profile.emailMarketingStatus === MarketingConsentStatus.UNSUBSCRIBED || profile.emailMarketingStatus === MarketingConsentStatus.SUPPRESSED))
-    .map((profile) => profile.owner.email!.toLowerCase()));
-  const subscribedEmails = new Set(profiles
-    .filter((profile) => profile.owner.email && profile.emailMarketingStatus === MarketingConsentStatus.SUBSCRIBED)
-    .map((profile) => profile.owner.email!.toLowerCase()));
+  const optedOutEmails = new Set(owners
+    .filter((owner) => owner.email && (owner.clientProfile?.emailMarketingStatus === MarketingConsentStatus.UNSUBSCRIBED || owner.clientProfile?.emailMarketingStatus === MarketingConsentStatus.SUPPRESSED))
+    .map((owner) => owner.email!.toLowerCase()));
+  const subscribedEmails = new Set(owners
+    .filter((owner) => owner.email && owner.clientProfile?.emailMarketingStatus === MarketingConsentStatus.SUBSCRIBED)
+    .map((owner) => owner.email!.toLowerCase()));
+  const knownClientEmails = new Set(owners
+    .filter((owner) => owner.email && owner.directoryType === OwnerDirectoryType.CLIENT)
+    .map((owner) => owner.email!.toLowerCase()));
   const potentialClients = await prisma.potentialClient.findMany({
-    where: { normalizedEmail: { in: emails }, emailMarketingOptIn: true, emailMarketingConfirmed: true, convertedAt: null },
-    select: { normalizedEmail: true }
+    where: { normalizedEmail: { in: emails } },
+    select: { normalizedEmail: true, emailMarketingOptIn: true, emailMarketingConfirmed: true }
   });
-  for (const lead of potentialClients) if (lead.normalizedEmail) subscribedEmails.add(lead.normalizedEmail.toLowerCase());
-  return recipients.filter((recipient) => subscribedEmails.has(recipient.email.toLowerCase()) && !suppressedHashes.has(hashEmail(recipient.email)) && !optedOutEmails.has(recipient.email.toLowerCase()));
+  const knownPotentialEmails = new Set(potentialClients.flatMap((lead) => lead.normalizedEmail ? [lead.normalizedEmail.toLowerCase()] : []));
+  for (const lead of potentialClients) {
+    if (lead.normalizedEmail && lead.emailMarketingOptIn && lead.emailMarketingConfirmed) subscribedEmails.add(lead.normalizedEmail.toLowerCase());
+  }
+  return recipients.filter((recipient) => {
+    const email = recipient.email.toLowerCase();
+    const optedIn = subscribedEmails.has(email);
+    const knownContact = knownClientEmails.has(email) || knownPotentialEmails.has(email);
+    const notSuppressed = !suppressedHashes.has(hashEmail(recipient.email)) && !optedOutEmails.has(email);
+    return notSuppressed && (optedIn || (allowKnownContactsWithoutOptIn && knownContact));
+  });
 }
 
 async function audienceForCampaign(campaign: { audienceMode: MarketingAudienceMode; customAudience: unknown }) {
@@ -164,7 +176,7 @@ async function audienceForCampaign(campaign: { audienceMode: MarketingAudienceMo
   const emails = Array.isArray(campaign.customAudience) ? campaign.customAudience.filter((email): email is string => typeof email === "string") : [];
   const profiles = await prisma.clientProfile.findMany({ where: { owner: { email: { in: emails, mode: "insensitive" } } }, select: { id: true, owner: { select: { email: true } } } });
   const profileByEmail = new Map(profiles.filter((profile) => profile.owner.email).map((profile) => [profile.owner.email!.toLowerCase(), profile.id]));
-  return unsuppressedAudience(normalizeRecipientEmails(emails).map((email) => ({ email, clientProfileId: profileByEmail.get(email) ?? null })));
+  return unsuppressedAudience(normalizeRecipientEmails(emails).map((email) => ({ email, clientProfileId: profileByEmail.get(email) ?? null })), true);
 }
 
 export async function listMarketingCampaigns() {
@@ -287,3 +299,4 @@ export function verifyMarketingWebhook(secret: string | undefined) {
   const expected = env.BREVO_MARKETING_WEBHOOK_SECRET;
   return Boolean(expected && secret && secret.length === expected.length && crypto.timingSafeEqual(Buffer.from(secret), Buffer.from(expected)));
 }
+
