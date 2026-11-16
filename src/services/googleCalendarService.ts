@@ -84,7 +84,32 @@ async function getAccessToken() {
   });
 
   if (!response.ok) {
-    throw new Error(`Google OAuth token request failed with status ${response.status}`);
+    const payload = (await response.json().catch(() => null)) as {
+      error?: unknown;
+      error_description?: unknown;
+    } | null;
+    const errorCode =
+      typeof payload?.error === "string" && /^[a-z0-9_]{1,80}$/i.test(payload.error)
+        ? payload.error
+        : "unknown_error";
+    const errorDescription =
+      typeof payload?.error_description === "string"
+        ? payload.error_description
+            .replace(/\b(client_secret|refresh_token|access_token|client_id|authorization_code|code)\b\s*[:=]\s*["']?[^"'&\s,]+["']?/gi, "$1=[redacted]")
+            .replace(/[\u0000-\u001f\u007f]/g, " ")
+            .replace(/\s+/g, " ")
+            .trim()
+            .slice(0, 240)
+        : "No error description provided.";
+    const safeDescription = errorDescription || "No error description provided.";
+    console.error("Google Calendar OAuth token refresh failed", {
+      status: response.status,
+      error: errorCode,
+      errorDescription: safeDescription
+    });
+    throw new Error(
+      `Google OAuth token request failed with status ${response.status} (${errorCode}): ${safeDescription}`
+    );
   }
 
   const data = (await response.json()) as GoogleTokenResponse;
